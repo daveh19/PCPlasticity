@@ -43,9 +43,11 @@ int main( int argc, char *argv[] ){
         // Update each synapse
         for (i = 0; i < no_synapses; i++){
             printf("syn(%d) ", i);
+			updatePreSynapticVGCCAvailability(&syn[i]);
+			updatePreSynapticNOConcentration(&syn[i]);
             updateCalciumConcentration(&syn[i]);
             updateSynapticEfficacy(&syn[i]);
-            printf("t: %d, c: %f, rho: %f\n", siT, syn[i].c[siT-time_of_last_save], syn[i].rho[siT]);
+            printf("t: %d, c: %f, rho: %f, VGCC: %f, NO: %f\n", siT, syn[i].c[siT-time_of_last_save], syn[i].rho[siT], syn[i].VGCC_avail[siT], syn[i].NO_pre[siT]);
         }
         checkpoint_save(syn);
         siT++;
@@ -85,7 +87,7 @@ int main( int argc, char *argv[] ){
         alpha_d[i] = 0;
         alpha_p[i] = 0;
     }
-    for(j = 3000; j < simulation_duration; j++){
+    for(j = 3000; j < simulation_duration; j++){ //discard first 3000ms
         for(i = 0; i < no_synapses; i++){
             if ( syn[i].c[j] > theta_d){
                 alpha_d[i]++;
@@ -121,6 +123,7 @@ void updateSynapticEfficacy(Synapse *syn){
         printf("\nNoise is active, rand_no: %f, noise: %f\n", rand_no, noise);
         drho += noise;
     }
+	//TODO: should I introduce an explicit dt? (system wide change)
 
     drho /= (double)iTau;
     if ( (rho + drho) > 0 ){
@@ -183,6 +186,57 @@ double calciumFromPostSynapticSpikes(Synapse *syn){
 }
 
 
+// Update VGCC_avail variable, representing proportion of pre-synaptic
+// VGCCs which are open
+// Note: there is a delay iVGCCOpeningDelay before Magnesium block
+// is released by a pre-synaptic spike
+void updatePreSynapticVGCCAvailability(Synapse *syn){
+	float vgcc, dvgcc;
+	
+	vgcc = (*syn).VGCC_avail[siT];
+	dvgcc = (-vgcc / (float)iTauVGCC) + vgccFromPreSynapticSpikes(syn);
+	(*syn).VGCC_avail[siT + 1] = vgcc + dvgcc;
+}
+
+
+float vgccFromPreSynapticSpikes(Synapse *syn){
+    float d;
+	
+    if (siT < iVGCCOpeningDelay){
+        d = 0.0;
+    }
+    else if( (siT >= iVGCCOpeningDelay) && ( siT < (simulation_duration - 1) ) ){
+        d = ((double) (*syn).preT[siT - iVGCCOpeningDelay]) * fVGCCjump;
+    }
+    else{ // This shouldn't happen!
+        fprintf(logfile, "ERROR: unexpected situation in vgccFromPreSynapticSpikes()");
+    }
+	
+    return d;
+}
+
+
+void updatePreSynapticNOConcentration(Synapse *syn){
+	float no, dno;
+	
+	no = (*syn).NO_pre[siT];
+	dno = (-no / (float)iTauNO) + noFromPreSynapticSpikes(syn);
+	(*syn).NO_pre[siT + 1] = no + dno;
+}
+
+
+float noFromPreSynapticSpikes(Synapse *syn){
+	float d;
+	
+	//CONSIDER: could potentially look-ahead to next VGCC_avail value ([siT+1]), if I process them in the right order
+	d = (*syn).VGCC_avail[siT] * ((double)(*syn).preT[siT]) * fNOjump;
+	
+	return d;
+}
+
+
+
+
 // Setup spike times (hard-coded version)
 // preT[i] = 1 means a spike occurs at time i
 // preT[i] = 0 implies no spike at time i
@@ -213,6 +267,8 @@ void synapse_memory_init(Synapse *syn){
     double * local_rho;
     unsigned int * local_preT;
     unsigned int * local_postT;
+	float * local_vgcc_avail;
+	float * local_no_pre;
     //Synapse * local_synapse;
     fprintf(logfile, "Synapse simulator initialising.\n");
 
@@ -240,7 +296,8 @@ void synapse_memory_init(Synapse *syn){
         }
         else{//removed (*syn) to allow for array based syn[0]
             (syn[i]).c = local_c;
-            syn[i].c[0] = initial_c; // TODO: check if this hardcoded 0 is ok
+			// TODO: check if this hardcoded 0 is ok
+            syn[i].c[0] = initial_c; // I shorten c[] to newly remaining length of sim if loading from a checkpoint!
             fprintf(logfile, "syn(%d).c successfully assigned\n", i);
             //fprintf(logfile, "DEBUG:: syn(%d).c(0): %lf\n", i, syn[i].c[0]);
         }
@@ -281,6 +338,26 @@ void synapse_memory_init(Synapse *syn){
             (syn[i]).postT = local_postT;
             fprintf(logfile, "syn(%d).postT successfully assigned\n", i);
         }
+		
+		// Memory allocation for VGCC and NO variables
+		local_vgcc_avail = (float *) malloc( (simulation_duration) * sizeof(float) );
+        if (local_vgcc_avail == NULL){
+            perror("Memory allocation failure (VGCC_avail)\n");
+            fprintf(logfile, "ERROR: Memory allocation failure (VGCC_avail)\n");
+        }
+        else{
+            (syn[i]).VGCC_avail = local_vgcc_avail;
+            fprintf(logfile, "syn(%d).VGCC_avail successfully assigned\n", i);
+        }
+		local_no_pre = (float *) malloc( (simulation_duration) * sizeof(float) );
+        if (local_no_pre == NULL){
+            perror("Memory allocation failure (NO_pre)\n");
+            fprintf(logfile, "ERROR: Memory allocation failure (NO_pre)\n");
+        }
+        else{
+            (syn[i]).NO_pre = local_no_pre;
+            fprintf(logfile, "syn(%d).NO_pre successfully assigned\n", i);
+        }
     }
     fprintf(logfile, "Initialisation of simulator complete\n");
 }
@@ -295,6 +372,8 @@ int finalise(int status, Synapse *syn){
             free((syn[i]).rho);
             free((syn[i]).preT);
             free((syn[i]).postT);
+			free((syn[i]).VGCC_avail);
+			free((syn[i]).NO_pre);
         }
         free(syn);
         fprintf(logfile, "Memory freed\n");

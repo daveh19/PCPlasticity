@@ -10,6 +10,12 @@
         SYNAPSE_RESTART=y if this is a resume, unset it otherwise
 */
 
+
+/* 
+	Reminder: the way the timings are coded, viewed from time t (after an update)
+     a delay D which was applied to the variables before the update is actually seen
+     as a delay of D+1	 (so minimal delay right now is 1ms)
+*/
 int simulation_duration;
 int no_synapses;
 
@@ -35,6 +41,12 @@ double dSigma;
 int iPreSpikeDelay;
 double poisson_param;
 
+int iVGCCOpeningDelay;
+int iTauVGCC;
+int iTauNO;
+float fVGCCjump;
+float fNOjump;
+
 int siT; // no longer static
 int siID; // no longer static
 int time_of_last_save;
@@ -58,6 +70,8 @@ typedef struct Synapse{
         double * c;
         unsigned int * preT;
         unsigned int * postT;
+		float * VGCC_avail;
+		float * NO_pre;
         int ID;
 } Synapse;
 
@@ -70,5 +84,9 @@ double calciumFromPostSynapticSpikes(Synapse *);
 void updateCalciumConcentration(Synapse *);
 BOOL h(Synapse *, double);
 void updateSynapticEfficacy(Synapse *);
+float vgccFromPreSynapticSpikes(Synapse *syn);
+void updatePreSynapticVGCCAvailability(Synapse *syn);
+float noFromPreSynapticSpikes(Synapse *syn);
+void updatePreSynapticNOConcentration(Synapse *syn);
 
 #endif /*SYNAPSE_H_*/
