@@ -79,8 +79,8 @@ int main( int argc, char *argv[] ){
     // Calculate alpha_d and alpha_p
     float alpha_d[no_synapses];
     float alpha_p[no_synapses];
-    float theta_d = 1.0;
-    float theta_p = 1.3;
+    float theta_d = dThetaD;
+    float theta_p = dThetaP;
     for(i = 0; i < no_synapses; i++){
         alpha_d[i] = 0;
         alpha_p[i] = 0;

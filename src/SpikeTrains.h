@@ -72,3 +72,18 @@ int train26(unsigned int * preT, unsigned int * postT, unsigned int simulation_d
 // Single: pre-spike occurs as a poisson process, rate n1
 // Dual: Pre-spike occurs as poisson process, post-spike occurs T timesteps after pre-spike
 int train27(unsigned int * preT, unsigned int * postT, unsigned int simulation_duration);
+
+
+// Purkinje test trains
+// train28 Lev-Ram'03 LTD protocol: PF+CF at 1Hz for 30 secs, then no further inputs.
+//Modified: to assume that the PF stim is actually a paired-pulse
+int train28(unsigned int * preT, unsigned int * postT, unsigned int simulation_duration);
+// train29 Lev-Ram'03 LTP protocol: PF only at 1Hz for 300 stims, then no further inputs.
+//Modified: to assume that the PF stim is actually a paired-pulse
+int train29(unsigned int * preT, unsigned int * postT, unsigned int simulation_duration);
+// train30 Wang'00 LTD protocol: X PF stims with fixed gap between them, followed by CF stim at offset,
+// repeated at intervals Y times, then no further inputs.
+int train30(unsigned int * preT, unsigned int * postT, unsigned int simulation_duration);
+// train31 Wang'00 LTP protocol: X PF stims with fixed gap between them, no CF stim,
+// repeated at intervals Y times, then no further inputs.
+int train31(unsigned int * preT, unsigned int * postT, unsigned int simulation_duration);
