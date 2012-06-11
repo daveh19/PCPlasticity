@@ -1,2 +1,2 @@
-./CSynapticSimulator parameters.txt log.txt tau_eff__1_%.4d.dat
+./PurkinjePlasticity parameters.txt log.txt purkinje_1_%.4d.dat
 
