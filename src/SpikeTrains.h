@@ -91,3 +91,6 @@ int train31(unsigned int * preT, unsigned int * postT, unsigned int simulation_d
 int train32(unsigned int * preT, unsigned int * postT, unsigned int simulation_duration);
 // train33 is Mariano's LTP protocol with added CF stim
 int train33(unsigned int * preT, unsigned int * postT, unsigned int simulation_duration);
+// train34 Bidoret'09 LTD protocol: PC depolarisation of 120ms, 2PF stims one falling 60ms after start of PC depolarisation,
+// the other Xms before, protocol repeated at intervals Y times, then no further inputs.
+int train34(unsigned int * preT, unsigned int * postT, unsigned int simulation_duration);

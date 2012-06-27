@@ -1071,3 +1071,44 @@ int train33(unsigned int * preT, unsigned int * postT, unsigned int simulation_d
 	
     return 0;
 }
+
+
+// train34 Bidoret'09 LTD protocol: PC depolarisation of 120ms, 2PF stims one falling 60ms after start of PC depolarisation,
+// the other Xms before, protocol repeated at intervals Y times, then no further inputs.
+// Assumes preT and postT initialised to 0 using calloc()
+// wavelength is gap between stims, everything measured in ms
+int train34(unsigned int * preT, unsigned int * postT, unsigned int simulation_duration){
+    int i, wavelength, recurrent_no_stims;
+	//int dt;
+	int no_pf_stims;
+	//int cf_offset; // ms
+	int inter_pf_gap; // ms
+    //float freq, rho;
+    //freq = 1;
+    //rho = 1000; // freq / 1000; // Convert Hz frequency to per millisecond
+    //dt = 0; // measured in ms
+    wavelength = 1000; //(int)(1.0 / rho);
+	recurrent_no_stims = 120; // repeat protocol x times
+	
+	inter_pf_gap = 5; // ms
+	no_pf_stims = 2;
+	//cf_offset = 40;
+	
+    for (i = 0; i < recurrent_no_stims; i++){
+		for ( int j = 0; j < 120; j++){ // PC depolarisation
+			if ((i*wavelength + j) < simulation_duration){
+				postT[(i*wavelength) + j] = 1;
+			}
+		}
+		for (int j = 0; j < no_pf_stims; j++){
+			if (((i*wavelength) + 60 - (j*inter_pf_gap)) < simulation_duration){
+				preT[(i*wavelength) + 60 - (j*inter_pf_gap)] = 1;
+			}
+		}
+		
+        //printf("DEBUG: i: %d, j: %d\n", (i*wavelength), ((i*wavelength)+dt));
+        //}
+    }
+	
+    return 0;
+}

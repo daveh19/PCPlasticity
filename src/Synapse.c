@@ -154,8 +154,13 @@ BOOL h(float c, double theta){
 void updateCalciumConcentration(Synapse *syn){
     double c, dc;
     c = (*syn).c[siT];
-    dc = (-c / (double)iTauC) + calciumFromPreSynapticSpikes(syn) + calciumFromPostSynapticSpikes(syn);
-    (*syn).c[siT + 1] = c + dc; // Euler forward method
+	if (calciumFromPostSynapticSpikes(syn) > 0){ // post-synaptic depolarisation: fix Ca concentration
+		(*syn).c[siT + 1] = dCpost;
+	}
+	else{
+		dc = (-c / (double)iTauC) + calciumFromPreSynapticSpikes(syn);// + calciumFromPostSynapticSpikes(syn);
+		(*syn).c[siT + 1] = c + dc; // Euler forward method
+	}
 }
 
 
