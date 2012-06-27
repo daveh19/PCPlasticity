@@ -87,3 +87,7 @@ int train30(unsigned int * preT, unsigned int * postT, unsigned int simulation_d
 // train31 Wang'00 LTP protocol: X PF stims with fixed gap between them, no CF stim,
 // repeated at intervals Y times, then no further inputs.
 int train31(unsigned int * preT, unsigned int * postT, unsigned int simulation_duration);
+// train32 Mariano's LTP protocol
+int train32(unsigned int * preT, unsigned int * postT, unsigned int simulation_duration);
+// train33 is Mariano's LTP protocol with added CF stim
+int train33(unsigned int * preT, unsigned int * postT, unsigned int simulation_duration);

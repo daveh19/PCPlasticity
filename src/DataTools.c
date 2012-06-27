@@ -42,7 +42,7 @@ Synapse* checkpoint_init(int argc, char *argv[], Synapse *syn){
         for (i = 0; i < no_synapses; i++){
             syn[i].rho[siT] = initial_rho;
             syn[i].c[siT] = initial_c; 
-			syn[i].VGCC_avail[siT] = 0; //TODO: use variables to assign initial values to VGCC_avail and NO_pre
+			syn[i].V_pre[siT] = 0; //TODO: use variables to assign initial values to V_pre and NO_pre
 			syn[i].NO_pre[siT] = 0;
         }
 //        for (i = 0; i < no_synapses; i++){
@@ -300,7 +300,7 @@ int createOutputFileHeader(char* filename, void *obj, int duration, double dCpre
         fprintf(logfile, "Saving to file: %s\n", filename);
 
         fprintf(fp, "\n\n# Params:\n#    Cpre: %f, Cpost: %f, thetaD: %f, thetaP: %f, gammaD: %f, gammaP: %f, sigma: %f\n#    Delay: %d, tau: %d, tauC: %d, rhoF: %f, poisson param: %f, seed: %ld\n", dCpre, dCpost, dThetaD, dThetaP, dGammaD, dGammaP, dSigma, iPreSpikeDelay, iTau, iTauC, dRhoFixed, poisson_param, initial_random_seed);
-        fprintf(fp, "#    iVGCCOpeningDelay: %d, iTauVGCC: %d, iTauNO: %d, fVGCCjump: %f, fNOjump: %f\n", iVGCCOpeningDelay, iTauVGCC, iTauNO, fVGCCjump, fNOjump);
+        fprintf(fp, "#    iVOpeningDelay: %d, iTauV: %d, iTauNMDAR: %d, fVjump: %f, fNMDARjump: %f, fThetaNO: %f\n", iVOpeningDelay, iTauV, iTauNMDAR, fVjump, fNMDARjump, fThetaNO);
 		fprintf(fp,"#\n# Synaptic output, Synapse(%d):\n# t rho c preT postT\n", (*syn).ID);
 
         fclose(fp);
@@ -326,10 +326,10 @@ int saveSynapseOutputFile(char* filename, void *obj, int duration, double dCpre,
         fprintf(logfile, "Saving to file: %s\n", filename);
 
         fprintf(fp, "\n\n# Params:\n#    Cpre: %f, Cpost: %f, thetaD: %f, thetaP: %f, gammaD: %f, gammaP: %f, sigma: %f\n#    Delay: %d, tau: %d, tauC: %d, rhoF: %f, poisson param: %f, seed: %ld\n", dCpre, dCpost, dThetaD, dThetaP, dGammaD, dGammaP, dSigma, iPreSpikeDelay, iTau, iTauC, dRhoFixed, poisson_param, initial_random_seed);
-        fprintf(fp, "#    iVGCCOpeningDelay: %d, iTauVGCC: %d, iTauNO: %d, fVGCCjump: %f, fNOjump: %f\n", iVGCCOpeningDelay, iTauVGCC, iTauNO, fVGCCjump, fNOjump);
-		fprintf(fp,"#\n# Synaptic output, Synapse(%d):\n# t rho c preT postT VGCC_avail NO_pre\n", (*syn).ID);
+        fprintf(fp, "#    iVOpeningDelay: %d, iTauV: %d, iTauNMDAR: %d, fVjump: %f, fNMDARjump: %f, fThetaNO: %f\n", iVOpeningDelay, iTauV, iTauNMDAR, fVjump, fNMDARjump, fThetaNO);
+		fprintf(fp,"#\n# Synaptic output, Synapse(%d):\n# t rho c preT postT V_pre NO_pre\n", (*syn).ID);
         for (i = 0; i <= duration; i++){
-            fprintf(fp, "%d %f %0.10lf %u %u %f %f\n", i, (*syn).rho[i], (*syn).c[i], (*syn).preT[i], (*syn).postT[i], (*syn).VGCC_avail[i], (*syn).NO_pre[i]);
+            fprintf(fp, "%d %f %0.10lf %u %u %f %f\n", i, (*syn).rho[i], (*syn).c[i], (*syn).preT[i], (*syn).postT[i], (*syn).V_pre[i], (*syn).NO_pre[i]);
         }
         fclose(fp);
         fprintf(logfile, "Completed saving\n");
@@ -355,12 +355,17 @@ void loadSimulationParameters(int argc, char *argv[]){
     time_of_last_save = -1;
 	
 	//TODO: parameterise NO model variables
-	iVGCCOpeningDelay = 1;
-	iTauVGCC = 15;
-	iTauNO = 30;
-	fVGCCjump = 3.0;
-	fNOjump = 1.0;
+	iVOpeningDelay = 1;
+	iTauV = 28; //from Bidoret'09
+	iTauNMDAR = 70;
+	fVjump = 1.0;
+	fNMDARjump = 2.85;
+	fVmax = 1.0;
+	fNMDARmax = 200.0; // not applied at present
+	fThetaNO = 1;
+	fThetaNO2 = 20;
 
+	
     if (argc < 2){
         printf("No command-line arguments passed....loading defaults.\n");
         printf("arg0 is %s\n", argv[0]);
@@ -551,6 +556,12 @@ void loadSimulationParameters(int argc, char *argv[]){
                     }
 					else if ((int) paramValue == 31){
                         train_fn = train31;
+                    }
+					else if ((int) paramValue == 32){
+                        train_fn = train32;
+                    }
+					else if ((int) paramValue == 33){
+                        train_fn = train33;
                     }
                     printf("DEBUG: train function loaded from param file\n");
                 }

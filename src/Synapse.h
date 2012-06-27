@@ -41,11 +41,15 @@ double dSigma;
 int iPreSpikeDelay;
 double poisson_param;
 
-int iVGCCOpeningDelay;
-int iTauVGCC;
-int iTauNO;
-float fVGCCjump;
-float fNOjump;
+int iVOpeningDelay;
+int iTauV;
+int iTauNMDAR;
+float fVjump;
+float fNMDARjump;
+float fVmax;
+float fNMDARmax;
+float fThetaNO;
+float fThetaNO2;
 
 int siT; // no longer static
 int siID; // no longer static
@@ -70,7 +74,7 @@ typedef struct Synapse{
         double * c;
         unsigned int * preT;
         unsigned int * postT;
-		float * VGCC_avail;
+		float * V_pre;
 		float * NO_pre;
         int ID;
 } Synapse;
@@ -82,11 +86,12 @@ void loadInitialSpikeTimes(Synapse *);
 double calciumFromPreSynapticSpikes(Synapse *);
 double calciumFromPostSynapticSpikes(Synapse *);
 void updateCalciumConcentration(Synapse *);
-BOOL h(Synapse *, double);
+//BOOL h(Synapse *, double);
+BOOL h(float, double);
 void updateSynapticEfficacy(Synapse *);
-float vgccFromPreSynapticSpikes(Synapse *syn);
-void updatePreSynapticVGCCAvailability(Synapse *syn);
-float noFromPreSynapticSpikes(Synapse *syn);
+float voltageTraceFromPreSynapticSpikes(Synapse *syn);
+void updatePreSynapticVoltageTrace(Synapse *syn);
+float nmdarFromPreSynapticSpikes(Synapse *syn);
 void updatePreSynapticNOConcentration(Synapse *syn);
 
 #endif /*SYNAPSE_H_*/

@@ -853,39 +853,35 @@ int train27(unsigned int * preT, unsigned int * postT, unsigned int simulation_d
 // wavelength is gap between stims, dt is offset between pre and post stims, everything measured in ms
 //Modified: to assume that the PF stim is actually a paired-pulse
 int train28(unsigned int * preT, unsigned int * postT, unsigned int simulation_duration){
-    int i, dt, wavelength, no_stims;
-	int pf_delay;
+	int i, wavelength, recurrent_no_stims;
+	//int dt;
+	int no_pf_stims;
+	int cf_offset; // ms
+	int inter_pf_gap; // ms
     //float freq, rho;
     //freq = 1;
     //rho = 1000; // freq / 1000; // Convert Hz frequency to per millisecond
-    dt = 0; // measured in ms
+    //dt = 0; // measured in ms
     wavelength = 1000; //(int)(1.0 / rho);
-	no_stims = 30;
-	pf_delay = 10;
+	recurrent_no_stims = 30; // repeat protocol x times
 	
-    for (i = 0; i < no_stims; i++){
-        //if( (i > time_of_last_save) && (i < simulation_duration) ){
-        if ((i*wavelength) < simulation_duration){
-            preT[(i*wavelength)] = 1;
-        }
-		if ((i*wavelength)+pf_delay < simulation_duration){
-            preT[(i*wavelength) + pf_delay] = 1;
-        }
-		//        for(j = 0; j < (wavelength-1); j++){
-		//            preT[(i*wavelength) + j] = 0;
-		//        }
-        if((i*wavelength)+dt < simulation_duration){
-            postT[(i*wavelength) + dt] = 1;
+	inter_pf_gap = 10; // ms
+	no_pf_stims = 4;
+	cf_offset = 0;
+	
+    for (i = 0; i < recurrent_no_stims; i++){
+		for (int j = 0; j < no_pf_stims; j++){
+			if (((i*wavelength) + (j*inter_pf_gap)) < simulation_duration){
+				preT[(i*wavelength) + (j*inter_pf_gap)] = 1;
+			}
+		}
+		
+        if((i*wavelength)+cf_offset < simulation_duration){
+            postT[(i*wavelength) + cf_offset] = 1;
         }
         //printf("DEBUG: i: %d, j: %d\n", (i*wavelength), ((i*wavelength)+dt));
         //}
     }
-	//    for (;i < simulation_duration; i++){
-	//        if( i > time_of_last_save){
-	//            preT[i] = 0;
-	//            postT[i] = 0;
-	//        }
-	//    }
 	
     return 0;
 }
@@ -895,39 +891,32 @@ int train28(unsigned int * preT, unsigned int * postT, unsigned int simulation_d
 // wavelength is gap between stims, everything measured in ms
 //Modified: to assume that the PF stim is actually a paired-pulse
 int train29(unsigned int * preT, unsigned int * postT, unsigned int simulation_duration){
-    int i, wavelength, no_stims;
-	int pf_delay;
+	int i, wavelength, recurrent_no_stims;
+	//int dt;
+	int no_pf_stims;
+	//int cf_offset; // ms
+	int inter_pf_gap; // ms
     //float freq, rho;
     //freq = 1;
     //rho = 1000; // freq / 1000; // Convert Hz frequency to per millisecond
     //dt = 0; // measured in ms
     wavelength = 1000; //(int)(1.0 / rho);
-	no_stims = 300;
-	pf_delay = 10;
+	recurrent_no_stims = 300; // repeat protocol x times
 	
-    for (i = 0; i < no_stims; i++){
-        //if( (i > time_of_last_save) && (i < simulation_duration) ){
-        if ((i*wavelength) < simulation_duration){
-            preT[(i*wavelength)] = 1;
-        }
-		if ((i*wavelength)+pf_delay < simulation_duration){
-            preT[(i*wavelength) + pf_delay] = 1;
-        }
-		//        for(j = 0; j < (wavelength-1); j++){
-		//            preT[(i*wavelength) + j] = 0;
-		//        }
-        /*if((i*wavelength)+dt < simulation_duration){
-            postT[(i*wavelength) + dt] = 1;
-        }*/
+	inter_pf_gap = 10; // ms
+	no_pf_stims = 4;
+	//cf_offset = 62;
+	
+    for (i = 0; i < recurrent_no_stims; i++){
+		for (int j = 0; j < no_pf_stims; j++){
+			if (((i*wavelength) + (j*inter_pf_gap)) < simulation_duration){
+				preT[(i*wavelength) + (j*inter_pf_gap)] = 1;
+			}
+		}
+		
         //printf("DEBUG: i: %d, j: %d\n", (i*wavelength), ((i*wavelength)+dt));
         //}
     }
-	//    for (;i < simulation_duration; i++){
-	//        if( i > time_of_last_save){
-	//            preT[i] = 0;
-	//            postT[i] = 0;
-	//        }
-	//    }
 	
     return 0;
 }
@@ -999,6 +988,82 @@ int train31(unsigned int * preT, unsigned int * postT, unsigned int simulation_d
 				preT[(i*wavelength) + (j*inter_pf_gap)] = 1;
 			}
 		}
+		
+        //printf("DEBUG: i: %d, j: %d\n", (i*wavelength), ((i*wavelength)+dt));
+        //}
+    }
+	
+    return 0;
+}
+
+
+// train32 Mariano's LTP protocol: X PF stims with fixed gap between them, no CF stim,
+// repeated at intervals Y times, then no further inputs.
+// Assumes preT and postT initialised to 0 using calloc()
+// wavelength is gap between stims, dt is offset between pre and post stims, everything measured in ms
+int train32(unsigned int * preT, unsigned int * postT, unsigned int simulation_duration){
+    int i, wavelength, recurrent_no_stims;
+	//int dt;
+	int no_pf_stims;
+	//int cf_offset; // ms
+	int inter_pf_gap; // ms
+    //float freq, rho;
+    //freq = 1;
+    //rho = 1000; // freq / 1000; // Convert Hz frequency to per millisecond
+    //dt = 0; // measured in ms
+    wavelength = 1000; //(int)(1.0 / rho);
+	recurrent_no_stims = 300; // repeat protocol x times
+	
+	inter_pf_gap = 5; // ms
+	no_pf_stims = 5;
+	//cf_offset = 62;
+	
+    for (i = 0; i < recurrent_no_stims; i++){
+		for (int j = 0; j < no_pf_stims; j++){
+			if (((i*wavelength) + (j*inter_pf_gap)) < simulation_duration){
+				preT[(i*wavelength) + (j*inter_pf_gap)] = 1;
+			}
+		}
+				
+        //printf("DEBUG: i: %d, j: %d\n", (i*wavelength), ((i*wavelength)+dt));
+        //}
+    }
+	
+    return 0;
+}
+
+
+// train33 Mariano's LTP protocol but with added CF stim: X PF stims with fixed gap between them, CF stim coincident with 5th PF stim,
+// repeated at intervals Y times, then no further inputs.
+// Assumes preT and postT initialised to 0 using calloc()
+// wavelength is gap between stims, dt is offset between pre and post stims, everything measured in ms
+int train33(unsigned int * preT, unsigned int * postT, unsigned int simulation_duration){
+    int i, wavelength, recurrent_no_stims;
+	//int dt;
+	int no_pf_stims;
+	int cf_offset; // ms
+	int inter_pf_gap; // ms
+    //float freq, rho;
+    //freq = 1;
+    //rho = 1000; // freq / 1000; // Convert Hz frequency to per millisecond
+    //dt = 0; // measured in ms
+    wavelength = 1000; //(int)(1.0 / rho);
+	recurrent_no_stims = 300; // repeat protocol x times
+	
+	inter_pf_gap = 5; // ms
+	no_pf_stims = 5;
+	cf_offset = 40;
+	
+    for (i = 0; i < recurrent_no_stims; i++){
+		for (int j = 0; j < no_pf_stims; j++){
+			if (((i*wavelength) + (j*inter_pf_gap)) < simulation_duration){
+				preT[(i*wavelength) + (j*inter_pf_gap)] = 1;
+			}
+		}
+		
+		if((i*wavelength)+cf_offset < simulation_duration){
+            postT[(i*wavelength) + cf_offset] = 1;
+        }
 		
         //printf("DEBUG: i: %d, j: %d\n", (i*wavelength), ((i*wavelength)+dt));
         //}
