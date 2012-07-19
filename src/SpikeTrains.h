@@ -65,6 +65,7 @@ int train25(unsigned int * preT, unsigned int * postT, unsigned int simulation_d
 // - End pasted from Pfister code
 
 
+//TODO: reminder train26 is different in Pfister code compared to all other codebases
 // Dual spike shot noise simulation
 // Pre-spike occurs as poisson process, post-spike occurs T timesteps after pre-spike
 int train26(unsigned int * preT, unsigned int * postT, unsigned int simulation_duration);

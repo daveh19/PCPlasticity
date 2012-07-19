@@ -327,9 +327,9 @@ int saveSynapseOutputFile(char* filename, void *obj, int duration, double dCpre,
 
         fprintf(fp, "\n\n# Params:\n#    Cpre: %f, Cpost: %f, thetaD: %f, thetaP: %f, gammaD: %f, gammaP: %f, sigma: %f\n#    Delay: %d, tau: %d, tauC: %d, rhoF: %f, poisson param: %f, seed: %ld\n", dCpre, dCpost, dThetaD, dThetaP, dGammaD, dGammaP, dSigma, iPreSpikeDelay, iTau, iTauC, dRhoFixed, poisson_param, initial_random_seed);
         fprintf(fp, "#    iVOpeningDelay: %d, iTauV: %d, iTauNMDAR: %d, fVjump: %f, fNMDARjump: %f, fThetaNO: %f\n", iVOpeningDelay, iTauV, iTauNMDAR, fVjump, fNMDARjump, fThetaNO);
-		fprintf(fp,"#\n# Synaptic output, Synapse(%d):\n# t rho c preT postT V_pre NO_pre\n", (*syn).ID);
+		fprintf(fp,"#\n# Synaptic output, Synapse(%d):\n# t rho c preT postT V_pre NO_pre LTP LTD NO_threshold\n", (*syn).ID);
         for (i = 0; i <= duration; i++){
-            fprintf(fp, "%d %f %0.10lf %u %u %f %f\n", i, (*syn).rho[i], (*syn).c[i], (*syn).preT[i], (*syn).postT[i], (*syn).V_pre[i], (*syn).NO_pre[i]);
+            fprintf(fp, "%d %f %0.10lf %u %u %f %f %f %f %f\n", i, (*syn).rho[i], (*syn).c[i], (*syn).preT[i], (*syn).postT[i], (*syn).V_pre[i], (*syn).NO_pre[i], (*syn).ltp[i], (*syn).ltd[i], (*syn).no_threshold[i]);
         }
         fclose(fp);
         fprintf(logfile, "Completed saving\n");

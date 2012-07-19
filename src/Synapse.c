@@ -111,18 +111,35 @@ int main( int argc, char *argv[] ){
 
 // Calculate synaptic efficacy for next time step
 void updateSynapticEfficacy(Synapse *syn){
-    double rho, drho, minTheta, rand_no, noise;
+    double rho, drho;//, minTheta, rand_no, noise;
+	
     rho = (*syn).rho[siT];
-    drho = (-rho * (1.0 - rho) * (dRhoFixed - rho)) + (dGammaP * (1 - rho) * h((*syn).c[siT], dThetaP) * h((*syn).NO_pre[siT], (fThetaNO*(1-((*syn).c[siT]/fThetaNO2))) )) - (dGammaD * rho * h((*syn).c[siT], dThetaD) * h((*syn).NO_pre[siT], (fThetaNO*(1-((*syn).c[siT]/fThetaNO2))) ));
+	
+	(*syn).no_threshold[siT] = (fThetaNO*(1-((*syn).c[siT]/fThetaNO2)) );
+	
+	if ( h((*syn).c[siT], dThetaP) && h((*syn).NO_pre[siT], (*syn).no_threshold[siT] ) ){
+		(*syn).ltp[siT] = (dGammaP * (1 - rho));
+	}
+	else{
+		(*syn).ltp[siT] = 0;
+	}
+	if ( h((*syn).c[siT], dThetaD) && h((*syn).NO_pre[siT], (*syn).no_threshold[siT] ) ){
+		(*syn).ltd[siT] = (dGammaD * rho);
+	}
+	else{
+		(*syn).ltd[siT] = 0;
+	}
+    //drho = (-rho * (1.0 - rho) * (dRhoFixed - rho)) + (dGammaP * (1 - rho) * h((*syn).c[siT], dThetaP) * h((*syn).NO_pre[siT], (fThetaNO*(1-((*syn).c[siT]/fThetaNO2))) )) - (dGammaD * rho * h((*syn).c[siT], dThetaD) * h((*syn).NO_pre[siT], (fThetaNO*(1-((*syn).c[siT]/fThetaNO2))) ));
+	drho = (-rho * (1.0 - rho) * (dRhoFixed - rho)) + (*syn).ltp[siT] - (*syn).ltd[siT];
 
     // Add noise
-    minTheta = fmin(dThetaP, dThetaD);
+    /*minTheta = fmin(dThetaP, dThetaD);
     if (h((*syn).c[siT], minTheta) > 0){ // Noise is on
         rand_no = (double) gasdev(&random_seed);
         noise = dSigma * sqrt(iTau) * rand_no;
         printf("\nNoise is active, rand_no: %f, noise: %f\n", rand_no, noise);
         drho += noise;
-    }
+    }*/
 	//TODO: should I introduce an explicit dt? (system wide change)
 
     drho /= (double)iTau;
@@ -155,7 +172,7 @@ void updateCalciumConcentration(Synapse *syn){
     double c, dc;
     c = (*syn).c[siT];
 	if (calciumFromPostSynapticSpikes(syn) > 0){ // post-synaptic depolarisation: fix Ca concentration
-		(*syn).c[siT + 1] = dCpost;
+		(*syn).c[siT + 1] = ((double) (*syn).postT[siT]) * dCpost;
 	}
 	else{
 		dc = (-c / (double)iTauC) + calciumFromPreSynapticSpikes(syn);// + calciumFromPostSynapticSpikes(syn);
@@ -292,6 +309,9 @@ void synapse_memory_init(Synapse *syn){
     unsigned int * local_postT;
 	float * local_v_pre;
 	float * local_no_pre;
+	float * local_ltp;
+	float * local_ltd;
+	float * local_no_threshold;
     //Synapse * local_synapse;
     fprintf(logfile, "Synapse simulator initialising.\n");
 
@@ -381,6 +401,35 @@ void synapse_memory_init(Synapse *syn){
             (syn[i]).NO_pre = local_no_pre;
             fprintf(logfile, "syn(%d).NO_pre successfully assigned\n", i);
         }
+		
+		// Memory allocation for debugging LTP and LTD variables
+		local_ltp = (float *) malloc( (simulation_duration) * sizeof(float) );
+        if (local_ltp == NULL){
+            perror("Memory allocation failure (ltp)\n");
+            fprintf(logfile, "ERROR: Memory allocation failure (ltp)\n");
+        }
+        else{
+            (syn[i]).ltp = local_ltp;
+            fprintf(logfile, "syn(%d).ltp successfully assigned\n", i);
+        }
+		local_ltd = (float *) malloc( (simulation_duration) * sizeof(float) );
+        if (local_ltd == NULL){
+            perror("Memory allocation failure (ltd)\n");
+            fprintf(logfile, "ERROR: Memory allocation failure (ltd)\n");
+        }
+        else{
+            (syn[i]).ltd = local_ltd;
+            fprintf(logfile, "syn(%d).ltd successfully assigned\n", i);
+        }
+		local_no_threshold = (float *) malloc( (simulation_duration) * sizeof(float) );
+        if (local_no_threshold == NULL){
+            perror("Memory allocation failure (no_threshold)\n");
+            fprintf(logfile, "ERROR: Memory allocation failure (no_threshold)\n");
+        }
+        else{
+            (syn[i]).no_threshold = local_no_threshold;
+            fprintf(logfile, "syn(%d).no_threshold successfully assigned\n", i);
+        }
     }
     fprintf(logfile, "Initialisation of simulator complete\n");
 }
@@ -397,6 +446,9 @@ int finalise(int status, Synapse *syn){
             free((syn[i]).postT);
 			free((syn[i]).V_pre);
 			free((syn[i]).NO_pre);
+			free((syn[i]).ltp);
+			free((syn[i]).ltd);
+			free((syn[i]).no_threshold);
         }
         free(syn);
         fprintf(logfile, "Memory freed\n");

@@ -76,6 +76,9 @@ typedef struct Synapse{
         unsigned int * postT;
 		float * V_pre;
 		float * NO_pre;
+	float * ltp;
+	float * ltd;
+	float * no_threshold;
         int ID;
 } Synapse;
 

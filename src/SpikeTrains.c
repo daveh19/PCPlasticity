@@ -790,6 +790,7 @@ int train25(unsigned int * preT, unsigned int * postT, unsigned int simulation_d
 }
 
 
+//TODO: reminder train26 is different in Pfister code compared to all other codebases
 // Dual spike shot noise simulation
 // Pre-spike occurs as poisson process, post-spike occurs T timesteps after pre-spike
 int train26(unsigned int * preT, unsigned int * postT, unsigned int simulation_duration){
@@ -923,7 +924,7 @@ int train29(unsigned int * preT, unsigned int * postT, unsigned int simulation_d
 
 
 // train30 Wang'00 LTD protocol: X PF stims with fixed gap between them, followed by CF stim at offset,
-// repeated at intervals Y times, then no further inputs.
+// repeated at intervals 30 times, then no further inputs.
 // Assumes preT and postT initialised to 0 using calloc()
 // wavelength is gap between stims, dt is offset between pre and post stims, everything measured in ms
 int train30(unsigned int * preT, unsigned int * postT, unsigned int simulation_duration){
@@ -961,8 +962,8 @@ int train30(unsigned int * preT, unsigned int * postT, unsigned int simulation_d
 }
 
 
-// train31 Wang'00 LTP protocol: X PF stims with fixed gap between them, no CF stim,
-// repeated at intervals Y times, then no further inputs.
+// train31 Wang'00 (pseudo-)LTP protocol: X PF stims with fixed gap between them, no CF stim,
+// repeated at intervals 30 times, then no further inputs.
 // Assumes preT and postT initialised to 0 using calloc()
 // wavelength is gap between stims, dt is offset between pre and post stims, everything measured in ms
 int train31(unsigned int * preT, unsigned int * postT, unsigned int simulation_duration){
@@ -998,7 +999,7 @@ int train31(unsigned int * preT, unsigned int * postT, unsigned int simulation_d
 
 
 // train32 Mariano's LTP protocol: X PF stims with fixed gap between them, no CF stim,
-// repeated at intervals Y times, then no further inputs.
+// repeated at intervals 300 times, then no further inputs.
 // Assumes preT and postT initialised to 0 using calloc()
 // wavelength is gap between stims, dt is offset between pre and post stims, everything measured in ms
 int train32(unsigned int * preT, unsigned int * postT, unsigned int simulation_duration){
@@ -1033,8 +1034,8 @@ int train32(unsigned int * preT, unsigned int * postT, unsigned int simulation_d
 }
 
 
-// train33 Mariano's LTP protocol but with added CF stim: X PF stims with fixed gap between them, CF stim coincident with 5th PF stim,
-// repeated at intervals Y times, then no further inputs.
+// train33 (LTD) Mariano's LTP protocol but with added CF stim: X PF stims with fixed gap between them, CF stim coincident with 5th PF stim,
+// repeated at intervals 300 times, then no further inputs.
 // Assumes preT and postT initialised to 0 using calloc()
 // wavelength is gap between stims, dt is offset between pre and post stims, everything measured in ms
 int train33(unsigned int * preT, unsigned int * postT, unsigned int simulation_duration){
@@ -1090,7 +1091,7 @@ int train34(unsigned int * preT, unsigned int * postT, unsigned int simulation_d
     wavelength = 1000; //(int)(1.0 / rho);
 	recurrent_no_stims = 120; // repeat protocol x times
 	
-	inter_pf_gap = 5; // ms
+	inter_pf_gap = 10; //42;//5; // ms
 	no_pf_stims = 2;
 	//cf_offset = 40;
 	
