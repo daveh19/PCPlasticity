@@ -566,6 +566,9 @@ void loadSimulationParameters(int argc, char *argv[]){
 					else if ((int) paramValue == 34){
                         train_fn = train34;
                     }
+					else if ((int) paramValue == 35){
+                        train_fn = train35;
+                    }
                     printf("DEBUG: train function loaded from param file\n");
                 }
                 else if (!strcmp(paramName, "POISSON_PARAM")){

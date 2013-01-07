@@ -1113,3 +1113,39 @@ int train34(unsigned int * preT, unsigned int * postT, unsigned int simulation_d
 	
     return 0;
 }
+
+
+// train35 Predicted LTD protocol protocol: X PF stims with fixed gap between them, no CF stim,
+// repeated at intervals 300 times, then no further inputs.
+// Assumes preT and postT initialised to 0 using calloc()
+// wavelength is gap between stims, dt is offset between pre and post stims, everything measured in ms
+int train35(unsigned int * preT, unsigned int * postT, unsigned int simulation_duration){
+    int i, wavelength, recurrent_no_stims;
+	//int dt;
+	int no_pf_stims;
+	//int cf_offset; // ms
+	int inter_pf_gap; // ms
+    //float freq, rho;
+    //freq = 1;
+    //rho = 1000; // freq / 1000; // Convert Hz frequency to per millisecond
+    //dt = 0; // measured in ms
+    wavelength = 1000; //(int)(1.0 / rho);
+	recurrent_no_stims = 300; // repeat protocol x times
+	
+	inter_pf_gap = 10; // ms
+	no_pf_stims = 2;
+	//cf_offset = 62;
+	
+    for (i = 0; i < recurrent_no_stims; i++){
+		for (int j = 0; j < no_pf_stims; j++){
+			if (((i*wavelength) + (j*inter_pf_gap)) < simulation_duration){
+				preT[(i*wavelength) + (j*inter_pf_gap)] = 1;
+			}
+		}
+		
+        //printf("DEBUG: i: %d, j: %d\n", (i*wavelength), ((i*wavelength)+dt));
+        //}
+    }
+	
+    return 0;
+}

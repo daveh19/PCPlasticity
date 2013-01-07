@@ -95,3 +95,6 @@ int train33(unsigned int * preT, unsigned int * postT, unsigned int simulation_d
 // train34 Bidoret'09 LTD protocol: PC depolarisation of 120ms, 2PF stims one falling 60ms after start of PC depolarisation,
 // the other Xms before, protocol repeated at intervals Y times, then no further inputs.
 int train34(unsigned int * preT, unsigned int * postT, unsigned int simulation_duration);
+// train35 Predicted LTD protocol protocol: X PF stims with fixed gap between them, no CF stim,
+// repeated at intervals 300 times, then no further inputs.
+int train35(unsigned int * preT, unsigned int * postT, unsigned int simulation_duration);
