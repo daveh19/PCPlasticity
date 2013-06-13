@@ -42,7 +42,7 @@ Synapse* checkpoint_init(int argc, char *argv[], Synapse *syn){
         for (i = 0; i < no_synapses; i++){
             syn[i].rho[siT] = initial_rho;
             syn[i].c[siT] = initial_c; 
-			syn[i].V_pre[siT] = 0; //TODO: use variables to assign initial values to V_pre and NO_pre
+			//syn[i].V_pre[siT] = 0; //TODO: use variables to assign initial values to V_pre and NO_pre
 			syn[i].NO_pre[siT] = 0;
         }
 //        for (i = 0; i < no_synapses; i++){
@@ -55,7 +55,7 @@ Synapse* checkpoint_init(int argc, char *argv[], Synapse *syn){
                 //sprintf(outfile, "output/01_syn_%.3d.dat", syn[i].ID);
                 sprintf(outfile, outfilepattern, syn[i].ID);
                 printf("writing...%s\n", outfile);
-                createOutputFileHeader(outfile, &syn[i], siT, dCpre, dCpost, dThetaD, dThetaP, dGammaD, dGammaP, dSigma, iPreSpikeDelay, iTau, iTauC, dRhoFixed, poisson_param, initial_random_seed);
+                createOutputFileHeader(outfile, &syn[i], siT, dCpre, dCpost, dThetaD, dThetaP, dGammaD, dGammaP, dSigma, iPreSpikeDelay, fTau, fTauC, dRhoFixed, poisson_param, initial_random_seed);
             }
         }
     }
@@ -206,7 +206,7 @@ int checkpoint_save(Synapse *syn){
     int i, j;
 
     if (! (checkpoint_name = getenv ("SYNAPSE_CHECKFILE"))) {
-        fprintf (logfile, "Checkpointing not enabled...skipping\n");
+        //fprintf (logfile, "Checkpointing not enabled...skipping\n");
     }
     else {
         // Rename old checkpoint file
@@ -300,7 +300,7 @@ int createOutputFileHeader(char* filename, void *obj, int duration, double dCpre
         fprintf(logfile, "Saving to file: %s\n", filename);
 
         fprintf(fp, "\n\n# Params:\n#    Cpre: %f, Cpost: %f, thetaD: %f, thetaP: %f, gammaD: %f, gammaP: %f, sigma: %f\n#    Delay: %d, tau: %d, tauC: %d, rhoF: %f, poisson param: %f, seed: %ld\n", dCpre, dCpost, dThetaD, dThetaP, dGammaD, dGammaP, dSigma, iPreSpikeDelay, iTau, iTauC, dRhoFixed, poisson_param, initial_random_seed);
-        fprintf(fp, "#    iVOpeningDelay: %d, iTauV: %d, iTauNMDAR: %d, fVjump: %f, fNMDARjump: %f, fThetaNO: %f\n", iVOpeningDelay, iTauV, iTauNMDAR, fVjump, fNMDARjump, fThetaNO);
+        fprintf(fp, "#    fTauNMDAR: %f, fNMDARjump: %f, fThetaNO: %f, fThetaNO2\n", fTauNMDAR, fNMDARjump, fThetaNO, fThetaNO2);
 		fprintf(fp,"#\n# Synaptic output, Synapse(%d):\n# t rho c preT postT\n", (*syn).ID);
 
         fclose(fp);
@@ -326,11 +326,12 @@ int saveSynapseOutputFile(char* filename, void *obj, int duration, double dCpre,
         fprintf(logfile, "Saving to file: %s\n", filename);
 
         fprintf(fp, "\n\n# Params:\n#    Cpre: %f, Cpost: %f, thetaD: %f, thetaP: %f, gammaD: %f, gammaP: %f, sigma: %f\n#    Delay: %d, tau: %d, tauC: %d, rhoF: %f, poisson param: %f, seed: %ld\n", dCpre, dCpost, dThetaD, dThetaP, dGammaD, dGammaP, dSigma, iPreSpikeDelay, iTau, iTauC, dRhoFixed, poisson_param, initial_random_seed);
-        fprintf(fp, "#    iVOpeningDelay: %d, iTauV: %d, iTauNMDAR: %d, fVjump: %f, fNMDARjump: %f, fThetaNO: %f\n", iVOpeningDelay, iTauV, iTauNMDAR, fVjump, fNMDARjump, fThetaNO);
-		fprintf(fp,"#\n# Synaptic output, Synapse(%d):\n# t rho c preT postT V_pre NO_pre LTP LTD NO_threshold\n", (*syn).ID);
+        fprintf(fp, "#    fTauNMDAR: %f, fNMDARjump: %f, fThetaNO: %f, fThetaNO2: %f\n", fTauNMDAR, fNMDARjump, fThetaNO, fThetaNO2);
+		fprintf(fp,"#\n# Synaptic output, Synapse(%d):\n# t rho c preT postT NO_pre LTP LTD NO_threshold\n", (*syn).ID);
         for (i = 0; i <= duration; i++){
-            fprintf(fp, "%d %f %0.10lf %u %u %f %f %f %f %f\n", i, (*syn).rho[i], (*syn).c[i], (*syn).preT[i], (*syn).postT[i], (*syn).V_pre[i], (*syn).NO_pre[i], (*syn).ltp[i], (*syn).ltd[i], (*syn).no_threshold[i]);
-        }
+            //fprintf(fp, "%d %f %0.10lf %u %u %f %f %f %f %f\n", i, (*syn).rho[i], (*syn).c[i], (*syn).preT[i], (*syn).postT[i], (*syn).V_pre[i], (*syn).NO_pre[i], (*syn).ltp[i], (*syn).ltd[i], (*syn).no_threshold[i]);
+			fprintf(fp, "%d %f %0.10lf %u %u %f %f %f %f\n", i, (*syn).rho[i], (*syn).c[i], (*syn).preT[i], (*syn).postT[i], (*syn).NO_pre[i], (*syn).ltp[i], (*syn).ltd[i], (*syn).no_threshold[i]);
+		}
         fclose(fp);
         fprintf(logfile, "Completed saving\n");
     }
@@ -355,15 +356,15 @@ void loadSimulationParameters(int argc, char *argv[]){
     time_of_last_save = -1;
 	
 	//TODO: parameterise NO model variables
-	iVOpeningDelay = 1;
-	iTauV = 28; //from Bidoret'09
-	iTauNMDAR = 70;
-	fVjump = 1.0;
+	//iVOpeningDelay = 1;
+	//iTauV = 28; //from Bidoret'09
+	/*iTauNMDAR = 70;
+	//fVjump = 1.0;
 	fNMDARjump = 2.85;
-	fVmax = 1.0;
+	//fVmax = 1.0;
 	fNMDARmax = 200.0; // not applied at present
 	fThetaNO = 1;
-	fThetaNO2 = 20;
+	fThetaNO2 = 20;*/
 
 	
     if (argc < 2){
@@ -379,8 +380,8 @@ void loadSimulationParameters(int argc, char *argv[]){
         initial_random_seed = (-13);
         random_seed = initial_random_seed;
 
-        iTau = 150000;  // measured in ms (equivalent to 150sec)
-        iTauC = 20;  // measured in ms
+        fTau = 150000;  // measured in ms (equivalent to 150sec)
+        fTauC = 20;  // measured in ms
 
         dRhoFixed = 0.5;
 
@@ -394,6 +395,12 @@ void loadSimulationParameters(int argc, char *argv[]){
         dSigma = 3.50;
         iPreSpikeDelay = 19;
         poisson_param = 1.0/1000;
+		
+		fTauNMDAR = 70;
+		fNMDARjump = 2.85;
+		fThetaNO = 1;
+		fThetaNO2 = 20;
+		
     }
     else{
         printf("arg[1] is %s....attempting to open it as parameters file.\n", argv[1]);
@@ -424,10 +431,10 @@ void loadSimulationParameters(int argc, char *argv[]){
                     random_seed = paramValue;
                 }
                 else if (!strcmp(paramName, "TAU")){
-                    iTau = (int) paramValue;
+                    fTau = paramValue;
                 }
                 else if (!strcmp(paramName, "TAU_C")){
-                    iTauC = (int) paramValue;
+                    fTauC = paramValue;
                 }
                 else if (!strcmp(paramName, "RHO_FIXED")){
                     dRhoFixed = paramValue;
@@ -573,6 +580,18 @@ void loadSimulationParameters(int argc, char *argv[]){
                 }
                 else if (!strcmp(paramName, "POISSON_PARAM")){
                     poisson_param = paramValue;
+                }
+				else if (!strcmp(paramName, "TAU_NMDAR")){
+                    fTauNMDAR = paramValue;
+                }
+				else if (!strcmp(paramName, "NMDAR_JUMP")){
+                    fNMDARjump = paramValue;
+                }
+				else if (!strcmp(paramName, "THETA_NO1")){
+                    fThetaNO = paramValue;
+                }
+				else if (!strcmp(paramName, "THETA_NO2")){
+                    fThetaNO2 = paramValue;
                 }
             }
             fclose(paramsfile);

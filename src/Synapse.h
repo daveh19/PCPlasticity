@@ -25,8 +25,10 @@ double initial_rho;
 long initial_random_seed;
 long random_seed;
 
-int iTau;
-int iTauC;
+//int iTau;
+//int iTauC;
+float fTau;
+float fTauC;
 
 double dRhoFixed;
 
@@ -41,12 +43,13 @@ double dSigma;
 int iPreSpikeDelay;
 double poisson_param;
 
-int iVOpeningDelay;
-int iTauV;
-int iTauNMDAR;
-float fVjump;
+//int iVOpeningDelay;
+//int iTauV;
+//int iTauNMDAR;
+float fTauNMDAR;
+//float fVjump;
 float fNMDARjump;
-float fVmax;
+//float fVmax;
 float fNMDARmax;
 float fThetaNO;
 float fThetaNO2;
@@ -74,7 +77,7 @@ typedef struct Synapse{
         double * c;
         unsigned int * preT;
         unsigned int * postT;
-		float * V_pre;
+		//float * V_pre;
 		float * NO_pre;
 	float * ltp;
 	float * ltd;
@@ -92,8 +95,8 @@ void updateCalciumConcentration(Synapse *);
 //BOOL h(Synapse *, double);
 BOOL h(float, double);
 void updateSynapticEfficacy(Synapse *);
-float voltageTraceFromPreSynapticSpikes(Synapse *syn);
-void updatePreSynapticVoltageTrace(Synapse *syn);
+//float voltageTraceFromPreSynapticSpikes(Synapse *syn);
+//void updatePreSynapticVoltageTrace(Synapse *syn);
 float nmdarFromPreSynapticSpikes(Synapse *syn);
 void updatePreSynapticNOConcentration(Synapse *syn);
 
