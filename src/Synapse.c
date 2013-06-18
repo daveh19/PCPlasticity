@@ -34,6 +34,16 @@ int main( int argc, char *argv[] ){
     // Load pre- and post- synaptic spike times into arrays for each synapse
     loadInitialSpikeTimes(syn);
 
+	//TODO: decide whether epsillon bound around thetaP=0 is necessary or not
+	// Add Epsillon to thetaP (0) to ensure Ca switches off
+	// if epsillon is 0.000001 then expect Ca to reach 0 from 1 in less than 14*tau
+	if (dThetaP == 0){
+		dThetaP += 0.000001;
+	}
+	if (dThetaD == 0){
+		dThetaD += 0.000001;
+	}
+	
     // Main simulation loop
     fprintf(logfile, "Entering main simulation loop\n");
     printf("Entering main simulation loop\n");
@@ -136,8 +146,13 @@ void updateSynapticEfficacy(Synapse *syn){
     double rho, drho;//, minTheta, rand_no, noise;
 	
     rho = (*syn).rho[siT];
+	drho = 0;
 	
 	(*syn).no_threshold[siT] = fmax(( fThetaNO * ( 1 - ((*syn).c[siT] / fThetaNO2) ) ), 0);
+	//TODO: do I need an epsillon bound above NO_theshold when threshold=0?
+	if((*syn).no_threshold[siT] == 0){
+		(*syn).no_threshold[siT] += 0.000001;
+	}
 	
 	if ( h((*syn).c[siT], dThetaP) && h((*syn).NO_pre[siT], (*syn).no_threshold[siT] ) ){
 		(*syn).ltp[siT] = (dGammaP * (1 - rho));

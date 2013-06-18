@@ -350,12 +350,12 @@ void loadSimulationParameters(int argc, char *argv[]){
     strcpy(outfilearray, "output/01_syn_%.3d.dat");
     outfilepattern = outfilearray;
 
-    train_fn = train1;
+	//TODO: modify default variable values here
+    train_fn = train32;
     siT = 0;
     siID = 0;
     time_of_last_save = -1;
 	
-	//TODO: parameterise NO model variables
 	//iVOpeningDelay = 1;
 	//iTauV = 28; //from Bidoret'09
 	/*iTauNMDAR = 70;
@@ -385,10 +385,10 @@ void loadSimulationParameters(int argc, char *argv[]){
 
         dRhoFixed = 0.5;
 
-        dCpre = 1.0;
+        dCpre = 10.0;
         dCpost = 4.0;
-        dThetaD = 1.0;
-        dThetaP = 2.0;
+        dThetaD = 0.5;
+        dThetaP = 0.0;
         dGammaD = 50;
         dGammaP = 100;
 
@@ -396,10 +396,10 @@ void loadSimulationParameters(int argc, char *argv[]){
         iPreSpikeDelay = 19;
         poisson_param = 1.0/1000;
 		
-		fTauNMDAR = 70;
+		fTauNMDAR = 10; //70;
 		fNMDARjump = 2.85;
 		fThetaNO = 1;
-		fThetaNO2 = 20;
+		fThetaNO2 = 1; //20;
 		
     }
     else{
