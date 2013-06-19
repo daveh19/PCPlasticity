@@ -412,7 +412,7 @@ void loadSimulationParameters(int argc, char *argv[]){
             printf("Loading from file: %s\n", argv[1]);
             while (!feof(paramsfile)) {
                 if (fscanf(paramsfile, "%s %lf\n", paramName, &paramValue) != 2)
-                    break;
+                    continue; //break;
                 printf("Read: %s %f\n", paramName, paramValue);
                 if (!strcmp(paramName, "SIMULATION_DURATION")){
                     simulation_duration = paramValue;
