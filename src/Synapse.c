@@ -315,9 +315,20 @@ double nmdarFromPreSynapticSpikes(Synapse *syn){
 	double d;
 	//CONSIDER: could potentially look-ahead to next VGCC_avail value ([siT+1]), if I process them in the right order
 	
+	if (siT < iPreSpikeDelay){
+        d = 0.0;
+    }
+    else if( (siT >= iPreSpikeDelay) && ( siT < (simulation_duration - 1) ) ){
+        d = ((double) (*syn).preT[siT - iPreSpikeDelay]) * lfNMDARjump;
+    }
+    else{ // This shouldn't happen!
+        fprintf(logfile, "ERROR: unexpected situation in nmdarFromPreSynapticSpikes()");
+    }
+	
 	// modified here to account for lack of V_pre
 	//d = (*syn).V_pre[siT] * ((double)(*syn).preT[siT]) * fNMDARjump;
-	d = ((double)(*syn).preT[siT]) * lfNMDARjump;
+	//removed following to add delay on NO influx
+	//d = ((double)(*syn).preT[siT]) * lfNMDARjump;
 	
 	return d;
 }
