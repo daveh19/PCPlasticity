@@ -940,10 +940,19 @@ int train30(unsigned int * preT, unsigned int * postT, unsigned int simulation_d
     wavelength = 1000; //(int)(1.0 / rho);
 	recurrent_no_stims = 30; // repeat protocol x times
 	
+	// Wang LTD values
 	inter_pf_gap = 10; //5; //10; // ms W:10
 	no_pf_stims = 3; //2; //3; W:3
 	cf_offset = 62; //normal wang ltd protocol
+	// Generic CF before PF
+	//inter_pf_gap = 5; //5; //10; // ms 
+	//no_pf_stims = 2; //2; //3;
 	//cf_offset = -30;
+	// Safo LTD values
+	inter_pf_gap = 10;
+	no_pf_stims = 7;
+	cf_offset = 80;
+	cf_offset += 30; // 30 accounts for middle (4th) spike
 	
     for (i = 0; i < recurrent_no_stims; i++){
 		for (int j = 0; j < no_pf_stims; j++){
