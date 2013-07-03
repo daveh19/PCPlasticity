@@ -46,9 +46,11 @@ double poisson_param;
 //int iVOpeningDelay;
 //int iTauV;
 //int iTauNMDAR;
-float fTauNMDAR;
+//float fTauNMDAR;
+double lfTauNMDAR;
 //float fVjump;
-float fNMDARjump;
+//float fNMDARjump;
+double lfNMDARjump;
 //float fVmax;
 float fNMDARmax;
 float fThetaNO;
@@ -78,7 +80,7 @@ typedef struct Synapse{
         unsigned int * preT;
         unsigned int * postT;
 		//float * V_pre;
-		float * NO_pre;
+		double * NO_pre;
 	float * ltp;
 	float * ltd;
 	float * no_threshold;
@@ -97,7 +99,7 @@ BOOL h(float, double);
 void updateSynapticEfficacy(Synapse *);
 //float voltageTraceFromPreSynapticSpikes(Synapse *syn);
 //void updatePreSynapticVoltageTrace(Synapse *syn);
-float nmdarFromPreSynapticSpikes(Synapse *syn);
+double nmdarFromPreSynapticSpikes(Synapse *syn);
 void updatePreSynapticNOConcentration(Synapse *syn);
 
 #endif /*SYNAPSE_H_*/

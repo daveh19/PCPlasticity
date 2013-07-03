@@ -37,12 +37,12 @@ int main( int argc, char *argv[] ){
 	//TODO: decide whether epsillon bound around thetaP=0 is necessary or not
 	// Add Epsillon to thetaP (0) to ensure Ca switches off
 	// if epsillon is 0.000001 then expect Ca to reach 0 from 1 in less than 14*tau
-	if (dThetaP == 0){
+	/*if (dThetaP == 0){
 		dThetaP += 0.000001;
 	}
 	if (dThetaD == 0){
 		dThetaD += 0.000001;
-	}
+	}*/
 	
     // Main simulation loop
     fprintf(logfile, "Entering main simulation loop\n");
@@ -150,9 +150,9 @@ void updateSynapticEfficacy(Synapse *syn){
 	
 	(*syn).no_threshold[siT] = fmax(( fThetaNO * ( 1 - ((*syn).c[siT] / fThetaNO2) ) ), 0);
 	//TODO: do I need an epsillon bound above NO_theshold when threshold=0?
-	if((*syn).no_threshold[siT] == 0){
+	/*if((*syn).no_threshold[siT] == 0){
 		(*syn).no_threshold[siT] += 0.000001;
-	}
+	}*/
 	
 	if ( h((*syn).c[siT], dThetaP) && h((*syn).NO_pre[siT], (*syn).no_threshold[siT] ) ){
 		(*syn).ltp[siT] = (dGammaP * (1 - rho));
@@ -296,10 +296,10 @@ double calciumFromPostSynapticSpikes(Synapse *syn){
 
 // NMDAR state leads to NO concentration
 void updatePreSynapticNOConcentration(Synapse *syn){
-	float no, dno;
+	double no, dno;
 	
 	no = (*syn).NO_pre[siT];
-	dno = (-no / fTauNMDAR) + nmdarFromPreSynapticSpikes(syn);
+	dno = (-no / lfTauNMDAR) + nmdarFromPreSynapticSpikes(syn);
 	
 	//if ((no + dno) < fNMDARmax){
 	(*syn).NO_pre[siT + 1] = no + dno;
@@ -311,13 +311,13 @@ void updatePreSynapticNOConcentration(Synapse *syn){
 
 
 // A pre-synaptic spike combined with an already depolarised membrane leads to an influx of calcium, which in turn leads to a release of NO
-float nmdarFromPreSynapticSpikes(Synapse *syn){
-	float d;
+double nmdarFromPreSynapticSpikes(Synapse *syn){
+	double d;
 	//CONSIDER: could potentially look-ahead to next VGCC_avail value ([siT+1]), if I process them in the right order
 	
 	// modified here to account for lack of V_pre
 	//d = (*syn).V_pre[siT] * ((double)(*syn).preT[siT]) * fNMDARjump;
-	d = ((double)(*syn).preT[siT]) * fNMDARjump;
+	d = ((double)(*syn).preT[siT]) * lfNMDARjump;
 	
 	return d;
 }
@@ -354,7 +354,7 @@ void synapse_memory_init(Synapse *syn){
     unsigned int * local_preT;
     unsigned int * local_postT;
 	//float * local_v_pre;
-	float * local_no_pre;
+	double * local_no_pre;
 	float * local_ltp;
 	float * local_ltd;
 	float * local_no_threshold;
@@ -438,7 +438,7 @@ void synapse_memory_init(Synapse *syn){
             (syn[i]).V_pre = local_v_pre;
             fprintf(logfile, "syn(%d).V_pre successfully assigned\n", i);
         }*/
-		local_no_pre = (float *) malloc( (simulation_duration) * sizeof(float) );
+		local_no_pre = (double *) malloc( (simulation_duration) * sizeof(double) );
         if (local_no_pre == NULL){
             perror("Memory allocation failure (NO_pre)\n");
             fprintf(logfile, "ERROR: Memory allocation failure (NO_pre)\n");

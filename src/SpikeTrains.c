@@ -940,9 +940,10 @@ int train30(unsigned int * preT, unsigned int * postT, unsigned int simulation_d
     wavelength = 1000; //(int)(1.0 / rho);
 	recurrent_no_stims = 30; // repeat protocol x times
 	
-	inter_pf_gap = 10; // ms
-	no_pf_stims = 3;
-	cf_offset = 62;
+	inter_pf_gap = 10; //5; //10; // ms W:10
+	no_pf_stims = 3; //2; //3; W:3
+	cf_offset = 62; //normal wang ltd protocol
+	//cf_offset = -30;
 	
     for (i = 0; i < recurrent_no_stims; i++){
 		for (int j = 0; j < no_pf_stims; j++){
@@ -951,7 +952,7 @@ int train30(unsigned int * preT, unsigned int * postT, unsigned int simulation_d
 			}
 		}
 
-        if((i*wavelength)+cf_offset < simulation_duration){
+        if(((i*wavelength)+cf_offset < simulation_duration) && ((i*wavelength)+cf_offset > -1)){
             postT[(i*wavelength) + cf_offset] = 1;
         }
         //printf("DEBUG: i: %d, j: %d\n", (i*wavelength), ((i*wavelength)+dt));
@@ -1091,7 +1092,7 @@ int train34(unsigned int * preT, unsigned int * postT, unsigned int simulation_d
     wavelength = 1000; //(int)(1.0 / rho);
 	recurrent_no_stims = 120; // repeat protocol x times
 	
-	inter_pf_gap = 10; //42;//5; // ms
+	inter_pf_gap = 30; //42;//5; // ms
 	no_pf_stims = 2;
 	//cf_offset = 40;
 	

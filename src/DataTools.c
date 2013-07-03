@@ -299,9 +299,9 @@ int createOutputFileHeader(char* filename, void *obj, int duration, double dCpre
     else{
         fprintf(logfile, "Saving to file: %s\n", filename);
 
-        fprintf(fp, "\n\n# Params:\n#    Cpre: %f, Cpost: %f, thetaD: %f, thetaP: %f, gammaD: %f, gammaP: %f, sigma: %f\n#    Delay: %d, tau: %d, tauC: %d, rhoF: %f, poisson param: %f, seed: %ld\n", dCpre, dCpost, dThetaD, dThetaP, dGammaD, dGammaP, dSigma, iPreSpikeDelay, iTau, iTauC, dRhoFixed, poisson_param, initial_random_seed);
-        fprintf(fp, "#    fTauNMDAR: %f, fNMDARjump: %f, fThetaNO: %f, fThetaNO2\n", fTauNMDAR, fNMDARjump, fThetaNO, fThetaNO2);
-		fprintf(fp,"#\n# Synaptic output, Synapse(%d):\n# t rho c preT postT\n", (*syn).ID);
+        fprintf(fp, "\n\n%%# Params:\n%%#    Cpre: %f, Cpost: %f, thetaD: %f, thetaP: %f, gammaD: %f, gammaP: %f, sigma: %f\n%%#    Delay: %d, tau: %d, tauC: %d, rhoF: %f, poisson param: %f, seed: %ld\n", dCpre, dCpost, dThetaD, dThetaP, dGammaD, dGammaP, dSigma, iPreSpikeDelay, iTau, iTauC, dRhoFixed, poisson_param, initial_random_seed);
+        fprintf(fp, "%%#    lfTauNMDAR: %f, lfNMDARjump: %f, fThetaNO: %f, fThetaNO2\n", lfTauNMDAR, lfNMDARjump, fThetaNO, fThetaNO2);
+		fprintf(fp,"%%#\n%%# Synaptic output, Synapse(%d):\n%%# t rho c preT postT\n", (*syn).ID);
 
         fclose(fp);
         fprintf(logfile, "Completed saving\n");
@@ -325,9 +325,9 @@ int saveSynapseOutputFile(char* filename, void *obj, int duration, double dCpre,
     else{
         fprintf(logfile, "Saving to file: %s\n", filename);
 
-        fprintf(fp, "\n\n# Params:\n#    Cpre: %f, Cpost: %f, thetaD: %f, thetaP: %f, gammaD: %f, gammaP: %f, sigma: %f\n#    Delay: %d, tau: %d, tauC: %d, rhoF: %f, poisson param: %f, seed: %ld\n", dCpre, dCpost, dThetaD, dThetaP, dGammaD, dGammaP, dSigma, iPreSpikeDelay, iTau, iTauC, dRhoFixed, poisson_param, initial_random_seed);
-        fprintf(fp, "#    fTauNMDAR: %f, fNMDARjump: %f, fThetaNO: %f, fThetaNO2: %f\n", fTauNMDAR, fNMDARjump, fThetaNO, fThetaNO2);
-		fprintf(fp,"#\n# Synaptic output, Synapse(%d):\n# t rho c preT postT NO_pre LTP LTD NO_threshold\n", (*syn).ID);
+        fprintf(fp, "\n\n%%# Params:\n%%#    Cpre: %f, Cpost: %f, thetaD: %f, thetaP: %f, gammaD: %f, gammaP: %f, sigma: %f\n%%#    Delay: %d, tau: %d, tauC: %d, rhoF: %f, poisson param: %f, seed: %ld\n", dCpre, dCpost, dThetaD, dThetaP, dGammaD, dGammaP, dSigma, iPreSpikeDelay, iTau, iTauC, dRhoFixed, poisson_param, initial_random_seed);
+        fprintf(fp, "%%#    lfTauNMDAR: %f, lfNMDARjump: %f, fThetaNO: %f, fThetaNO2: %f\n", lfTauNMDAR, lfNMDARjump, fThetaNO, fThetaNO2);
+		fprintf(fp,"%%#\n%%# Synaptic output, Synapse(%d):\n%%# t rho c preT postT NO_pre LTP LTD NO_threshold\n", (*syn).ID);
         for (i = 0; i <= duration; i++){
             //fprintf(fp, "%d %f %0.10lf %u %u %f %f %f %f %f\n", i, (*syn).rho[i], (*syn).c[i], (*syn).preT[i], (*syn).postT[i], (*syn).V_pre[i], (*syn).NO_pre[i], (*syn).ltp[i], (*syn).ltd[i], (*syn).no_threshold[i]);
 			fprintf(fp, "%d %f %0.10lf %u %u %f %f %f %f\n", i, (*syn).rho[i], (*syn).c[i], (*syn).preT[i], (*syn).postT[i], (*syn).NO_pre[i], (*syn).ltp[i], (*syn).ltd[i], (*syn).no_threshold[i]);
@@ -396,8 +396,8 @@ void loadSimulationParameters(int argc, char *argv[]){
         iPreSpikeDelay = 19;
         poisson_param = 1.0/1000;
 		
-		fTauNMDAR = 10; //70;
-		fNMDARjump = 2.85;
+		lfTauNMDAR = 10; //70;
+		lfNMDARjump = 2.85;
 		fThetaNO = 1;
 		fThetaNO2 = 1; //20;
 		
@@ -582,10 +582,10 @@ void loadSimulationParameters(int argc, char *argv[]){
                     poisson_param = paramValue;
                 }
 				else if (!strcmp(paramName, "TAU_NMDAR")){
-                    fTauNMDAR = paramValue;
+                    lfTauNMDAR = paramValue;
                 }
 				else if (!strcmp(paramName, "NMDAR_JUMP")){
-                    fNMDARjump = paramValue;
+                    lfNMDARjump = paramValue;
                 }
 				else if (!strcmp(paramName, "THETA_NO1")){
                     fThetaNO = paramValue;
