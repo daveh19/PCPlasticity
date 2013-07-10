@@ -213,15 +213,35 @@ BOOL h(float c, double theta){
 void updateCalciumConcentration(Synapse *syn){
     double c, dc;
     c = (*syn).c[siT];
+	
 	//TODO: change whether we fix Ca after a post spike or allow it to evolve dynamically here
+	
+	// Allow normal evolution of Ca from spikes
+	/*dc = (-c / fTauC) + calciumFromPreSynapticSpikes(syn) + calciumFromPostSynapticSpikes(syn);
+	 (*syn).c[siT + 1] = c + dc; // Euler forward method
+	 */
+	
+	// Fix Ca at constant level on PC depolarisation
 	/*if (calciumFromPostSynapticSpikes(syn) > 0){ 
 		// post-synaptic depolarisation: fix Ca concentration at constant upper-level
 		(*syn).c[siT + 1] = ((double) (*syn).postT[siT]) * dCpost;
 	}
-	else{*/
+	else{
 		dc = (-c / fTauC) + calciumFromPreSynapticSpikes(syn) + calciumFromPostSynapticSpikes(syn);
 		(*syn).c[siT + 1] = c + dc; // Euler forward method
-	//}
+	}*/
+	
+	// PC depolarisation enforces lower bound on Ca, but PF can still modify Ca above this level
+	if ((*syn).postT[siT - 1] == 1){
+		// We've already applied the depolarisation dependent calcium influx on a previous timestep, now use normal
+		// dynamics for PF dependent calcium and try to correct for leakage of depolarisation dependent calcium.
+		dc = (-(c-dCpost) / fTauC) + calciumFromPreSynapticSpikes(syn);
+		(*syn).c[siT + 1] = c + dc; // Euler forward method
+	}
+	else{
+		 dc = (-c / fTauC) + calciumFromPreSynapticSpikes(syn) + calciumFromPostSynapticSpikes(syn);
+		 (*syn).c[siT + 1] = c + dc; // Euler forward method
+	}
 }
 
 

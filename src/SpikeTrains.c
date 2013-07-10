@@ -953,6 +953,12 @@ int train30(unsigned int * preT, unsigned int * postT, unsigned int simulation_d
 	no_pf_stims = 7;
 	cf_offset = 500;
 	cf_offset += 30; // 30 accounts for middle (4th) spike
+	// Mathy values
+	inter_pf_gap = 10;
+	no_pf_stims = 5;
+	cf_offset = 40;
+	recurrent_no_stims = 25;
+	wavelength = 2000;
 	
     for (i = 0; i < recurrent_no_stims; i++){
 		for (int j = 0; j < no_pf_stims; j++){
