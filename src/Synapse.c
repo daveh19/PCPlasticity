@@ -117,9 +117,8 @@ int main( int argc, char *argv[] ){
 				if( syn[i].c[j] > theta_d ){
 					above_NO_d[i]++;
 				}
-				else{
+				else{ //TODO: this does not conform to rule as stated in maths and as implemented for rho
 					above_NO_p[i]++;
-					printf("DEBUG: j: %d\n", j);
 				}
 			}
 			ltp[i] += syn[i].ltp[j];
@@ -156,14 +155,18 @@ void updateSynapticEfficacy(Synapse *syn){
 		(*syn).no_threshold[siT] += 0.000001;
 	}*/
 	
-	if ( h((*syn).c[siT], dThetaP) && h((*syn).NO_pre[siT], (*syn).no_threshold[siT] ) ){
-		(*syn).ltp[siT] = (dGammaP * (1 - rho));
+	//TODO: which version of the LTP rule do we wish to implement?
+	//if ( h((*syn).c[siT], dThetaP) && h((*syn).NO_pre[siT], (*syn).no_threshold[siT] ) ){
+	if ( !(h((*syn).c[siT], dThetaD)) && h((*syn).NO_pre[siT], (*syn).no_threshold[siT] ) ){
+		//TODO: remove bistability from rho update?
+		(*syn).ltp[siT] = (dGammaP * (1 - rho)); 
 	}
 	else{
 		(*syn).ltp[siT] = 0;
 	}
 	
 	if ( h((*syn).c[siT], dThetaD) && h((*syn).NO_pre[siT], (*syn).no_threshold[siT] ) ){
+		//TODO: remove bistability from rho update?
 		(*syn).ltd[siT] = (dGammaD * rho);
 	}
 	else{
