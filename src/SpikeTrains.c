@@ -1035,6 +1035,14 @@ int train32(unsigned int * preT, unsigned int * postT, unsigned int simulation_d
 	no_pf_stims = 5;
 	//cf_offset = 62;
 	
+	// Attempt at LTP->LTD protocol
+	inter_pf_gap = 5;
+	no_pf_stims = 6;
+	// Proposed protocol (by Boris and Guy)
+	inter_pf_gap = 40;
+	no_pf_stims = 20;
+	wavelength = 2000;
+	
     for (i = 0; i < recurrent_no_stims; i++){
 		for (int j = 0; j < no_pf_stims; j++){
 			if (((i*wavelength) + (j*inter_pf_gap)) < simulation_duration){
@@ -1111,7 +1119,7 @@ int train34(unsigned int * preT, unsigned int * postT, unsigned int simulation_d
     wavelength = 1000; //(int)(1.0 / rho);
 	recurrent_no_stims = 120; // repeat protocol x times
 	
-	inter_pf_gap = 30; //42;//5; // ms
+	inter_pf_gap = 5; //42;//5; // ms
 	no_pf_stims = 2;
 	//cf_offset = 40;
 	

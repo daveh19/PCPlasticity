@@ -105,7 +105,7 @@ int main( int argc, char *argv[] ){
 		ltp[i] = 0;
 		ltd[i] = 0;
     }
-    for(j = 3000; j < simulation_duration; j++){ //discard first 3000ms
+    for(j = 3000; j < (simulation_duration-1); j++){ //discard first 3000ms
         for(i = 0; i < no_synapses; i++){
             if ( syn[i].c[j] > theta_d){
                 alpha_d[i]++;
@@ -119,6 +119,7 @@ int main( int argc, char *argv[] ){
 				}
 				else{
 					above_NO_p[i]++;
+					printf("DEBUG: j: %d\n", j);
 				}
 			}
 			ltp[i] += syn[i].ltp[j];
@@ -127,7 +128,8 @@ int main( int argc, char *argv[] ){
     }
     int t_total = simulation_duration - 3000;
     for(i = 0; i < no_synapses; i++){
-        alpha_d[i] /= t_total;
+		printf("Syn(%d), alpha_d: %f, alpha_p: %f, GammaD: %f, GammaP: %f, LTP zone: %f, LTD zone: %f, LTP: %f, LTD: %f\n", i, alpha_d[i], alpha_p[i], (alpha_d[i]*dGammaD), (alpha_p[i]*dGammaP), above_NO_p[i], above_NO_d[i], ltp[i], ltd[i]);
+		alpha_d[i] /= t_total;
         alpha_p[i] /= t_total;
 		above_NO_p[i] /= t_total;
 		above_NO_d[i] /= t_total;
@@ -169,8 +171,9 @@ void updateSynapticEfficacy(Synapse *syn){
 	}
 	
     //drho = (-rho * (1.0 - rho) * (dRhoFixed - rho)) + (dGammaP * (1 - rho) * h((*syn).c[siT], dThetaP) * h((*syn).NO_pre[siT], (fThetaNO*(1-((*syn).c[siT]/fThetaNO2))) )) - (dGammaD * rho * h((*syn).c[siT], dThetaD) * h((*syn).NO_pre[siT], (fThetaNO*(1-((*syn).c[siT]/fThetaNO2))) ));
-	drho = (-rho * (1.0 - rho) * (dRhoFixed - rho)) + (*syn).ltp[siT] - (*syn).ltd[siT];
-
+	//drho = (-rho * (1.0 - rho) * (dRhoFixed - rho)) + (*syn).ltp[siT] - (*syn).ltd[siT];
+	drho = (*syn).ltp[siT] - (*syn).ltd[siT];
+	
     // Add noise
     /*minTheta = fmin(dThetaP, dThetaD);
     if (h((*syn).c[siT], minTheta) > 0){ // Noise is on
@@ -203,7 +206,7 @@ void updateSynapticEfficacy(Synapse *syn){
 }*/
 BOOL h(float c, double theta){
 	//switched to strictly greater than to see if it helps with C_cs only situation
-    if ( c > theta )
+    if ( c >= theta )
         return 1;
     else
         return 0;
@@ -236,6 +239,7 @@ void updateCalciumConcentration(Synapse *syn){
 		// We've already applied the depolarisation dependent calcium influx on a previous timestep, now use normal
 		// dynamics for PF dependent calcium and try to correct for leakage of depolarisation dependent calcium.
 		dc = (-(c-dCpost) / fTauC) + calciumFromPreSynapticSpikes(syn);
+		//dc = (-c / fTauC) + calciumFromPreSynapticSpikes(syn) + (dCpost / fTauC);
 		(*syn).c[siT + 1] = c + dc; // Euler forward method
 	}
 	else{
