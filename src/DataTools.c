@@ -300,7 +300,7 @@ int createOutputFileHeader(char* filename, void *obj, int duration, double dCpre
         fprintf(logfile, "Saving to file: %s\n", filename);
 
         fprintf(fp, "\n\n%%# Params:\n%%#    Cpre: %f, Cpost: %f, thetaD: %f, thetaP: %f, gammaD: %f, gammaP: %f, sigma: %f\n%%#    Delay: %d, tau: %d, tauC: %d, rhoF: %f, poisson param: %f, seed: %ld\n", dCpre, dCpost, dThetaD, dThetaP, dGammaD, dGammaP, dSigma, iPreSpikeDelay, iTau, iTauC, dRhoFixed, poisson_param, initial_random_seed);
-        fprintf(fp, "%%#    lfTauNMDAR: %f, lfNMDARjump: %f, fThetaNO: %f, fThetaNO2\n", lfTauNMDAR, lfNMDARjump, fThetaNO, fThetaNO2);
+        fprintf(fp, "%%#    lfTauNMDAR: %f, lfNMDARjump: %f, fThetaNO: %f, fThetaNO2: %f\n", lfTauNMDAR, lfNMDARjump, fThetaNO, fThetaNO2);
 		fprintf(fp,"%%#\n%%# Synaptic output, Synapse(%d):\n%%# t rho c preT postT\n", (*syn).ID);
 
         fclose(fp);

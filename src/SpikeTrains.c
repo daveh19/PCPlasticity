@@ -905,7 +905,7 @@ int train29(unsigned int * preT, unsigned int * postT, unsigned int simulation_d
 	recurrent_no_stims = 300; // repeat protocol x times
 	
 	inter_pf_gap = 10; // ms
-	no_pf_stims = 4;
+	no_pf_stims = 1;
 	//cf_offset = 62;
 	
     for (i = 0; i < recurrent_no_stims; i++){
@@ -942,7 +942,7 @@ int train30(unsigned int * preT, unsigned int * postT, unsigned int simulation_d
 	
 	// Wang LTD values
 	inter_pf_gap = 10; //5; //10; // ms W:10
-	no_pf_stims = 3; //2; //3; W:3
+	no_pf_stims = 10;//3; //2; //3; W:3
 	cf_offset = 62; //normal wang ltd protocol
 	// Generic CF before PF
 	//inter_pf_gap = 5; //5; //10; // ms 
@@ -951,14 +951,15 @@ int train30(unsigned int * preT, unsigned int * postT, unsigned int simulation_d
 	// Safo LTD values
 	inter_pf_gap = 10;
 	no_pf_stims = 7;
-	cf_offset = 500;
+	cf_offset = -100;
 	cf_offset += 30; // 30 accounts for middle (4th) spike
+    wavelength = 10000;
 	// Mathy values
-	inter_pf_gap = 10;
+	/*inter_pf_gap = 10;
 	no_pf_stims = 5;
 	cf_offset = 40;
 	recurrent_no_stims = 25;
-	wavelength = 2000;
+	wavelength = 2000;*/
 	
     for (i = 0; i < recurrent_no_stims; i++){
 		for (int j = 0; j < no_pf_stims; j++){
@@ -1037,7 +1038,7 @@ int train32(unsigned int * preT, unsigned int * postT, unsigned int simulation_d
 	
 	// Attempt at LTP->LTD protocol
 	inter_pf_gap = 5;
-	no_pf_stims = 6;
+	no_pf_stims = 7;
 	// Proposed protocol (by Boris and Guy)
 	inter_pf_gap = 40;
 	no_pf_stims = 20;
@@ -1119,7 +1120,7 @@ int train34(unsigned int * preT, unsigned int * postT, unsigned int simulation_d
     wavelength = 1000; //(int)(1.0 / rho);
 	recurrent_no_stims = 120; // repeat protocol x times
 	
-	inter_pf_gap = 5; //42;//5; // ms
+	inter_pf_gap = 50; //42;//5; // ms
 	no_pf_stims = 2;
 	//cf_offset = 40;
 	
