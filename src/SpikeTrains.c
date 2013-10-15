@@ -905,8 +905,12 @@ int train29(unsigned int * preT, unsigned int * postT, unsigned int simulation_d
 	recurrent_no_stims = 300; // repeat protocol x times
 	
 	inter_pf_gap = 10; // ms
-	no_pf_stims = 1;
+	no_pf_stims = 7;
 	//cf_offset = 62;
+	
+	// Isope paper bursts (low temperature)
+	/*no_pf_stims = 2;
+	inter_pf_gap = 5;*/
 	
     for (i = 0; i < recurrent_no_stims; i++){
 		for (int j = 0; j < no_pf_stims; j++){
@@ -951,7 +955,7 @@ int train30(unsigned int * preT, unsigned int * postT, unsigned int simulation_d
 	// Safo LTD values
 	inter_pf_gap = 10;
 	no_pf_stims = 7;
-	cf_offset = -100;
+	cf_offset = -250;
 	cf_offset += 30; // 30 accounts for middle (4th) spike
     wavelength = 10000;
 	// Mathy values
@@ -1030,19 +1034,23 @@ int train32(unsigned int * preT, unsigned int * postT, unsigned int simulation_d
     //rho = 1000; // freq / 1000; // Convert Hz frequency to per millisecond
     //dt = 0; // measured in ms
     wavelength = 1000; //(int)(1.0 / rho);
-	recurrent_no_stims = 300; // repeat protocol x times
+	recurrent_no_stims = 300; //120; // repeat protocol x times
 	
 	inter_pf_gap = 5; // ms
-	no_pf_stims = 5;
+	no_pf_stims = 25;
 	//cf_offset = 62;
 	
 	// Attempt at LTP->LTD protocol
-	inter_pf_gap = 5;
-	no_pf_stims = 7;
+	/*inter_pf_gap = 5;
+	no_pf_stims = 10;*/
 	// Proposed protocol (by Boris and Guy)
-	inter_pf_gap = 40;
+	/*inter_pf_gap = 40;
 	no_pf_stims = 20;
-	wavelength = 2000;
+	wavelength = 2000;*/
+    // Alternative versions of Boris' protocol
+    /*inter_pf_gap = 5;
+    no_pf_stims = 30;
+	*/
 	
     for (i = 0; i < recurrent_no_stims; i++){
 		for (int j = 0; j < no_pf_stims; j++){
@@ -1120,7 +1128,7 @@ int train34(unsigned int * preT, unsigned int * postT, unsigned int simulation_d
     wavelength = 1000; //(int)(1.0 / rho);
 	recurrent_no_stims = 120; // repeat protocol x times
 	
-	inter_pf_gap = 50; //42;//5; // ms
+	inter_pf_gap = 30; //42;//5; // ms
 	no_pf_stims = 2;
 	//cf_offset = 40;
 	

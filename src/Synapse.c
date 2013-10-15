@@ -117,7 +117,7 @@ int main( int argc, char *argv[] ){
 				if( syn[i].c[j] > theta_d ){
 					above_NO_d[i]++;
 				}
-				else{ //TODO: this does not conform to rule as stated in maths and as implemented for rho
+				else{ 
 					above_NO_p[i]++;
 				}
 			}
