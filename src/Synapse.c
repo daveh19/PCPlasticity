@@ -6,16 +6,16 @@
 #include "NumericalTools.h"
 #include "SpikeTrains.h"
 
-#define SAFO_STEPS (301)
+#define SAFO_STEPS (801)
 
 int main( int argc, char *argv[] ){
 	int safo_loop_counter;
 	
 	summary_outname = "output/summary_safo.dat";
 	summary_outfile = fopen(summary_outname, "a");
-	fprintf(summary_outfile, "\n\n\n\n\nSynID, alpha_d, alpha_p, GammaD, GammaP, LTP zone, LTD zone, AmountLTP, AmountLTD\n");
+	fprintf(summary_outfile, "\n\n\n\n\nSafoOffset, SynID, alpha_d, alpha_p, GammaD, GammaP, LTP zone, LTD zone, AmountLTP, AmountLTD\n");
 	
-	for(safo_loop_counter = 50; safo_loop_counter< SAFO_STEPS; safo_loop_counter+=250){
+	for(safo_loop_counter = 0; safo_loop_counter< SAFO_STEPS; safo_loop_counter+=5){
 		printf("beginning loop %d\n", safo_loop_counter);
 		safo_index = safo_loop_counter;
 	
@@ -147,7 +147,7 @@ int main( int argc, char *argv[] ){
 			ltp[i] /= t_total;
 			ltd[i] /= t_total;
 			printf("Syn(%d), alpha_d: %f, alpha_p: %f, GammaD: %f, GammaP: %f, LTP zone: %f, LTD zone: %f, LTP: %f, LTD: %f\n", i, alpha_d[i], alpha_p[i], (alpha_d[i]*dGammaD), (alpha_p[i]*dGammaP), above_NO_p[i], above_NO_d[i], ltp[i], ltd[i]);
-			fprintf(summary_outfile, "%d, %f, %f, %f, %f, %f, %f, %f, %f\n", i, alpha_d[i], alpha_p[i], (alpha_d[i]*dGammaD), (alpha_p[i]*dGammaP), above_NO_p[i], above_NO_d[i], ltp[i], ltd[i]);
+			fprintf(summary_outfile, "%d, %d, %f, %f, %f, %f, %f, %f, %f, %f\n", safo_index, i, alpha_d[i], alpha_p[i], (alpha_d[i]*dGammaD), (alpha_p[i]*dGammaP), above_NO_p[i], above_NO_d[i], ltp[i], ltd[i]);
 		}
 
 		// Free memory and exit
