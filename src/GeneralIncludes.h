@@ -4,6 +4,7 @@
 #define FILE_NAME_LENGTH 50
 #define TEXT_BUFFER_LENGTH 100
 
+
 #include <stdio.h>
 #include <errno.h> // Error numbers for file opening
 //#include <limits.h> // System data limits

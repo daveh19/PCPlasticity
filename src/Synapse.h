@@ -66,6 +66,10 @@ typedef int BOOL;
 BOOL checkpointing;
 //BOOL a_restart;
 
+FILE* summary_outfile;
+char* summary_outname;
+char summary_outarray[FILE_NAME_LENGTH];
+
 FILE* logfile;
 char* logfilename;
 char* outfilepattern;

@@ -6,139 +6,160 @@
 #include "NumericalTools.h"
 #include "SpikeTrains.h"
 
+#define SAFO_STEPS (301)
+
 int main( int argc, char *argv[] ){
-    int i, j, t;
-    char outfile[FILE_NAME_LENGTH];
+	int safo_loop_counter;
+	
+	summary_outname = "output/summary_safo.dat";
+	summary_outfile = fopen(summary_outname, "a");
+	fprintf(summary_outfile, "\n\n\n\n\nSynID, alpha_d, alpha_p, GammaD, GammaP, LTP zone, LTD zone, AmountLTP, AmountLTD\n");
+	
+	for(safo_loop_counter = 50; safo_loop_counter< SAFO_STEPS; safo_loop_counter+=250){
+		printf("beginning loop %d\n", safo_loop_counter);
+		safo_index = safo_loop_counter;
+	
+		int i, j, t;
+		char outfile[FILE_NAME_LENGTH];
 
     // Initialise checkpointing
-/* Checkpoint_init:
-    1. Load parameters
-    2. openLogFile() (now in load params)
-    3. Reserve memory for array of synapses
-    4. Load Reset values
-    5. Reserve memory for members of Synapse(s)
-*/
-    Synapse *syn;
-    syn = checkpoint_init(argc, argv, syn);
-    fflush(logfile);
+		/* Checkpoint_init:
+		 1. Load parameters
+		 2. openLogFile() (now in load params)
+		 3. Reserve memory for array of synapses
+		 4. Load Reset values
+		 5. Reserve memory for members of Synapse(s)
+		 */
+		Synapse *syn;
+		syn = checkpoint_init(argc, argv, syn);
+		fflush(logfile);
 
-//    for (k = 0; i < no_synapses; i++){
-//        fprintf(logfile, "DEBUG:: main: syn(%d).c(0): %lf\n", i, syn[i].c[0]);
-//    }
-//    printf("DEBUG:: MEM TEST\n");
-//    printf("syn.ID: %d\n", syn[0].ID);
-    fflush(stdout);
+		//    for (k = 0; i < no_synapses; i++){
+		//        fprintf(logfile, "DEBUG:: main: syn(%d).c(0): %lf\n", i, syn[i].c[0]);
+		//    }
+		//    printf("DEBUG:: MEM TEST\n");
+		//    printf("syn.ID: %d\n", syn[0].ID);
+		fflush(stdout);
 
 
 
-    // Load pre- and post- synaptic spike times into arrays for each synapse
-    loadInitialSpikeTimes(syn);
+		// Load pre- and post- synaptic spike times into arrays for each synapse
+		loadInitialSpikeTimes(syn);
 
-	//TODO: decide whether epsillon bound around thetaP=0 is necessary or not
-	// Add Epsillon to thetaP (0) to ensure Ca switches off
-	// if epsillon is 0.000001 then expect Ca to reach 0 from 1 in less than 14*tau
-	/*if (dThetaP == 0){
-		dThetaP += 0.000001;
-	}
-	if (dThetaD == 0){
-		dThetaD += 0.000001;
-	}*/
+		//TODO: decide whether epsillon bound around thetaP=0 is necessary or not
+		// Add Epsillon to thetaP (0) to ensure Ca switches off
+		// if epsillon is 0.000001 then expect Ca to reach 0 from 1 in less than 14*tau
+		/*if (dThetaP == 0){
+		 dThetaP += 0.000001;
+		 }
+		 if (dThetaD == 0){
+		 dThetaD += 0.000001;
+		 }*/
 	
-    // Main simulation loop
-    fprintf(logfile, "Entering main simulation loop\n");
-    printf("Entering main simulation loop\n");
-    // Loop over discrete time steps up to simulation_duration
-    for (t = siT; t < (simulation_duration-1); t++){
-        //checkpoint_save(syn);
-        // Update each synapse
-        for (i = 0; i < no_synapses; i++){
-            printf("syn(%d) ", i);
-			//updatePreSynapticVoltageTrace(&syn[i]);
-			updatePreSynapticNOConcentration(&syn[i]);
-            updateCalciumConcentration(&syn[i]);
-            updateSynapticEfficacy(&syn[i]);
-            printf("t: %d, c: %f, rho: %f, NO: %f\n", siT, syn[i].c[siT-time_of_last_save], syn[i].rho[siT], syn[i].NO_pre[siT]);
-        }
-        checkpoint_save(syn);
-        siT++;
-    }
-    printf("DEBUG:: SIM OVER\n");
-    checkpoint_save(syn);
-    for (i = 0; i < no_synapses; i++){
-        printf("syn(%d) t: %d, c: %f, rho: %f\n", i, siT, syn[i].c[siT], syn[i].rho[siT]);
-    }
-    fprintf(logfile, "Simulation complete\n");
-    printf("Simulation complete\n");
-
-    // Debugging output after simulation has completed
-    for (j = 0; j < (simulation_duration); j++){
-        for (i = 0; i < no_synapses; i++){
-            fprintf(logfile, "syn(%d).preT(%d): %u, postT(%d): %u, c: %f, rho: %f\n", i, j, syn[i].preT[j], j, syn[i].postT[j], syn[i].c[j], syn[i].rho[j]);
-        }
-    }
-    fprintf(logfile, "siT: %d\n", siT);
-
-    // Output to files loop
-    if (!checkpointing){
-        for (i = 0; i < no_synapses; i++){
-            //sprintf(outfile, "output/01_syn_%.3d.dat", syn[i].ID);
-            sprintf(outfile, outfilepattern, syn[i].ID);
-            printf("writing...%s\n", outfile);
-            saveSynapseOutputFile(outfile, &syn[i], siT, dCpre, dCpost, dThetaD, dThetaP, dGammaD, dGammaP, dSigma, iPreSpikeDelay, fTau, fTauC, dRhoFixed, poisson_param, initial_random_seed);
-        }
-    }
-
-    // Calculate alpha_d and alpha_p
-    float alpha_d[no_synapses];
-    float alpha_p[no_synapses];
-	float above_NO_d[no_synapses];
-	float above_NO_p[no_synapses];
-    float theta_d = dThetaD;
-    float theta_p = dThetaP;
-	float ltp[no_synapses];
-	float ltd[no_synapses];
-    for(i = 0; i < no_synapses; i++){
-        alpha_d[i] = 0;
-        alpha_p[i] = 0;
-		above_NO_d[i] = 0;
-		above_NO_p[i] = 0;
-		ltp[i] = 0;
-		ltd[i] = 0;
-    }
-    for(j = 3000; j < (simulation_duration-1); j++){ //discard first 3000ms
-        for(i = 0; i < no_synapses; i++){
-            if ( syn[i].c[j] > theta_d){
-                alpha_d[i]++;
-            }
-            if( syn[i].c[j] > theta_p){
-                alpha_p[i]++;
-            }
-			if ( syn[i].NO_pre[j] > syn[i].no_threshold[j] ){
-				if( syn[i].c[j] > theta_d ){
-					above_NO_d[i]++;
-				}
-				else{ 
-					above_NO_p[i]++;
-				}
+		// Main simulation loop
+		fprintf(logfile, "Entering main simulation loop\n");
+		printf("Entering main simulation loop\n");
+		// Loop over discrete time steps up to simulation_duration
+		for (t = siT; t < (simulation_duration-1); t++){
+			//checkpoint_save(syn);
+			// Update each synapse
+			for (i = 0; i < no_synapses; i++){
+				printf("syn(%d) ", i);
+				//updatePreSynapticVoltageTrace(&syn[i]);
+				updatePreSynapticNOConcentration(&syn[i]);
+				updateCalciumConcentration(&syn[i]);
+				updateSynapticEfficacy(&syn[i]);
+				printf("t: %d, c: %f, rho: %f, NO: %f\n", siT, syn[i].c[siT-time_of_last_save], syn[i].rho[siT], syn[i].NO_pre[siT]);
 			}
-			ltp[i] += syn[i].ltp[j];
-			ltd[i] += syn[i].ltd[j];
-        }
-    }
-    int t_total = simulation_duration - 3000;
-    for(i = 0; i < no_synapses; i++){
-		printf("Syn(%d), alpha_d: %f, alpha_p: %f, GammaD: %f, GammaP: %f, LTP zone: %f, LTD zone: %f, LTP: %f, LTD: %f\n", i, alpha_d[i], alpha_p[i], (alpha_d[i]*dGammaD), (alpha_p[i]*dGammaP), above_NO_p[i], above_NO_d[i], ltp[i], ltd[i]);
-		alpha_d[i] /= t_total;
-        alpha_p[i] /= t_total;
-		above_NO_p[i] /= t_total;
-		above_NO_d[i] /= t_total;
-		ltp[i] /= t_total;
-		ltd[i] /= t_total;
-        printf("Syn(%d), alpha_d: %f, alpha_p: %f, GammaD: %f, GammaP: %f, LTP zone: %f, LTD zone: %f, LTP: %f, LTD: %f\n", i, alpha_d[i], alpha_p[i], (alpha_d[i]*dGammaD), (alpha_p[i]*dGammaP), above_NO_p[i], above_NO_d[i], ltp[i], ltd[i]);
-    }
+			checkpoint_save(syn);
+			siT++;
+		}
+		printf("DEBUG:: SIM OVER\n");
+		checkpoint_save(syn);
+		for (i = 0; i < no_synapses; i++){
+			printf("syn(%d) t: %d, c: %f, rho: %f\n", i, siT, syn[i].c[siT], syn[i].rho[siT]);
+		}
+		fprintf(logfile, "Simulation complete\n");
+		printf("Simulation complete\n");
 
-    // Free memory and exit
-    return finalise(0, syn);
+		// Debugging output after simulation has completed
+		for (j = 0; j < (simulation_duration); j++){
+			for (i = 0; i < no_synapses; i++){
+				fprintf(logfile, "syn(%d).preT(%d): %u, postT(%d): %u, c: %f, rho: %f\n", i, j, syn[i].preT[j], j, syn[i].postT[j], syn[i].c[j], syn[i].rho[j]);
+			}
+		}
+		fprintf(logfile, "siT: %d\n", siT);
+
+		// Output to files loop
+		if (!checkpointing){
+			for (i = 0; i < no_synapses; i++){
+				//sprintf(outfile, "output/01_syn_%.3d.dat", syn[i].ID);
+				sprintf(outfile, outfilepattern, syn[i].ID);
+				printf("writing...%s\n", outfile);
+				saveSynapseOutputFile(outfile, &syn[i], siT, dCpre, dCpost, dThetaD, dThetaP, dGammaD, dGammaP, dSigma, iPreSpikeDelay, fTau, fTauC, dRhoFixed, poisson_param, initial_random_seed);
+			}
+		}
+
+		// Calculate alpha_d and alpha_p
+		float alpha_d[no_synapses];
+		float alpha_p[no_synapses];
+		float above_NO_d[no_synapses];
+		float above_NO_p[no_synapses];
+		float theta_d = dThetaD;
+		float theta_p = dThetaP;
+		float ltp[no_synapses];
+		float ltd[no_synapses];
+		for(i = 0; i < no_synapses; i++){
+			alpha_d[i] = 0;
+			alpha_p[i] = 0;
+			above_NO_d[i] = 0;
+			above_NO_p[i] = 0;
+			ltp[i] = 0;
+			ltd[i] = 0;
+		}
+		for(j = 3000; j < (simulation_duration-1); j++){ //discard first 3000ms
+			for(i = 0; i < no_synapses; i++){
+				if ( syn[i].c[j] > theta_d){
+					alpha_d[i]++;
+				}
+				if( syn[i].c[j] > theta_p){
+					alpha_p[i]++;
+				}
+				if ( syn[i].NO_pre[j] > syn[i].no_threshold[j] ){
+					if( syn[i].c[j] > theta_d ){
+						above_NO_d[i]++;
+					}
+					else{ 
+						above_NO_p[i]++;
+					}
+				}
+				ltp[i] += syn[i].ltp[j];
+				ltd[i] += syn[i].ltd[j];
+			}
+		}
+		int t_total = simulation_duration - 3000;
+		for(i = 0; i < no_synapses; i++){
+			printf("Syn(%d), alpha_d: %f, alpha_p: %f, GammaD: %f, GammaP: %f, LTP zone: %f, LTD zone: %f, LTP: %f, LTD: %f\n", i, alpha_d[i], alpha_p[i], (alpha_d[i]*dGammaD), (alpha_p[i]*dGammaP), above_NO_p[i], above_NO_d[i], ltp[i], ltd[i]);
+			alpha_d[i] /= t_total;
+			alpha_p[i] /= t_total;
+			above_NO_p[i] /= t_total;
+			above_NO_d[i] /= t_total;
+			ltp[i] /= t_total;
+			ltd[i] /= t_total;
+			printf("Syn(%d), alpha_d: %f, alpha_p: %f, GammaD: %f, GammaP: %f, LTP zone: %f, LTD zone: %f, LTP: %f, LTD: %f\n", i, alpha_d[i], alpha_p[i], (alpha_d[i]*dGammaD), (alpha_p[i]*dGammaP), above_NO_p[i], above_NO_d[i], ltp[i], ltd[i]);
+			fprintf(summary_outfile, "%d, %f, %f, %f, %f, %f, %f, %f, %f\n", i, alpha_d[i], alpha_p[i], (alpha_d[i]*dGammaD), (alpha_p[i]*dGammaP), above_NO_p[i], above_NO_d[i], ltp[i], ltd[i]);
+		}
+
+		// Free memory and exit
+		//return finalise(0, syn);
+		finalise(0, syn);
+		
+		printf("ending loop %d\n", safo_loop_counter);
+		//end of safo loop
+	}
+	
+	fclose(summary_outfile);
+	return 0;
 }
 
 
@@ -416,7 +437,8 @@ void synapse_memory_init(Synapse *syn){
         fprintf(logfile, "Set synaptic id to: %d\n", (syn[i]).ID);
 
         // Memory allocation for c(t) array
-        local_c = (double *) malloc( (simulation_duration) * sizeof(double) );
+        local_c = (double *) calloc( (simulation_duration), sizeof(double));
+		//local_c = (double *) malloc( (simulation_duration) * sizeof(double) );
         if (local_c == NULL){
             perror("Memory allocation failure (c)\n");
             fprintf(logfile, "ERROR: Memory allocation failure (c)\n");
@@ -429,7 +451,7 @@ void synapse_memory_init(Synapse *syn){
             //fprintf(logfile, "DEBUG:: syn(%d).c(0): %lf\n", i, syn[i].c[0]);
         }
         // Memory allocation for rho(t) array
-        local_rho = (double *) malloc( (simulation_duration) * sizeof(double) );
+        local_rho = (double *) calloc(simulation_duration, sizeof(double) );
         if (local_rho == NULL){
             perror("Memory allocation failure (rho)\n");
             fprintf(logfile, "ERROR: Memory allocation failure (rho)\n");
@@ -443,7 +465,7 @@ void synapse_memory_init(Synapse *syn){
 
         // Memory allocation for preT(t) array
         // CONSIDER: using calloc instead of malloc for spike time arrays (defaults to 0)
-        local_preT = (unsigned int *) malloc( (simulation_duration) * sizeof(unsigned int) );
+        local_preT = (unsigned int *) calloc( (simulation_duration), sizeof(unsigned int) );
         if (local_preT == NULL){
             perror("Memory allocation failure (preT)\n");
             fprintf(logfile, "ERROR: Memory allocation failure (preT)\n");
@@ -456,7 +478,7 @@ void synapse_memory_init(Synapse *syn){
             //fflush(logfile);
         }
         // Memory allocation for postT(t) array
-        local_postT = (unsigned int *) malloc( (simulation_duration) * sizeof(unsigned int) );
+        local_postT = (unsigned int *) calloc( (simulation_duration), sizeof(unsigned int) );
         if (local_postT == NULL){
             perror("Memory allocation failure (postT)\n");
             fprintf(logfile, "ERROR: Memory allocation failure (postT)\n");
@@ -476,7 +498,7 @@ void synapse_memory_init(Synapse *syn){
             (syn[i]).V_pre = local_v_pre;
             fprintf(logfile, "syn(%d).V_pre successfully assigned\n", i);
         }*/
-		local_no_pre = (double *) malloc( (simulation_duration) * sizeof(double) );
+		local_no_pre = (double *) calloc( (simulation_duration), sizeof(double) );
         if (local_no_pre == NULL){
             perror("Memory allocation failure (NO_pre)\n");
             fprintf(logfile, "ERROR: Memory allocation failure (NO_pre)\n");
@@ -487,7 +509,7 @@ void synapse_memory_init(Synapse *syn){
         }
 		
 		// Memory allocation for debugging LTP and LTD variables
-		local_ltp = (float *) malloc( (simulation_duration) * sizeof(float) );
+		local_ltp = (float *) calloc( (simulation_duration), sizeof(float) );
         if (local_ltp == NULL){
             perror("Memory allocation failure (ltp)\n");
             fprintf(logfile, "ERROR: Memory allocation failure (ltp)\n");
@@ -496,7 +518,7 @@ void synapse_memory_init(Synapse *syn){
             (syn[i]).ltp = local_ltp;
             fprintf(logfile, "syn(%d).ltp successfully assigned\n", i);
         }
-		local_ltd = (float *) malloc( (simulation_duration) * sizeof(float) );
+		local_ltd = (float *) calloc( (simulation_duration), sizeof(float) );
         if (local_ltd == NULL){
             perror("Memory allocation failure (ltd)\n");
             fprintf(logfile, "ERROR: Memory allocation failure (ltd)\n");
@@ -505,7 +527,7 @@ void synapse_memory_init(Synapse *syn){
             (syn[i]).ltd = local_ltd;
             fprintf(logfile, "syn(%d).ltd successfully assigned\n", i);
         }
-		local_no_threshold = (float *) malloc( (simulation_duration) * sizeof(float) );
+		local_no_threshold = (float *) calloc( (simulation_duration), sizeof(float) );
         if (local_no_threshold == NULL){
             perror("Memory allocation failure (no_threshold)\n");
             fprintf(logfile, "ERROR: Memory allocation failure (no_threshold)\n");
@@ -543,6 +565,7 @@ int finalise(int status, Synapse *syn){
     else{
         fprintf(logfile, "An error occurred: exiting\n");
         closeLogFile(logfile);
+		exit(1);
         return 1;
     }
 }

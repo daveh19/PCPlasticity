@@ -1,3 +1,5 @@
+int safo_index;
+
 // train1 is one pre- and no post- synaptic spikes
 int train1(unsigned int * preT, unsigned int * postT, unsigned int simulation_duration);
 // train2 is 20 pre-synaptic spikes and no post-synaptic spikes

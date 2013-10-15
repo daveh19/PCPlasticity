@@ -952,12 +952,15 @@ int train30(unsigned int * preT, unsigned int * postT, unsigned int simulation_d
 	//inter_pf_gap = 5; //5; //10; // ms 
 	//no_pf_stims = 2; //2; //3;
 	//cf_offset = -30;
+	
 	// Safo LTD values
 	inter_pf_gap = 10;
 	no_pf_stims = 7;
-	cf_offset = -250;
+	//cf_offset = -250;
+	cf_offset = -300 + safo_index;
 	cf_offset += 30; // 30 accounts for middle (4th) spike
     wavelength = 10000;
+	
 	// Mathy values
 	/*inter_pf_gap = 10;
 	no_pf_stims = 5;

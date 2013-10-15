@@ -351,7 +351,7 @@ void loadSimulationParameters(int argc, char *argv[]){
     outfilepattern = outfilearray;
 
 	//TODO: modify default variable values here
-    train_fn = train32;
+    train_fn = train30;
     siT = 0;
     siID = 0;
     time_of_last_save = -1;
