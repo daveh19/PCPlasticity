@@ -15,7 +15,7 @@ int main( int argc, char *argv[] ){
 	summary_outfile = fopen(summary_outname, "a");
 	fprintf(summary_outfile, "\n\n\n\n\nSafoOffset, SynID, alpha_d, alpha_p, GammaD, GammaP, LTP zone, LTD zone, AmountLTP, AmountLTD\n");
 	
-	for(safo_loop_counter = 0; safo_loop_counter< SAFO_STEPS; safo_loop_counter+=5){
+	for(safo_loop_counter = 0; safo_loop_counter< SAFO_STEPS; safo_loop_counter+=1000){
 		printf("beginning loop %d\n", safo_loop_counter);
 		safo_index = safo_loop_counter;
 	
@@ -64,12 +64,12 @@ int main( int argc, char *argv[] ){
 			//checkpoint_save(syn);
 			// Update each synapse
 			for (i = 0; i < no_synapses; i++){
-				printf("syn(%d) ", i);
+				//printf("syn(%d) ", i);
 				//updatePreSynapticVoltageTrace(&syn[i]);
 				updatePreSynapticNOConcentration(&syn[i]);
 				updateCalciumConcentration(&syn[i]);
 				updateSynapticEfficacy(&syn[i]);
-				printf("t: %d, c: %f, rho: %f, NO: %f\n", siT, syn[i].c[siT-time_of_last_save], syn[i].rho[siT], syn[i].NO_pre[siT]);
+				//printf("t: %d, c: %f, rho: %f, NO: %f\n", siT, syn[i].c[siT-time_of_last_save], syn[i].rho[siT], syn[i].NO_pre[siT]);
 			}
 			checkpoint_save(syn);
 			siT++;
@@ -103,12 +103,12 @@ int main( int argc, char *argv[] ){
 		// Calculate alpha_d and alpha_p
 		float alpha_d[no_synapses];
 		float alpha_p[no_synapses];
-		float above_NO_d[no_synapses];
-		float above_NO_p[no_synapses];
+		double above_NO_d[no_synapses];
+		double above_NO_p[no_synapses];
 		float theta_d = dThetaD;
 		float theta_p = dThetaP;
-		float ltp[no_synapses];
-		float ltd[no_synapses];
+		double ltp[no_synapses];
+		double ltd[no_synapses];
 		for(i = 0; i < no_synapses; i++){
 			alpha_d[i] = 0;
 			alpha_p[i] = 0;
@@ -117,7 +117,8 @@ int main( int argc, char *argv[] ){
 			ltp[i] = 0;
 			ltd[i] = 0;
 		}
-		for(j = 3000; j < (simulation_duration-1); j++){ //discard first 3000ms
+        int discard = 0;
+		for(j = discard; j < (simulation_duration-1); j++){ //discard first 'discard' ms
 			for(i = 0; i < no_synapses; i++){
 				if ( syn[i].c[j] > theta_d){
 					alpha_d[i]++;
@@ -139,15 +140,15 @@ int main( int argc, char *argv[] ){
 		}
 		int t_total = simulation_duration - 3000;
 		for(i = 0; i < no_synapses; i++){
-			printf("Syn(%d), alpha_d: %f, alpha_p: %f, GammaD: %f, GammaP: %f, LTP zone: %f, LTD zone: %f, LTP: %f, LTD: %f\n", i, alpha_d[i], alpha_p[i], (alpha_d[i]*dGammaD), (alpha_p[i]*dGammaP), above_NO_p[i], above_NO_d[i], ltp[i], ltd[i]);
+			printf("Syn(%d), alpha_d: %f, alpha_p: %f, GammaD: %f, GammaP: %f, LTP zone: %f, LTD zone: %f, LTP: %lf, LTD: %lf\n", i, alpha_d[i], alpha_p[i], (alpha_d[i]*dGammaD), (alpha_p[i]*dGammaP), above_NO_p[i], above_NO_d[i], ltp[i], ltd[i]);
 			alpha_d[i] /= t_total;
 			alpha_p[i] /= t_total;
-			above_NO_p[i] /= t_total;
-			above_NO_d[i] /= t_total;
-			ltp[i] /= t_total;
-			ltd[i] /= t_total;
-			printf("Syn(%d), alpha_d: %f, alpha_p: %f, GammaD: %f, GammaP: %f, LTP zone: %f, LTD zone: %f, LTP: %f, LTD: %f\n", i, alpha_d[i], alpha_p[i], (alpha_d[i]*dGammaD), (alpha_p[i]*dGammaP), above_NO_p[i], above_NO_d[i], ltp[i], ltd[i]);
-			fprintf(summary_outfile, "%d, %d, %f, %f, %f, %f, %f, %f, %f, %f\n", safo_index, i, alpha_d[i], alpha_p[i], (alpha_d[i]*dGammaD), (alpha_p[i]*dGammaP), above_NO_p[i], above_NO_d[i], ltp[i], ltd[i]);
+			/*above_NO_p[i] /= t_total;
+			above_NO_d[i] /= t_total;*/
+			/*ltp[i] /= t_total;
+			ltd[i] /= t_total;*/
+			printf("Syn(%d), alpha_d: %f, alpha_p: %f, GammaD: %f, GammaP: %f, LTP zone: %lf, LTD zone: %lf, LTP: %lf, LTD: %lf\n", i, alpha_d[i], alpha_p[i], (alpha_d[i]*dGammaD), (alpha_p[i]*dGammaP), above_NO_p[i], above_NO_d[i], ltp[i], ltd[i]);
+			fprintf(summary_outfile, "%d, %d, %f, %f, %f, %f, %lf, %lf, %f, %f\n", safo_index, i, alpha_d[i], alpha_p[i], (alpha_d[i]*dGammaD), (alpha_p[i]*dGammaP), above_NO_p[i], above_NO_d[i], ltp[i], ltd[i]);
 		}
 
 		// Free memory and exit
@@ -280,7 +281,7 @@ void updateCalciumConcentration(Synapse *syn){
 double calciumFromPreSynapticSpikes(Synapse *syn){
     double d;
 
-    printf("preT: %u ", (*syn).preT[siT]);
+    //printf("preT: %u ", (*syn).preT[siT]);
 
     if (siT < iPreSpikeDelay){
         d = 0.0;
@@ -300,7 +301,7 @@ double calciumFromPreSynapticSpikes(Synapse *syn){
 // from post-synaptic spikes
 double calciumFromPostSynapticSpikes(Synapse *syn){
     double d;
-    printf("postT: %u ", (*syn).postT[siT]);
+    //printf("postT: %u ", (*syn).postT[siT]);
     d = ((double) (*syn).postT[siT]) * dCpost;
     return d;
 }

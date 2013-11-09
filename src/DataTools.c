@@ -371,7 +371,7 @@ void loadSimulationParameters(int argc, char *argv[]){
         printf("No command-line arguments passed....loading defaults.\n");
         printf("arg0 is %s\n", argv[0]);
 
-        simulation_duration = 100;
+        simulation_duration = 100000;
         no_synapses = 1;
 
         initial_c = 0;

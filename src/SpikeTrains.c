@@ -937,10 +937,14 @@ int train30(unsigned int * preT, unsigned int * postT, unsigned int simulation_d
 	int no_pf_stims;
 	int cf_offset; // ms
 	int inter_pf_gap; // ms
+    
+    int sim_start_offset; //ms
+    
     //float freq, rho;
     //freq = 1;
     //rho = 1000; // freq / 1000; // Convert Hz frequency to per millisecond
     //dt = 0; // measured in ms
+    sim_start_offset = 2000;
     wavelength = 1000; //(int)(1.0 / rho);
 	recurrent_no_stims = 30; // repeat protocol x times
 	
@@ -969,14 +973,17 @@ int train30(unsigned int * preT, unsigned int * postT, unsigned int simulation_d
 	wavelength = 2000;*/
 	
     for (i = 0; i < recurrent_no_stims; i++){
-		for (int j = 0; j < no_pf_stims; j++){
-			if (((i*wavelength) + (j*inter_pf_gap)) < simulation_duration){
-				preT[(i*wavelength) + (j*inter_pf_gap)] = 1;
+        //printf("i %d\n", i);
+        for (int j = 0; j < no_pf_stims; j++){
+			if (((i*wavelength) + (j*inter_pf_gap) + sim_start_offset) < simulation_duration){
+				preT[(i*wavelength) + (j*inter_pf_gap) + sim_start_offset] = 1;
 			}
 		}
-
-        if(((i*wavelength)+cf_offset < simulation_duration) && ((i*wavelength)+cf_offset > -1)){
-            postT[(i*wavelength) + cf_offset] = 1;
+        
+        //printf("DEBUG: (i*wavelength) + cf_offset + sim_start_offset %d\n", ((i*wavelength) + cf_offset + sim_start_offset));
+        if((((i*wavelength)+cf_offset+sim_start_offset) < simulation_duration) && (((i*wavelength)+cf_offset+sim_start_offset) > -1)){
+            postT[(i*wavelength) + cf_offset + sim_start_offset] = 1;
+            //printf("DEBUG: (i*wavelength) + cf_offset + sim_start_offset %d\n", ((i*wavelength) + cf_offset + sim_start_offset));
         }
         //printf("DEBUG: i: %d, j: %d\n", (i*wavelength), ((i*wavelength)+dt));
         //}
@@ -1032,15 +1039,19 @@ int train32(unsigned int * preT, unsigned int * postT, unsigned int simulation_d
 	int no_pf_stims;
 	//int cf_offset; // ms
 	int inter_pf_gap; // ms
+    
+    int sim_start_offset; //ms
+    
     //float freq, rho;
     //freq = 1;
     //rho = 1000; // freq / 1000; // Convert Hz frequency to per millisecond
     //dt = 0; // measured in ms
+    sim_start_offset = 2000;
     wavelength = 1000; //(int)(1.0 / rho);
 	recurrent_no_stims = 300; //120; // repeat protocol x times
 	
-	inter_pf_gap = 5; // ms
-	no_pf_stims = 25;
+	inter_pf_gap = 60; // ms
+	no_pf_stims = 5;
 	//cf_offset = 62;
 	
 	// Attempt at LTP->LTD protocol
@@ -1057,8 +1068,8 @@ int train32(unsigned int * preT, unsigned int * postT, unsigned int simulation_d
 	
     for (i = 0; i < recurrent_no_stims; i++){
 		for (int j = 0; j < no_pf_stims; j++){
-			if (((i*wavelength) + (j*inter_pf_gap)) < simulation_duration){
-				preT[(i*wavelength) + (j*inter_pf_gap)] = 1;
+			if (((i*wavelength) + (j*inter_pf_gap) + sim_start_offset) < simulation_duration){
+				preT[(i*wavelength) + (j*inter_pf_gap) + sim_start_offset] = 1;
 			}
 		}
 				
@@ -1124,26 +1135,30 @@ int train34(unsigned int * preT, unsigned int * postT, unsigned int simulation_d
 	int no_pf_stims;
 	//int cf_offset; // ms
 	int inter_pf_gap; // ms
+    
+    int sim_start_offset; //ms
+    
     //float freq, rho;
     //freq = 1;
     //rho = 1000; // freq / 1000; // Convert Hz frequency to per millisecond
     //dt = 0; // measured in ms
+    sim_start_offset = 2000;
     wavelength = 1000; //(int)(1.0 / rho);
 	recurrent_no_stims = 120; // repeat protocol x times
 	
-	inter_pf_gap = 30; //42;//5; // ms
+	inter_pf_gap = 80; //42;//5; // ms
 	no_pf_stims = 2;
 	//cf_offset = 40;
 	
     for (i = 0; i < recurrent_no_stims; i++){
 		for ( int j = 0; j < 120; j++){ // PC depolarisation
-			if ((i*wavelength + j) < simulation_duration){
-				postT[(i*wavelength) + j] = 1;
+			if ((i*wavelength + j + sim_start_offset) < simulation_duration){
+				postT[(i*wavelength) + j + sim_start_offset] = 1;
 			}
 		}
 		for (int j = 0; j < no_pf_stims; j++){
-			if (((i*wavelength) + 60 - (j*inter_pf_gap)) < simulation_duration){
-				preT[(i*wavelength) + 60 - (j*inter_pf_gap)] = 1;
+			if (((i*wavelength) + 60 - (j*inter_pf_gap) + sim_start_offset) < simulation_duration){
+				preT[(i*wavelength) + 60 - (j*inter_pf_gap) + sim_start_offset] = 1;
 			}
 		}
 		
