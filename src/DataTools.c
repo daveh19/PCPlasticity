@@ -235,7 +235,7 @@ int checkpoint_save(Synapse *syn){
             exit (5);
         }
         else {
-            fprintf(checkpoint_fp, "SIT %d\n", siT);
+            fprintf(checkpoint_fp, "SIT %ld\n", siT);
             fprintf(checkpoint_fp, "RANDOM_SEED %ld\n", random_seed);
             for (i = 0; i < no_synapses; i++){
                 fprintf(checkpoint_fp, "SYNAPSE %d\n", i);
@@ -380,6 +380,7 @@ void loadSimulationParameters(int argc, char *argv[]){
         initial_random_seed = (-13);
         random_seed = initial_random_seed;
 
+		dt = 1; // default to 1ms timestep
         fTau = 150000;  // measured in ms (equivalent to 150sec)
         fTauC = 20;  // measured in ms
 
@@ -429,6 +430,9 @@ void loadSimulationParameters(int argc, char *argv[]){
                 else if (!strcmp(paramName, "INITIAL_RANDOM_SEED")){
                     initial_random_seed = paramValue;
                     random_seed = paramValue;
+                }
+				else if (!strcmp(paramName, "SIM_DT")){
+                    dt = paramValue;
                 }
                 else if (!strcmp(paramName, "TAU")){
                     fTau = paramValue;
@@ -596,7 +600,7 @@ void loadSimulationParameters(int argc, char *argv[]){
             }
             fclose(paramsfile);
         }
-
+		
         if (argc > 2){
             printf("argv[2] is %s....attempting to use it as log file.\n", argv[2]);
             if (!strcmp(argv[2], "stdout")){
@@ -617,6 +621,19 @@ void loadSimulationParameters(int argc, char *argv[]){
         }
     }
 
+	// Renormalise simulation_duration and iSpikeDelay with respect to dt
+	printf("DEBUG: simulation duration was %ld\n", simulation_duration);
+	printf("DEBUG: dt was %lf\n", dt);
+	printf("DEBUG: simulation duration calculation %ld\n", (long int)( ( simulation_duration / dt ) + EPSILLON) );
+	simulation_duration = (long int) ( ( simulation_duration / dt ) + EPSILLON );
+	printf("DEBUG: simulation duration set to %ld\n", simulation_duration);
+	
+	printf("DEBUG: iPreSpikeDelay was %d\n", iPreSpikeDelay);
+	printf("DEBUG: iPreSpikeDelay calculation %f\n", ( (iPreSpikeDelay / dt ) + EPSILLON ) );
+	iPreSpikeDelay = (int) ( ( iPreSpikeDelay / dt ) + EPSILLON );
+	printf("DEBUG: iPreSpikeDelay set to %d\n", iPreSpikeDelay);
+	
+	
     // Make sure that directory 'output' exists
     if(mkdir("output",(S_IRUSR | S_IWUSR | S_IXUSR)) == -1){
         if (errno == EEXIST){

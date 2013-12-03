@@ -16,7 +16,7 @@
      a delay D which was applied to the variables before the update is actually seen
      as a delay of D+1	 (so minimal delay right now is 1ms)
 */
-int simulation_duration;
+long int simulation_duration; // measured in timesteps
 int no_synapses;
 
 double initial_c;
@@ -29,6 +29,7 @@ long random_seed;
 //int iTauC;
 float fTau;
 float fTauC;
+double dt; // using 1 = 1ms, so 0.1=0.1ms
 
 double dRhoFixed;
 
@@ -40,7 +41,7 @@ double dGammaD; //CONSIDER: does this really need to be double?
 double dGammaP; //CONSIDER: does this really need to be double?
 
 double dSigma;
-int iPreSpikeDelay;
+int iPreSpikeDelay; // measured in timesteps
 double poisson_param;
 
 //int iVOpeningDelay;
@@ -56,10 +57,10 @@ float fNMDARmax;
 float fThetaNO;
 float fThetaNO2;
 
-int siT; // no longer static
+long int siT; // no longer static
 int siID; // no longer static
-int time_of_last_save;
-int resume_offset;
+long int time_of_last_save;
+long int resume_offset;
 
 typedef int BOOL;
 
@@ -85,8 +86,8 @@ typedef struct Synapse{
         unsigned int * postT;
 		//float * V_pre;
 		double * NO_pre;
-	float * ltp;
-	float * ltd;
+	double * ltp;
+	double * ltd;
 	float * no_threshold;
         int ID;
 } Synapse;

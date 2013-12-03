@@ -6,7 +6,7 @@
 #include "NumericalTools.h"
 #include "SpikeTrains.h"
 
-#define SAFO_STEPS (8001)
+#define SAFO_STEPS (601) /*(8001)*/
 
 int main( int argc, char *argv[] ){
 	int safo_loop_counter;
@@ -15,11 +15,12 @@ int main( int argc, char *argv[] ){
 	summary_outfile = fopen(summary_outname, "a");
 	fprintf(summary_outfile, "\n\n\n\n\n%% SafoOffset, SynID, alpha_d, alpha_p, GammaD, GammaP, LTP zone, LTD zone, AmountLTP, AmountLTD\n");
 	
-	for(safo_loop_counter = 0; safo_loop_counter< SAFO_STEPS; safo_loop_counter+=5){
+	for(safo_loop_counter = 0; safo_loop_counter< SAFO_STEPS; safo_loop_counter+=120){
 		printf("beginning loop %d\n", safo_loop_counter);
 		safo_index = safo_loop_counter;
 	
-		int i, j, t;
+		int i;
+		long j, t;
 		char outfile[FILE_NAME_LENGTH];
 
     // Initialise checkpointing
@@ -77,7 +78,7 @@ int main( int argc, char *argv[] ){
 		printf("DEBUG:: SIM OVER\n");
 		checkpoint_save(syn);
 		for (i = 0; i < no_synapses; i++){
-			printf("syn(%d) t: %d, c: %f, rho: %f\n", i, siT, syn[i].c[siT], syn[i].rho[siT]);
+			printf("syn(%d) t: %ld, c: %f, rho: %f\n", i, siT, syn[i].c[siT], syn[i].rho[siT]);
 		}
 		fprintf(logfile, "Simulation complete\n");
 		printf("Simulation complete\n");
@@ -101,8 +102,8 @@ int main( int argc, char *argv[] ){
 		}
 
 		// Calculate alpha_d and alpha_p
-		float alpha_d[no_synapses];
-		float alpha_p[no_synapses];
+		double alpha_d[no_synapses];
+		double alpha_p[no_synapses];
 		double above_NO_d[no_synapses];
 		double above_NO_p[no_synapses];
 		float theta_d = dThetaD;
@@ -138,7 +139,7 @@ int main( int argc, char *argv[] ){
 				ltd[i] += syn[i].ltd[j];
 			}
 		}
-		int t_total = simulation_duration - 3000;
+		long t_total = simulation_duration - 3000;
 		for(i = 0; i < no_synapses; i++){
 			printf("Syn(%d), alpha_d: %f, alpha_p: %f, GammaD: %f, GammaP: %f, LTP zone: %f, LTD zone: %f, LTP: %lf, LTD: %lf\n", i, alpha_d[i], alpha_p[i], (alpha_d[i]*dGammaD), (alpha_p[i]*dGammaP), above_NO_p[i], above_NO_d[i], ltp[i], ltd[i]);
 			alpha_d[i] /= t_total;
@@ -181,7 +182,7 @@ void updateSynapticEfficacy(Synapse *syn){
 	//if ( h((*syn).c[siT], dThetaP) && h((*syn).NO_pre[siT], (*syn).no_threshold[siT] ) ){
 	if ( !(h((*syn).c[siT], dThetaD)) && h((*syn).NO_pre[siT], (*syn).no_threshold[siT] ) ){
 		//TODO: remove bistability from rho update?
-		(*syn).ltp[siT] = (dGammaP * (1 - rho)); 
+		(*syn).ltp[siT] = ((dGammaP * (1 - rho)) / fTau) * dt; // had previously omitted divide by tau here
 	}
 	else{
 		(*syn).ltp[siT] = 0;
@@ -189,7 +190,7 @@ void updateSynapticEfficacy(Synapse *syn){
 	
 	if ( h((*syn).c[siT], dThetaD) && h((*syn).NO_pre[siT], (*syn).no_threshold[siT] ) ){
 		//TODO: remove bistability from rho update?
-		(*syn).ltd[siT] = (dGammaD * rho);
+		(*syn).ltd[siT] = ((dGammaD * rho) / fTau) * dt; // had previously omitted divide by tau here
 	}
 	else{
 		(*syn).ltd[siT] = 0;
@@ -197,7 +198,7 @@ void updateSynapticEfficacy(Synapse *syn){
 	
     //drho = (-rho * (1.0 - rho) * (dRhoFixed - rho)) + (dGammaP * (1 - rho) * h((*syn).c[siT], dThetaP) * h((*syn).NO_pre[siT], (fThetaNO*(1-((*syn).c[siT]/fThetaNO2))) )) - (dGammaD * rho * h((*syn).c[siT], dThetaD) * h((*syn).NO_pre[siT], (fThetaNO*(1-((*syn).c[siT]/fThetaNO2))) ));
 	//drho = (-rho * (1.0 - rho) * (dRhoFixed - rho)) + (*syn).ltp[siT] - (*syn).ltd[siT];
-	drho = (*syn).ltp[siT] - (*syn).ltd[siT];
+	drho = (*syn).ltp[siT] - (*syn).ltd[siT]; // dt included in calculation of ltp and ltd
 	
     // Add noise
     /*minTheta = fmin(dThetaP, dThetaD);
@@ -208,11 +209,10 @@ void updateSynapticEfficacy(Synapse *syn){
         drho += noise;
     }*/
 	
-	//TODO: should I introduce an explicit dt? (system wide change)
 
-    drho /= fTau;
+	// drho /= fTau; // moved into calculation of LTP/D above (otherwise those vars omitted tau dependence)
     if ( (rho + drho) > 0 ){
-        (*syn).rho[siT + 1] = rho + drho; // Euler forward method
+        (*syn).rho[siT + 1] = rho + drho; // Euler forward method // dt included in calculation of ltp and ltd
     }
     else{
 		// hard lower bound for numerical reasons
@@ -263,13 +263,13 @@ void updateCalciumConcentration(Synapse *syn){
 	if ((*syn).postT[siT - 1] == 1){
 		// We've already applied the depolarisation dependent calcium influx on a previous timestep, now use normal
 		// dynamics for PF dependent calcium and try to correct for leakage of depolarisation dependent calcium.
-		dc = (-(c-dCpost) / fTauC) + calciumFromPreSynapticSpikes(syn);
+		dc = (-(c-dCpost) / fTauC);
 		//dc = (-c / fTauC) + calciumFromPreSynapticSpikes(syn) + (dCpost / fTauC);
-		(*syn).c[siT + 1] = c + dc; // Euler forward method
+		(*syn).c[siT + 1] = c + (dc * dt) + calciumFromPreSynapticSpikes(syn); // Euler forward method
 	}
 	else{
-		 dc = (-c / fTauC) + calciumFromPreSynapticSpikes(syn) + calciumFromPostSynapticSpikes(syn);
-		 (*syn).c[siT + 1] = c + dc; // Euler forward method
+		 dc = (-c / fTauC);
+		 (*syn).c[siT + 1] = c + (dc * dt) + calciumFromPreSynapticSpikes(syn) + calciumFromPostSynapticSpikes(syn); // Euler forward method
 	}
 }
 
@@ -290,7 +290,8 @@ double calciumFromPreSynapticSpikes(Synapse *syn){
         d = ((double) (*syn).preT[siT - iPreSpikeDelay]) * dCpre;
     }
     else{ // This shouldn't happen!
-        fprintf(logfile, "ERROR: unexpected situation in calciumFromPreSynapticSpikes()");
+        fprintf(logfile, "ERROR: unexpected situation in calciumFromPreSynapticSpikes()\n");
+		printf("ERROR: unexpected situation in calciumFromPreSynapticSpikes()\n");
     }
 
     return d;
@@ -348,10 +349,10 @@ void updatePreSynapticNOConcentration(Synapse *syn){
 	double no, dno;
 	
 	no = (*syn).NO_pre[siT];
-	dno = (-no / lfTauNMDAR) + nmdarFromPreSynapticSpikes(syn);
+	dno = (-no / lfTauNMDAR);
 	
 	//if ((no + dno) < fNMDARmax){
-	(*syn).NO_pre[siT + 1] = no + dno;
+	(*syn).NO_pre[siT + 1] = no + (dno * dt) + nmdarFromPreSynapticSpikes(syn);
 	//}
 	/*else{
 		(*syn).NO_pre[siT + 1] = fNMDARmax;
@@ -415,8 +416,8 @@ void synapse_memory_init(Synapse *syn){
     unsigned int * local_postT;
 	//float * local_v_pre;
 	double * local_no_pre;
-	float * local_ltp;
-	float * local_ltd;
+	double * local_ltp;
+	double * local_ltd;
 	float * local_no_threshold;
     //Synapse * local_synapse;
     fprintf(logfile, "Synapse simulator initialising.\n");
@@ -510,7 +511,7 @@ void synapse_memory_init(Synapse *syn){
         }
 		
 		// Memory allocation for debugging LTP and LTD variables
-		local_ltp = (float *) calloc( (simulation_duration), sizeof(float) );
+		local_ltp = (double *) calloc( (simulation_duration), sizeof(double) );
         if (local_ltp == NULL){
             perror("Memory allocation failure (ltp)\n");
             fprintf(logfile, "ERROR: Memory allocation failure (ltp)\n");
@@ -519,7 +520,7 @@ void synapse_memory_init(Synapse *syn){
             (syn[i]).ltp = local_ltp;
             fprintf(logfile, "syn(%d).ltp successfully assigned\n", i);
         }
-		local_ltd = (float *) calloc( (simulation_duration), sizeof(float) );
+		local_ltd = (double *) calloc( (simulation_duration), sizeof(double) );
         if (local_ltd == NULL){
             perror("Memory allocation failure (ltd)\n");
             fprintf(logfile, "ERROR: Memory allocation failure (ltd)\n");

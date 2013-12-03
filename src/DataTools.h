@@ -3,6 +3,8 @@
 
 #import "Synapse.h"
 
+#define EPSILLON 0.000000000001
+
 int saveSynapseProgressToFile(char* filename, void *obj, int end_time);
 int createOutputFileHeader(char* filename, void *obj, int duration, double dCpre, double dCpost, double dThetaD, double dThetaP, double dGammaD, double dGammaP, double dSigma, int iPreSpikeDelay, int iTau, int iTauC, double dRhoFixed, double poisson_param, long initial_random_seed);
 int checkpoint_save(Synapse *syn);
