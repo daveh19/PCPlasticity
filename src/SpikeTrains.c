@@ -7,7 +7,7 @@
 // preT[i] = 0 implies no spike at time i
 
 // train1 is one pre- and no post- synaptic spikes
-int train1(unsigned int * preT, unsigned int * postT, unsigned int simulation_duration){
+int train1(unsigned int * preT, unsigned int * postT, unsigned long simulation_duration){
     int i;
     if (time_of_last_save < 0){
         preT[0] = 1;
@@ -24,7 +24,7 @@ int train1(unsigned int * preT, unsigned int * postT, unsigned int simulation_du
 }
 
 // train2 is 20 pre-synaptic spikes and no post-synaptic spikes
-int train2(unsigned int * preT, unsigned int * postT, unsigned int simulation_duration){
+int train2(unsigned int * preT, unsigned int * postT, unsigned long simulation_duration){
     int i;
     for (i = 0; i < 20; i++){
         if( (i > time_of_last_save) && (i < simulation_duration) ){
@@ -44,7 +44,7 @@ int train2(unsigned int * preT, unsigned int * postT, unsigned int simulation_du
 
 
 // train3 is Poisson(n) distributed pre-synaptic spiking
-int train3(unsigned int * preT, unsigned int * postT, unsigned int simulation_duration){
+int train3(unsigned int * preT, unsigned int * postT, unsigned long simulation_duration){
     int i;
     int no_spikes = 0;
 
@@ -62,7 +62,7 @@ int train3(unsigned int * preT, unsigned int * postT, unsigned int simulation_du
 
 
 // train4 is Poisson(n) distributed post-synaptic spiking
-int train4(unsigned int * preT, unsigned int * postT, unsigned int simulation_duration){
+int train4(unsigned int * preT, unsigned int * postT, unsigned long simulation_duration){
     int i;
     int no_spikes = 0;
 
@@ -80,7 +80,7 @@ int train4(unsigned int * preT, unsigned int * postT, unsigned int simulation_du
 
 
 // train5 is Poisson(n) distributed pre- and post-synaptic spiking
-int train5(unsigned int * preT, unsigned int * postT, unsigned int simulation_duration){
+int train5(unsigned int * preT, unsigned int * postT, unsigned long simulation_duration){
     int i;
     int no_pre_spikes = 0;
     int no_post_spikes = 0;
@@ -106,7 +106,7 @@ int train5(unsigned int * preT, unsigned int * postT, unsigned int simulation_du
 // train6 is Sjoestrom style frequency based stimulation for 60 repetitions
 // Assumes preT and postT initialised to 0 using calloc()
 // f=0.1Hz, dt=+10ms
-int train6(unsigned int * preT, unsigned int * postT, unsigned int simulation_duration){
+int train6(unsigned int * preT, unsigned int * postT, unsigned long simulation_duration){
     int i, dt, wavelength;
     //float freq, rho;
     //freq = 1;
@@ -142,7 +142,7 @@ int train6(unsigned int * preT, unsigned int * postT, unsigned int simulation_du
 // train7 is Sjoestrom style frequency based stimulation for 60 repetitions
 // Assumes preT and postT initialised to 0 using calloc()
 // f=0.1Hz, dt=-10ms
-int train7(unsigned int * preT, unsigned int * postT, unsigned int simulation_duration){
+int train7(unsigned int * preT, unsigned int * postT, unsigned long simulation_duration){
     int i, dt, wavelength;
     //float freq, rho;
     //freq = 1;
@@ -178,7 +178,7 @@ int train7(unsigned int * preT, unsigned int * postT, unsigned int simulation_du
 // train8 is Sjoestrom style frequency based stimulation for 60 repetitions
 // Assumes preT and postT initialised to 0 using calloc()
 // f=10Hz, dt=+10ms
-int train8(unsigned int * preT, unsigned int * postT, unsigned int simulation_duration){
+int train8(unsigned int * preT, unsigned int * postT, unsigned long simulation_duration){
     int i, dt, wavelength;
     //float freq, rho;
     //freq = 1;
@@ -214,7 +214,7 @@ int train8(unsigned int * preT, unsigned int * postT, unsigned int simulation_du
 // train9 is Sjoestrom style frequency based stimulation for 60 repetitions
 // Assumes preT and postT initialised to 0 using calloc()
 // f=10Hz, dt=-10ms
-int train9(unsigned int * preT, unsigned int * postT, unsigned int simulation_duration){
+int train9(unsigned int * preT, unsigned int * postT, unsigned long simulation_duration){
     int i, dt, wavelength;
     //float freq, rho;
     //freq = 1;
@@ -250,7 +250,7 @@ int train9(unsigned int * preT, unsigned int * postT, unsigned int simulation_du
 // train10 is Sjoestrom style frequency based stimulation for 60 repetitions
 // Assumes preT and postT initialised to 0 using calloc()
 // f=20Hz, dt=+10ms
-int train10(unsigned int * preT, unsigned int * postT, unsigned int simulation_duration){
+int train10(unsigned int * preT, unsigned int * postT, unsigned long simulation_duration){
     int i, dt, wavelength;
     //float freq, rho;
     //freq = 1;
@@ -286,7 +286,7 @@ int train10(unsigned int * preT, unsigned int * postT, unsigned int simulation_d
 // train11 is Sjoestrom style frequency based stimulation for 60 repetitions
 // Assumes preT and postT initialised to 0 using calloc()
 // f=20Hz, dt=-10ms
-int train11(unsigned int * preT, unsigned int * postT, unsigned int simulation_duration){
+int train11(unsigned int * preT, unsigned int * postT, unsigned long simulation_duration){
     int i, dt, wavelength;
     //float freq, rho;
     //freq = 1;
@@ -322,7 +322,7 @@ int train11(unsigned int * preT, unsigned int * postT, unsigned int simulation_d
 // train12 is Sjoestrom style frequency based stimulation for 60 repetitions
 // Assumes preT and postT initialised to 0 using calloc()
 // f=40Hz, dt=+10ms
-int train12(unsigned int * preT, unsigned int * postT, unsigned int simulation_duration){
+int train12(unsigned int * preT, unsigned int * postT, unsigned long simulation_duration){
     int i, dt, wavelength;
     //float freq, rho;
     //freq = 1;
@@ -358,7 +358,7 @@ int train12(unsigned int * preT, unsigned int * postT, unsigned int simulation_d
 // train13 is Sjoestrom style frequency based stimulation for 60 repetitions
 // Assumes preT and postT initialised to 0 using calloc()
 // f=40Hz, dt=-10ms
-int train13(unsigned int * preT, unsigned int * postT, unsigned int simulation_duration){
+int train13(unsigned int * preT, unsigned int * postT, unsigned long simulation_duration){
     int i, dt, wavelength;
     //float freq, rho;
     //freq = 1;
@@ -394,7 +394,7 @@ int train13(unsigned int * preT, unsigned int * postT, unsigned int simulation_d
 // train14 is Sjoestrom style frequency based stimulation for 60 repetitions
 // Assumes preT and postT initialised to 0 using calloc()
 // f=50Hz, dt=+10ms
-int train14(unsigned int * preT, unsigned int * postT, unsigned int simulation_duration){
+int train14(unsigned int * preT, unsigned int * postT, unsigned long simulation_duration){
     int i, dt, wavelength;
     //float freq, rho;
     //freq = 1;
@@ -430,7 +430,7 @@ int train14(unsigned int * preT, unsigned int * postT, unsigned int simulation_d
 // train15 is Sjoestrom style frequency based stimulation for 60 repetitions
 // Assumes preT and postT initialised to 0 using calloc()
 // f=50Hz, dt=-10ms
-int train15(unsigned int * preT, unsigned int * postT, unsigned int simulation_duration){
+int train15(unsigned int * preT, unsigned int * postT, unsigned long simulation_duration){
     int i, dt, wavelength;
     //float freq, rho;
     //freq = 1;
@@ -467,7 +467,7 @@ int train15(unsigned int * preT, unsigned int * postT, unsigned int simulation_d
 // train16 is Wang style triplet based stimulation for 60 repetitions @ 1Hz
 // Assumes preT and postT initialised to 0 using calloc()
 // t1=5, t2=5
-int train16(unsigned int * preT, unsigned int * postT, unsigned int simulation_duration){
+int train16(unsigned int * preT, unsigned int * postT, unsigned long simulation_duration){
     int i, t1, t2, wavelength;
     //float freq, rho;
     //freq = 1;
@@ -498,7 +498,7 @@ int train16(unsigned int * preT, unsigned int * postT, unsigned int simulation_d
 // train17 is Wang style triplet based stimulation for 60 repetitions @ 1Hz
 // Assumes preT and postT initialised to 0 using calloc()
 // t1=10, t2=10
-int train17(unsigned int * preT, unsigned int * postT, unsigned int simulation_duration){
+int train17(unsigned int * preT, unsigned int * postT, unsigned long simulation_duration){
     int i, t1, t2, wavelength;
     //float freq, rho;
     //freq = 1;
@@ -529,7 +529,7 @@ int train17(unsigned int * preT, unsigned int * postT, unsigned int simulation_d
 // train18 is Wang style triplet based stimulation for 60 repetitions @ 1Hz
 // Assumes preT and postT initialised to 0 using calloc()
 // t1=5, t2=15
-int train18(unsigned int * preT, unsigned int * postT, unsigned int simulation_duration){
+int train18(unsigned int * preT, unsigned int * postT, unsigned long simulation_duration){
     int i, t1, t2, wavelength;
     //float freq, rho;
     //freq = 1;
@@ -560,7 +560,7 @@ int train18(unsigned int * preT, unsigned int * postT, unsigned int simulation_d
 // train19 is Wang style triplet based stimulation for 60 repetitions @ 1Hz
 // Assumes preT and postT initialised to 0 using calloc()
 // t1=15, t2=5
-int train19(unsigned int * preT, unsigned int * postT, unsigned int simulation_duration){
+int train19(unsigned int * preT, unsigned int * postT, unsigned long simulation_duration){
     int i, t1, t2, wavelength;
     //float freq, rho;
     //freq = 1;
@@ -592,7 +592,7 @@ int train19(unsigned int * preT, unsigned int * postT, unsigned int simulation_d
 // train20 is Wang style triplet based stimulation for 60 repetitions @ 1Hz
 // Assumes preT and postT initialised to 0 using calloc()
 // t1=5, t2=5
-int train20(unsigned int * preT, unsigned int * postT, unsigned int simulation_duration){
+int train20(unsigned int * preT, unsigned int * postT, unsigned long simulation_duration){
     int i, t1, t2, wavelength;
     //float freq, rho;
     //freq = 1;
@@ -623,7 +623,7 @@ int train20(unsigned int * preT, unsigned int * postT, unsigned int simulation_d
 // train21 is Wang style triplet based stimulation for 60 repetitions @ 1Hz
 // Assumes preT and postT initialised to 0 using calloc()
 // t1=10, t2=10
-int train21(unsigned int * preT, unsigned int * postT, unsigned int simulation_duration){
+int train21(unsigned int * preT, unsigned int * postT, unsigned long simulation_duration){
     int i, t1, t2, wavelength;
     //float freq, rho;
     //freq = 1;
@@ -654,7 +654,7 @@ int train21(unsigned int * preT, unsigned int * postT, unsigned int simulation_d
 // train22 is Wang style triplet based stimulation for 60 repetitions @ 1Hz
 // Assumes preT and postT initialised to 0 using calloc()
 // t1=5, t2=15
-int train22(unsigned int * preT, unsigned int * postT, unsigned int simulation_duration){
+int train22(unsigned int * preT, unsigned int * postT, unsigned long simulation_duration){
     int i, t1, t2, wavelength;
     //float freq, rho;
     //freq = 1;
@@ -685,7 +685,7 @@ int train22(unsigned int * preT, unsigned int * postT, unsigned int simulation_d
 // train23 is Wang style triplet based stimulation for 60 repetitions @ 1Hz
 // Assumes preT and postT initialised to 0 using calloc()
 // t1=15, t2=5
-int train23(unsigned int * preT, unsigned int * postT, unsigned int simulation_duration){
+int train23(unsigned int * preT, unsigned int * postT, unsigned long simulation_duration){
     int i, t1, t2, wavelength;
     //float freq, rho;
     //freq = 1;
@@ -718,7 +718,7 @@ int train23(unsigned int * preT, unsigned int * postT, unsigned int simulation_d
 // Assumes preT and postT initialised to 0 using calloc()
 // T = 25
 // Post-Pre-Pre-Post
-int train24(unsigned int * preT, unsigned int * postT, unsigned int simulation_duration){
+int train24(unsigned int * preT, unsigned int * postT, unsigned long simulation_duration){
     int i, t1, t2, wavelength;
     //float freq, rho;
     //freq = 1;
@@ -756,7 +756,7 @@ int train24(unsigned int * preT, unsigned int * postT, unsigned int simulation_d
 // Assumes preT and postT initialised to 0 using calloc()
 // T = 25
 // Pre-Post-Post-Pre
-int train25(unsigned int * preT, unsigned int * postT, unsigned int simulation_duration){
+int train25(unsigned int * preT, unsigned int * postT, unsigned long simulation_duration){
     int i, t1, t2, wavelength;
     //float freq, rho;
     //freq = 1;
@@ -793,7 +793,7 @@ int train25(unsigned int * preT, unsigned int * postT, unsigned int simulation_d
 //TODO: reminder train26 is different in Pfister code compared to all other codebases
 // Dual spike shot noise simulation
 // Pre-spike occurs as poisson process, post-spike occurs T timesteps after pre-spike
-int train26(unsigned int * preT, unsigned int * postT, unsigned int simulation_duration){
+int train26(unsigned int * preT, unsigned int * postT, unsigned long simulation_duration){
     int i;
     int no_spikes = 0;
     int T = 23; // 693; // Delay between pre-spike and subsequent post-spike
@@ -820,7 +820,7 @@ int train26(unsigned int * preT, unsigned int * postT, unsigned int simulation_d
 // Two shot noise processes, one with a single spike and one with a split 'dual' shape
 // Single: pre-spike occurs as a poisson process, rate n1
 // Dual: Pre-spike occurs as poisson process, post-spike occurs T timesteps after pre-spike
-int train27(unsigned int * preT, unsigned int * postT, unsigned int simulation_duration){
+int train27(unsigned int * preT, unsigned int * postT, unsigned long simulation_duration){
     int i;
     int no_simple_spikes = 0;
     int no_dual_spikes = 0;
@@ -853,7 +853,7 @@ int train27(unsigned int * preT, unsigned int * postT, unsigned int simulation_d
 // Assumes preT and postT initialised to 0 using calloc()
 // wavelength is gap between stims, dt is offset between pre and post stims, everything measured in ms
 //Modified: to assume that the PF stim is actually a paired-pulse
-int train28(unsigned int * preT, unsigned int * postT, unsigned int simulation_duration){
+int train28(unsigned int * preT, unsigned int * postT, unsigned long simulation_duration){
 	int i, wavelength, recurrent_no_stims;
 	//int dt;
 	int no_pf_stims;
@@ -891,7 +891,7 @@ int train28(unsigned int * preT, unsigned int * postT, unsigned int simulation_d
 // Assumes preT and postT initialised to 0 using calloc()
 // wavelength is gap between stims, everything measured in ms
 //Modified: to assume that the PF stim is actually a paired-pulse
-int train29(unsigned int * preT, unsigned int * postT, unsigned int simulation_duration){
+int train29(unsigned int * preT, unsigned int * postT, unsigned long simulation_duration){
 	int i, wavelength, recurrent_no_stims;
 	//int dt;
 	int no_pf_stims;
@@ -931,7 +931,7 @@ int train29(unsigned int * preT, unsigned int * postT, unsigned int simulation_d
 // repeated at intervals 30 times, then no further inputs.
 // Assumes preT and postT initialised to 0 using calloc()
 // wavelength is gap between stims, dt is offset between pre and post stims, everything measured in ms
-int train30(unsigned int * preT, unsigned int * postT, unsigned int simulation_duration){
+int train30(unsigned int * preT, unsigned int * postT, unsigned long simulation_duration){
     int i, wavelength, recurrent_no_stims;
 	//int dt;
 	int no_pf_stims;
@@ -944,26 +944,26 @@ int train30(unsigned int * preT, unsigned int * postT, unsigned int simulation_d
     //freq = 1;
     //rho = 1000; // freq / 1000; // Convert Hz frequency to per millisecond
     //dt = 0; // measured in ms
-    sim_start_offset = 20000;
-    wavelength = 1000; //(int)(1.0 / rho);
+    sim_start_offset = 2000 / dt;
+    wavelength = 1000 / dt; //(int)(1.0 / rho);
 	recurrent_no_stims = 30; // repeat protocol x times
 	
 	// Wang LTD values
-	inter_pf_gap = 10; //5; //10; // ms W:10
+	inter_pf_gap = 10 / dt; //5; //10; // ms W:10
 	no_pf_stims = 10;//3; //2; //3; W:3
-	cf_offset = 62; //normal wang ltd protocol
+	cf_offset = 62 / dt; //normal wang ltd protocol
 	// Generic CF before PF
 	//inter_pf_gap = 5; //5; //10; // ms 
 	//no_pf_stims = 2; //2; //3;
 	//cf_offset = -30;
 	
 	// Safo LTD values
-	inter_pf_gap = 100;
+	inter_pf_gap = 10 / dt;
 	no_pf_stims = 7;
 	//cf_offset = -250;
-	cf_offset = -3000 + safo_index;
-	cf_offset += 300; // 30 accounts for middle (4th) spike
-    wavelength = 100000;
+	cf_offset = (-300 / dt) + safo_index;
+	cf_offset += 30 / dt; // 30 accounts for middle (4th) spike
+    wavelength = 10000 / dt;
 	
 	// Mathy values
 	/*inter_pf_gap = 10;
@@ -997,7 +997,7 @@ int train30(unsigned int * preT, unsigned int * postT, unsigned int simulation_d
 // repeated at intervals 30 times, then no further inputs.
 // Assumes preT and postT initialised to 0 using calloc()
 // wavelength is gap between stims, dt is offset between pre and post stims, everything measured in ms
-int train31(unsigned int * preT, unsigned int * postT, unsigned int simulation_duration){
+int train31(unsigned int * preT, unsigned int * postT, unsigned long simulation_duration){
     int i, wavelength, recurrent_no_stims;
 	//int dt;
 	int no_pf_stims;
@@ -1033,7 +1033,7 @@ int train31(unsigned int * preT, unsigned int * postT, unsigned int simulation_d
 // repeated at intervals 300 times, then no further inputs.
 // Assumes preT and postT initialised to 0 using calloc()
 // wavelength is gap between stims, dt is offset between pre and post stims, everything measured in ms
-int train32(unsigned int * preT, unsigned int * postT, unsigned int simulation_duration){
+int train32(unsigned int * preT, unsigned int * postT, unsigned long simulation_duration){
     int i, wavelength, recurrent_no_stims;
 	//int dt;
 	int no_pf_stims;
@@ -1085,7 +1085,7 @@ int train32(unsigned int * preT, unsigned int * postT, unsigned int simulation_d
 // repeated at intervals 300 times, then no further inputs.
 // Assumes preT and postT initialised to 0 using calloc()
 // wavelength is gap between stims, dt is offset between pre and post stims, everything measured in ms
-int train33(unsigned int * preT, unsigned int * postT, unsigned int simulation_duration){
+int train33(unsigned int * preT, unsigned int * postT, unsigned long simulation_duration){
     int i, wavelength, recurrent_no_stims;
 	//int dt;
 	int no_pf_stims;
@@ -1134,7 +1134,7 @@ int train33(unsigned int * preT, unsigned int * postT, unsigned int simulation_d
 // the other Xms before, protocol repeated at intervals Y times, then no further inputs.
 // Assumes preT and postT initialised to 0 using calloc()
 // wavelength is gap between stims, everything measured in ms
-int train34(unsigned int * preT, unsigned int * postT, unsigned int simulation_duration){
+int train34(unsigned int * preT, unsigned int * postT, unsigned long simulation_duration){
     int i, wavelength, recurrent_no_stims;
 	//int dt;
 	int no_pf_stims;
@@ -1179,7 +1179,7 @@ int train34(unsigned int * preT, unsigned int * postT, unsigned int simulation_d
 // repeated at intervals 300 times, then no further inputs.
 // Assumes preT and postT initialised to 0 using calloc()
 // wavelength is gap between stims, dt is offset between pre and post stims, everything measured in ms
-int train35(unsigned int * preT, unsigned int * postT, unsigned int simulation_duration){
+int train35(unsigned int * preT, unsigned int * postT, unsigned long simulation_duration){
     int i, wavelength, recurrent_no_stims;
 	//int dt;
 	int no_pf_stims;

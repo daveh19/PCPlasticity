@@ -77,7 +77,8 @@ char* outfilepattern;
 char logfilearray[FILE_NAME_LENGTH];
 char outfilearray[FILE_NAME_LENGTH];
 
-int (*train_fn)(unsigned int *, unsigned int *, unsigned int);
+//int (*train_fn)(unsigned int *, unsigned int *, unsigned int);
+int (*train_fn)(unsigned int *, unsigned int *, unsigned long);
 
 typedef struct Synapse{
         double * rho;

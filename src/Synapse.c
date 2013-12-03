@@ -6,19 +6,21 @@
 #include "NumericalTools.h"
 #include "SpikeTrains.h"
 
-#define SAFO_STEPS (601) /*(8001)*/
+#define SAFO_STEPS (1601) /*(8001)*/
 
 int main( int argc, char *argv[] ){
 	int safo_loop_counter;
+	float safo_increment = 0.5; // ms
 	
 	summary_outname = "output/summary_safo.dat";
 	summary_outfile = fopen(summary_outname, "a");
 	fprintf(summary_outfile, "\n\n\n\n\n%% SafoOffset, SynID, alpha_d, alpha_p, GammaD, GammaP, LTP zone, LTD zone, AmountLTP, AmountLTD\n");
 	
-	for(safo_loop_counter = 0; safo_loop_counter< SAFO_STEPS; safo_loop_counter+=120){
+	for(safo_loop_counter = 0; safo_loop_counter< SAFO_STEPS; safo_loop_counter+=1){
 		printf("beginning loop %d\n", safo_loop_counter);
-		safo_index = safo_loop_counter;
-	
+		safo_index = (safo_loop_counter * safo_increment) / dt;
+		printf("safo index %d\n", safo_index);
+		
 		int i;
 		long j, t;
 		char outfile[FILE_NAME_LENGTH];
@@ -72,7 +74,7 @@ int main( int argc, char *argv[] ){
 				updateSynapticEfficacy(&syn[i]);
 				//printf("t: %d, c: %f, rho: %f, NO: %f\n", siT, syn[i].c[siT-time_of_last_save], syn[i].rho[siT], syn[i].NO_pre[siT]);
 			}
-			checkpoint_save(syn);
+			//checkpoint_save(syn); // disable checkpointing
 			siT++;
 		}
 		printf("DEBUG:: SIM OVER\n");
@@ -97,6 +99,7 @@ int main( int argc, char *argv[] ){
 				//sprintf(outfile, "output/01_syn_%.3d.dat", syn[i].ID);
 				sprintf(outfile, outfilepattern, syn[i].ID);
 				printf("writing...%s\n", outfile);
+				// not saving output file here
 				//saveSynapseOutputFile(outfile, &syn[i], siT, dCpre, dCpost, dThetaD, dThetaP, dGammaD, dGammaP, dSigma, iPreSpikeDelay, fTau, fTauC, dRhoFixed, poisson_param, initial_random_seed);
 			}
 		}
@@ -152,6 +155,7 @@ int main( int argc, char *argv[] ){
 			fprintf(summary_outfile, "%d, %d, %f, %f, %f, %f, %lf, %lf, %f, %f\n", safo_index, i, alpha_d[i], alpha_p[i], (alpha_d[i]*dGammaD), (alpha_p[i]*dGammaP), above_NO_p[i], above_NO_d[i], ltp[i], ltd[i]);
 		}
 
+		fflush(summary_outfile);
 		// Free memory and exit
 		//return finalise(0, syn);
 		finalise(0, syn);

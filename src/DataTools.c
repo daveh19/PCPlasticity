@@ -380,7 +380,7 @@ void loadSimulationParameters(int argc, char *argv[]){
         initial_random_seed = (-13);
         random_seed = initial_random_seed;
 
-		dt = 1; // default to 1ms timestep
+		dt = 0.001; // default to 1ms timestep
         fTau = 150000;  // measured in ms (equivalent to 150sec)
         fTauC = 20;  // measured in ms
 
