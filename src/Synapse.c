@@ -6,11 +6,11 @@
 #include "NumericalTools.h"
 #include "SpikeTrains.h"
 
-#define SAFO_STEPS (1601) /*(8001)*/
+#define SAFO_STEPS (8001) /*(8001)*/
 
 int main( int argc, char *argv[] ){
 	int safo_loop_counter;
-	float safo_increment = 0.5; // ms
+	float safo_increment = 0.1; // ms
 	
 	summary_outname = "output/summary_safo.dat";
 	summary_outfile = fopen(summary_outname, "a");
@@ -18,7 +18,12 @@ int main( int argc, char *argv[] ){
 	
 	for(safo_loop_counter = 0; safo_loop_counter< SAFO_STEPS; safo_loop_counter+=1){
 		printf("beginning loop %d\n", safo_loop_counter);
-		safo_index = (safo_loop_counter * safo_increment) / dt;
+		if (safo_loop_counter > 0)
+			safo_index = (safo_loop_counter * safo_increment) / dt;
+		else {
+			safo_index = 0;
+		}
+
 		printf("safo index %d\n", safo_index);
 		
 		int i;

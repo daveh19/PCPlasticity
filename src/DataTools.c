@@ -622,16 +622,16 @@ void loadSimulationParameters(int argc, char *argv[]){
     }
 
 	// Renormalise simulation_duration and iSpikeDelay with respect to dt
-	printf("DEBUG: simulation duration was %ld\n", simulation_duration);
-	printf("DEBUG: dt was %lf\n", dt);
-	printf("DEBUG: simulation duration calculation %ld\n", (long int)( ( simulation_duration / dt ) + EPSILLON) );
+	//printf("DEBUG: simulation duration was %ld\n", simulation_duration);
+	//printf("DEBUG: dt was %lf\n", dt);
+	//printf("DEBUG: simulation duration calculation %ld\n", (long int)( ( simulation_duration / dt ) + EPSILLON) );
 	simulation_duration = (long int) ( ( simulation_duration / dt ) + EPSILLON );
-	printf("DEBUG: simulation duration set to %ld\n", simulation_duration);
+	//printf("DEBUG: simulation duration set to %ld\n", simulation_duration);
 	
-	printf("DEBUG: iPreSpikeDelay was %d\n", iPreSpikeDelay);
-	printf("DEBUG: iPreSpikeDelay calculation %f\n", ( (iPreSpikeDelay / dt ) + EPSILLON ) );
+	//printf("DEBUG: iPreSpikeDelay was %d\n", iPreSpikeDelay);
+	//printf("DEBUG: iPreSpikeDelay calculation %f\n", ( (iPreSpikeDelay / dt ) + EPSILLON ) );
 	iPreSpikeDelay = (int) ( ( iPreSpikeDelay / dt ) + EPSILLON );
-	printf("DEBUG: iPreSpikeDelay set to %d\n", iPreSpikeDelay);
+	//printf("DEBUG: iPreSpikeDelay set to %d\n", iPreSpikeDelay);
 	
 	
     // Make sure that directory 'output' exists
