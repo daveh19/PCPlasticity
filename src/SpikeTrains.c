@@ -944,7 +944,7 @@ int train30(unsigned int * preT, unsigned int * postT, unsigned int simulation_d
     //freq = 1;
     //rho = 1000; // freq / 1000; // Convert Hz frequency to per millisecond
     //dt = 0; // measured in ms
-    sim_start_offset = 2000;
+    sim_start_offset = 20000;
     wavelength = 1000; //(int)(1.0 / rho);
 	recurrent_no_stims = 30; // repeat protocol x times
 	
@@ -958,12 +958,12 @@ int train30(unsigned int * preT, unsigned int * postT, unsigned int simulation_d
 	//cf_offset = -30;
 	
 	// Safo LTD values
-	inter_pf_gap = 10;
+	inter_pf_gap = 100;
 	no_pf_stims = 7;
 	//cf_offset = -250;
-	cf_offset = -300 + safo_index;
-	cf_offset += 30; // 30 accounts for middle (4th) spike
-    wavelength = 10000;
+	cf_offset = -3000 + safo_index;
+	cf_offset += 300; // 30 accounts for middle (4th) spike
+    wavelength = 100000;
 	
 	// Mathy values
 	/*inter_pf_gap = 10;
@@ -1051,7 +1051,7 @@ int train32(unsigned int * preT, unsigned int * postT, unsigned int simulation_d
 	recurrent_no_stims = 300; //120; // repeat protocol x times
 	
 	inter_pf_gap = 60; // ms
-	no_pf_stims = 5;
+	no_pf_stims = 1;
 	//cf_offset = 62;
 	
 	// Attempt at LTP->LTD protocol
@@ -1062,9 +1062,9 @@ int train32(unsigned int * preT, unsigned int * postT, unsigned int simulation_d
 	no_pf_stims = 20;
 	wavelength = 2000;*/
     // Alternative versions of Boris' protocol
-    /*inter_pf_gap = 5;
-    no_pf_stims = 30;
-	*/
+    inter_pf_gap = 5;
+    no_pf_stims = 40;
+	wavelength = 2000;
 	
     for (i = 0; i < recurrent_no_stims; i++){
 		for (int j = 0; j < no_pf_stims; j++){
@@ -1091,10 +1091,14 @@ int train33(unsigned int * preT, unsigned int * postT, unsigned int simulation_d
 	int no_pf_stims;
 	int cf_offset; // ms
 	int inter_pf_gap; // ms
+    
+    int sim_start_offset; //ms
+    
     //float freq, rho;
     //freq = 1;
     //rho = 1000; // freq / 1000; // Convert Hz frequency to per millisecond
     //dt = 0; // measured in ms
+    sim_start_offset = 2000;
     wavelength = 1000; //(int)(1.0 / rho);
 	recurrent_no_stims = 300; // repeat protocol x times
 	
@@ -1105,16 +1109,17 @@ int train33(unsigned int * preT, unsigned int * postT, unsigned int simulation_d
 	// try new parameters
 	no_pf_stims = 2;
 	cf_offset = 0;
+    no_pf_stims = 1;
 	
     for (i = 0; i < recurrent_no_stims; i++){
 		for (int j = 0; j < no_pf_stims; j++){
-			if (((i*wavelength) + (j*inter_pf_gap)) < simulation_duration){
-				preT[(i*wavelength) + (j*inter_pf_gap)] = 1;
+			if (((i*wavelength) + (j*inter_pf_gap) + sim_start_offset) < simulation_duration){
+				preT[(i*wavelength) + (j*inter_pf_gap) + sim_start_offset] = 1;
 			}
 		}
 		
-		if((i*wavelength)+cf_offset < simulation_duration){
-            postT[(i*wavelength) + cf_offset] = 1;
+		if(((i*wavelength) + cf_offset + sim_start_offset) < simulation_duration){
+            postT[(i*wavelength) + cf_offset + sim_start_offset] = 1;
         }
 		
         //printf("DEBUG: i: %d, j: %d\n", (i*wavelength), ((i*wavelength)+dt));
@@ -1146,7 +1151,7 @@ int train34(unsigned int * preT, unsigned int * postT, unsigned int simulation_d
     wavelength = 1000; //(int)(1.0 / rho);
 	recurrent_no_stims = 120; // repeat protocol x times
 	
-	inter_pf_gap = 80; //42;//5; // ms
+	inter_pf_gap = 70; //42;//5; // ms
 	no_pf_stims = 2;
 	//cf_offset = 40;
 	

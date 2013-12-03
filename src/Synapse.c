@@ -6,16 +6,16 @@
 #include "NumericalTools.h"
 #include "SpikeTrains.h"
 
-#define SAFO_STEPS (801)
+#define SAFO_STEPS (8001)
 
 int main( int argc, char *argv[] ){
 	int safo_loop_counter;
 	
 	summary_outname = "output/summary_safo.dat";
 	summary_outfile = fopen(summary_outname, "a");
-	fprintf(summary_outfile, "\n\n\n\n\nSafoOffset, SynID, alpha_d, alpha_p, GammaD, GammaP, LTP zone, LTD zone, AmountLTP, AmountLTD\n");
+	fprintf(summary_outfile, "\n\n\n\n\n%% SafoOffset, SynID, alpha_d, alpha_p, GammaD, GammaP, LTP zone, LTD zone, AmountLTP, AmountLTD\n");
 	
-	for(safo_loop_counter = 0; safo_loop_counter< SAFO_STEPS; safo_loop_counter+=1000){
+	for(safo_loop_counter = 0; safo_loop_counter< SAFO_STEPS; safo_loop_counter+=5){
 		printf("beginning loop %d\n", safo_loop_counter);
 		safo_index = safo_loop_counter;
 	
@@ -83,12 +83,12 @@ int main( int argc, char *argv[] ){
 		printf("Simulation complete\n");
 
 		// Debugging output after simulation has completed
-		for (j = 0; j < (simulation_duration); j++){
+		/*for (j = 0; j < (simulation_duration); j++){
 			for (i = 0; i < no_synapses; i++){
 				fprintf(logfile, "syn(%d).preT(%d): %u, postT(%d): %u, c: %f, rho: %f\n", i, j, syn[i].preT[j], j, syn[i].postT[j], syn[i].c[j], syn[i].rho[j]);
 			}
 		}
-		fprintf(logfile, "siT: %d\n", siT);
+		fprintf(logfile, "siT: %d\n", siT);*/
 
 		// Output to files loop
 		if (!checkpointing){
@@ -96,7 +96,7 @@ int main( int argc, char *argv[] ){
 				//sprintf(outfile, "output/01_syn_%.3d.dat", syn[i].ID);
 				sprintf(outfile, outfilepattern, syn[i].ID);
 				printf("writing...%s\n", outfile);
-				saveSynapseOutputFile(outfile, &syn[i], siT, dCpre, dCpost, dThetaD, dThetaP, dGammaD, dGammaP, dSigma, iPreSpikeDelay, fTau, fTauC, dRhoFixed, poisson_param, initial_random_seed);
+				//saveSynapseOutputFile(outfile, &syn[i], siT, dCpre, dCpost, dThetaD, dThetaP, dGammaD, dGammaP, dSigma, iPreSpikeDelay, fTau, fTauC, dRhoFixed, poisson_param, initial_random_seed);
 			}
 		}
 
