@@ -1151,7 +1151,7 @@ int train34(unsigned int * preT, unsigned int * postT, unsigned long simulation_
     wavelength = 1000 / dt; //(int)(1.0 / rho);
 	recurrent_no_stims = 120; // repeat protocol x times
 	
-	inter_pf_gap = 5 / dt; //42;//5; // ms
+	inter_pf_gap = 70 / dt; //42;//5; // ms
 	no_pf_stims = 2;
 	//cf_offset = 40;
 	
@@ -1162,8 +1162,8 @@ int train34(unsigned int * preT, unsigned int * postT, unsigned long simulation_
 			}
 		}
 		for (int j = 0; j < no_pf_stims; j++){
-			if (((i*wavelength) + 60 - (j*inter_pf_gap) + sim_start_offset) < simulation_duration){
-				preT[(i*wavelength) + 60 - (j*inter_pf_gap) + sim_start_offset] = 1;
+			if (((i*wavelength) + (60/dt) - (j*inter_pf_gap) + sim_start_offset) < simulation_duration){
+				preT[(i*wavelength) + (int)(60/dt) - (j*inter_pf_gap) + sim_start_offset] = 1;
 			}
 		}
 		
