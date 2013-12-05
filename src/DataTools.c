@@ -351,7 +351,7 @@ void loadSimulationParameters(int argc, char *argv[]){
     outfilepattern = outfilearray;
 
 	//TODO: modify default variable values here
-    train_fn = train30;
+    train_fn = train34;
     siT = 0;
     siID = 0;
     time_of_last_save = -1;
@@ -380,7 +380,7 @@ void loadSimulationParameters(int argc, char *argv[]){
         initial_random_seed = (-13);
         random_seed = initial_random_seed;
 
-		dt = 0.001; // default to 1ms timestep
+		dt = 1; // default to 1ms timestep
         fTau = 150000;  // measured in ms (equivalent to 150sec)
         fTauC = 20;  // measured in ms
 

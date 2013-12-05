@@ -1147,16 +1147,16 @@ int train34(unsigned int * preT, unsigned int * postT, unsigned long simulation_
     //freq = 1;
     //rho = 1000; // freq / 1000; // Convert Hz frequency to per millisecond
     //dt = 0; // measured in ms
-    sim_start_offset = 2000;
-    wavelength = 1000; //(int)(1.0 / rho);
+    sim_start_offset = 2000 / dt;
+    wavelength = 1000 / dt; //(int)(1.0 / rho);
 	recurrent_no_stims = 120; // repeat protocol x times
 	
-	inter_pf_gap = 70; //42;//5; // ms
+	inter_pf_gap = 5 / dt; //42;//5; // ms
 	no_pf_stims = 2;
 	//cf_offset = 40;
 	
     for (i = 0; i < recurrent_no_stims; i++){
-		for ( int j = 0; j < 120; j++){ // PC depolarisation
+		for ( int j = 0; j < (120/dt); j++){ // PC depolarisation (adjusted for dt)
 			if ((i*wavelength + j + sim_start_offset) < simulation_duration){
 				postT[(i*wavelength) + j + sim_start_offset] = 1;
 			}
