@@ -105,7 +105,7 @@ int main( int argc, char *argv[] ){
 				sprintf(outfile, outfilepattern, syn[i].ID);
 				printf("writing...%s\n", outfile);
 				// not saving output file here
-				saveSynapseOutputFile(outfile, &syn[i], siT, dCpre, dCpost, dThetaD, dThetaP, dGammaD, dGammaP, dSigma, iPreSpikeDelay, fTau, fTauC, dRhoFixed, poisson_param, initial_random_seed);
+				//saveSynapseOutputFile(outfile, &syn[i], siT, dCpre, dCpost, dThetaD, dThetaP, dGammaD, dGammaP, dSigma, iPreSpikeDelay, fTau, fTauC, dRhoFixed, poisson_param, initial_random_seed);
 			}
 		}
 
