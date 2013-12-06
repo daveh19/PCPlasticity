@@ -16,21 +16,14 @@ int main( int argc, char *argv[] ){
 	summary_outfile = fopen(summary_outname, "a");
 	fprintf(summary_outfile, "\n\n\n\n\n%% SafoOffset, SynID, alpha_d, alpha_p, GammaD, GammaP, LTP zone, LTD zone, AmountLTP, AmountLTD\n");
 	
-	for(safo_loop_counter = 0; safo_loop_counter< SAFO_STEPS; safo_loop_counter+=100000){
+	for(safo_loop_counter = 0; safo_loop_counter< SAFO_STEPS; safo_loop_counter+=1){
 		printf("beginning loop %d\n", safo_loop_counter);
-		if (safo_loop_counter > 0)
-			safo_index = (safo_loop_counter * safo_increment) / dt;
-		else {
-			safo_index = 0;
-		}
-
-		printf("safo index %d\n", safo_index);
 		
 		int i;
 		long j, t;
 		char outfile[FILE_NAME_LENGTH];
 
-    // Initialise checkpointing
+        // Initialise checkpointing
 		/* Checkpoint_init:
 		 1. Load parameters
 		 2. openLogFile() (now in load params)
@@ -41,6 +34,13 @@ int main( int argc, char *argv[] ){
 		Synapse *syn;
 		syn = checkpoint_init(argc, argv, syn);
 		fflush(logfile);
+        
+        if (safo_loop_counter > 0)
+			safo_index = (safo_loop_counter * safo_increment) / dt;
+		else {
+			safo_index = 0;
+		}
+		printf("safo index %d\n", safo_index);
 
 		//    for (k = 0; i < no_synapses; i++){
 		//        fprintf(logfile, "DEBUG:: main: syn(%d).c(0): %lf\n", i, syn[i].c[0]);
@@ -105,7 +105,7 @@ int main( int argc, char *argv[] ){
 				sprintf(outfile, outfilepattern, syn[i].ID);
 				printf("writing...%s\n", outfile);
 				// not saving output file here
-				//saveSynapseOutputFile(outfile, &syn[i], siT, dCpre, dCpost, dThetaD, dThetaP, dGammaD, dGammaP, dSigma, iPreSpikeDelay, fTau, fTauC, dRhoFixed, poisson_param, initial_random_seed);
+				saveSynapseOutputFile(outfile, &syn[i], siT, dCpre, dCpost, dThetaD, dThetaP, dGammaD, dGammaP, dSigma, iPreSpikeDelay, fTau, fTauC, dRhoFixed, poisson_param, initial_random_seed);
 			}
 		}
 
