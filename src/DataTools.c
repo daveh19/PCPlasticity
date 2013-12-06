@@ -55,7 +55,7 @@ Synapse* checkpoint_init(int argc, char *argv[], Synapse *syn){
                 //sprintf(outfile, "output/01_syn_%.3d.dat", syn[i].ID);
                 sprintf(outfile, outfilepattern, syn[i].ID);
                 printf("writing...%s\n", outfile);
-                createOutputFileHeader(outfile, &syn[i], siT, dCpre, dCpost, dThetaD, dThetaP, dGammaD, dGammaP, dSigma, iPreSpikeDelay, fTau, fTauC, dRhoFixed, poisson_param, initial_random_seed);
+                createOutputFileHeader(outfile, &syn[i], siT, dCpre, dCpost, dThetaD, dThetaP, dGammaD, dGammaP, dSigma, iCaSpikeDelay, fTau, fTauC, dRhoFixed, poisson_param, initial_random_seed);
             }
         }
     }
@@ -160,13 +160,13 @@ int checkpoint_load(FILE *checkpoint_fp, Synapse *syn){
             }
             printf("Read(d): %s\n", paramName);
             if (!strcmp(paramName, "SPIKES")){
-                for (i = 0; i < (iPreSpikeDelay+1); i++){
+                for (i = 0; i < (iCaSpikeDelay+1); i++){
                     if (fscanf(checkpoint_fp, "%lf ", &paramValue) != 1){
                         fprintf(logfile, "Error reading previous spike times (d)\n");
                         break;
                     }
                     printf("Read(e): %d\n", (int) paramValue);
-                    syn[syn_index].preT[(siT-iPreSpikeDelay+i)] = (int) paramValue;
+                    syn[syn_index].preT[(siT-iCaSpikeDelay+i)] = (int) paramValue;
                     //printf("DEBUG:: syn[syn_index].preT[(siT-iPreSpikeDelay+i)]: %d\n", syn[syn_index].preT[(siT-iPreSpikeDelay+i)]);
                 }
                 fscanf(checkpoint_fp, "\n");
@@ -242,7 +242,7 @@ int checkpoint_save(Synapse *syn){
                 fprintf(checkpoint_fp, "LAST_C %lf\n", syn[i].c[siT]);
                 fprintf(checkpoint_fp, "LAST_RHO %lf\n", syn[i].rho[siT]);
                 fprintf(checkpoint_fp, "SPIKES ");
-                for (j = (siT-iPreSpikeDelay); j <= siT; j++){
+                for (j = (siT-iCaSpikeDelay); j <= siT; j++){
                     if (j >= 0){
                         fprintf(checkpoint_fp, " %d", syn[i].preT[j]);
                     }
@@ -299,7 +299,7 @@ int createOutputFileHeader(char* filename, void *obj, int duration, double dCpre
     else{
         fprintf(logfile, "Saving to file: %s\n", filename);
 
-        fprintf(fp, "\n\n%%# Params:\n%%#    Cpre: %f, Cpost: %f, thetaD: %f, thetaP: %f, gammaD: %f, gammaP: %f, sigma: %f\n%%#    Delay: %d, tau: %d, tauC: %d, rhoF: %f, poisson param: %f, seed: %ld\n", dCpre, dCpost, dThetaD, dThetaP, dGammaD, dGammaP, dSigma, iPreSpikeDelay, iTau, iTauC, dRhoFixed, poisson_param, initial_random_seed);
+        fprintf(fp, "\n\n%%# Params:\n%%#    Cpre: %f, Cpost: %f, thetaD: %f, thetaP: %f, gammaD: %f, gammaP: %f, sigma: %f\n%%#    CaDelay: %d, NODelay: %d, tau: %d, tauC: %d, rhoF: %f, poisson param: %f, seed: %ld\n", dCpre, dCpost, dThetaD, dThetaP, dGammaD, dGammaP, dSigma, iCaSpikeDelay, iNOSpikeDelay, iTau, iTauC, dRhoFixed, poisson_param, initial_random_seed);
         fprintf(fp, "%%#    lfTauNMDAR: %f, lfNMDARjump: %f, fThetaNO: %f, fThetaNO2: %f\n", lfTauNMDAR, lfNMDARjump, fThetaNO, fThetaNO2);
 		fprintf(fp,"%%#\n%%# Synaptic output, Synapse(%d):\n%%# t rho c preT postT\n", (*syn).ID);
 
@@ -311,7 +311,7 @@ int createOutputFileHeader(char* filename, void *obj, int duration, double dCpre
 }
 
 
-int saveSynapseOutputFile(char* filename, void *obj, int duration, double dCpre, double dCpost, double dThetaD, double dThetaP, double dGammaD, double dGammaP, double dSigma, int iPreSpikeDelay, int iTau, int iTauC, double dRhoFixed, double poisson_param, long initial_random_seed){
+int saveSynapseOutputFile(char* filename, void *obj, int duration, double dCpre, double dCpost, double dThetaD, double dThetaP, double dGammaD, double dGammaP, double dSigma, int iCaSpikeDelay, int iNOSpikeDelay, int iTau, int iTauC, double dRhoFixed, double poisson_param, long initial_random_seed){
     FILE *fp;
     int i;
 
@@ -325,7 +325,7 @@ int saveSynapseOutputFile(char* filename, void *obj, int duration, double dCpre,
     else{
         fprintf(logfile, "Saving to file: %s\n", filename);
 
-        fprintf(fp, "\n\n%%# Params:\n%%#    Cpre: %f, Cpost: %f, thetaD: %f, thetaP: %f, gammaD: %f, gammaP: %f, sigma: %f\n%%#    Delay: %d, tau: %d, tauC: %d, rhoF: %f, poisson param: %f, seed: %ld\n", dCpre, dCpost, dThetaD, dThetaP, dGammaD, dGammaP, dSigma, iPreSpikeDelay, iTau, iTauC, dRhoFixed, poisson_param, initial_random_seed);
+        fprintf(fp, "\n\n%%# Params:\n%%#    Cpre: %f, Cpost: %f, thetaD: %f, thetaP: %f, gammaD: %f, gammaP: %f, sigma: %f\n%%#    CaDelay: %d, NODelay: %d, tau: %d, tauC: %d, rhoF: %f, poisson param: %f, seed: %ld\n", dCpre, dCpost, dThetaD, dThetaP, dGammaD, dGammaP, dSigma, iCaSpikeDelay, iNOSpikeDelay, iTau, iTauC, dRhoFixed, poisson_param, initial_random_seed);
         fprintf(fp, "%%#    lfTauNMDAR: %f, lfNMDARjump: %f, fThetaNO: %f, fThetaNO2: %f\n", lfTauNMDAR, lfNMDARjump, fThetaNO, fThetaNO2);
 		fprintf(fp,"%%#\n%%# Synaptic output, Synapse(%d):\n%%# t rho c preT postT NO_pre LTP LTD NO_threshold\n", (*syn).ID);
         for (i = 0; i <= duration; i++){
@@ -394,7 +394,7 @@ void loadSimulationParameters(int argc, char *argv[]){
         dGammaP = 100;
 
         dSigma = 3.50;
-        iPreSpikeDelay = 19;
+        iCaSpikeDelay = 19;
 		iNOSpikeDelay = 19;
         poisson_param = 1.0/1000;
 		
@@ -465,10 +465,10 @@ void loadSimulationParameters(int argc, char *argv[]){
                 else if (!strcmp(paramName, "SIGMA")){
                     dSigma = paramValue;
                 }
-                else if (!strcmp(paramName, "PRE_SPIKE_DELAY")){
-                    iPreSpikeDelay = (int) paramValue;
+                else if (!strcmp(paramName, "PRE_SPIKE_CA_DELAY")){
+                    iCaSpikeDelay = (int) paramValue;
                 }
-				else if (!strcmp(paramName, "NO_SPIKE_DELAY")){
+				else if (!strcmp(paramName, "PRE_SPIKE_NO_DELAY")){
                     iNOSpikeDelay = (int) paramValue;
                 }
                 else if (!strcmp(paramName, "TRAIN_FUNCTION")){
@@ -632,10 +632,10 @@ void loadSimulationParameters(int argc, char *argv[]){
 	simulation_duration = (long int) ( ( simulation_duration / dt ) + EPSILLON );
 	//printf("DEBUG: simulation duration set to %ld\n", simulation_duration);
 	
-	//printf("DEBUG: iPreSpikeDelay was %d\n", iPreSpikeDelay);
-	//printf("DEBUG: iPreSpikeDelay calculation %f\n", ( (iPreSpikeDelay / dt ) + EPSILLON ) );
-	iPreSpikeDelay = (int) ( ( iPreSpikeDelay / dt ) + EPSILLON );
-	//printf("DEBUG: iPreSpikeDelay set to %d\n", iPreSpikeDelay);
+	//printf("DEBUG: iCaSpikeDelay was %d\n", iCaSpikeDelay);
+	//printf("DEBUG: iCaSpikeDelay calculation %f\n", ( (iCaSpikeDelay / dt ) + EPSILLON ) );
+	iCaSpikeDelay = (int) ( ( iCaSpikeDelay / dt ) + EPSILLON );
+	//printf("DEBUG: iCaSpikeDelay set to %d\n", iCaSpikeDelay);
 	
 	iNOSpikeDelay = (int) ( ( iNOSpikeDelay / dt ) + EPSILLON );
 	

@@ -41,7 +41,7 @@ double dGammaD; //CONSIDER: does this really need to be double?
 double dGammaP; //CONSIDER: does this really need to be double?
 
 double dSigma;
-int iPreSpikeDelay; // measured in timesteps // delay on Calcium increase
+int iCaSpikeDelay; // measured in timesteps // delay on Calcium increase
 int iNOSpikeDelay; // measured in timesteps // delay on NO increase
 double poisson_param;
 

@@ -17,7 +17,7 @@ void loadSimulationParameters(int argc, char *argv[]);
 int printToLog(FILE* fp, char* message);
 FILE* openLogFile(char* filename);
 int closeLogFile(FILE* fp);
-int saveSynapseOutputFile(char* filename, void *obj, int duration, double dCpre, double dCpost, double dThetaD, double dThetaP, double dGammaD, double dGammaP, double dSigma, int iPreSpikeDelay, int iTau, int iTauC, double dRhoFixed, double poisson_param, long random_seed);
+int saveSynapseOutputFile(char* filename, void *obj, int duration, double dCpre, double dCpost, double dThetaD, double dThetaP, double dGammaD, double dGammaP, double dSigma, int iCaSpikeDelay, int iNOSpikeDelay, int iTau, int iTauC, double dRhoFixed, double poisson_param, long random_seed);
 
 
 //int loadDataFile(char* filename, void *obj);

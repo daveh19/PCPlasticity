@@ -1046,12 +1046,12 @@ int train32(unsigned int * preT, unsigned int * postT, unsigned long simulation_
     //freq = 1;
     //rho = 1000; // freq / 1000; // Convert Hz frequency to per millisecond
     //dt = 0; // measured in ms
-    sim_start_offset = 2000;
-    wavelength = 1000; //(int)(1.0 / rho);
+    sim_start_offset = 2000 / dt;
+    wavelength = 1000 / dt; //(int)(1.0 / rho);
 	recurrent_no_stims = 300; //120; // repeat protocol x times
 	
-	inter_pf_gap = 60; // ms
-	no_pf_stims = 1;
+	inter_pf_gap = 5 / dt; // ms
+	no_pf_stims = 5;
 	//cf_offset = 62;
 	
 	// Attempt at LTP->LTD protocol
@@ -1062,9 +1062,9 @@ int train32(unsigned int * preT, unsigned int * postT, unsigned long simulation_
 	no_pf_stims = 20;
 	wavelength = 2000;*/
     // Alternative versions of Boris' protocol
-    inter_pf_gap = 5;
+    /*inter_pf_gap = 5 / dt;
     no_pf_stims = 40;
-	wavelength = 2000;
+	wavelength = 2000 / dt;*/
 	
     for (i = 0; i < recurrent_no_stims; i++){
 		for (int j = 0; j < no_pf_stims; j++){
@@ -1151,7 +1151,7 @@ int train34(unsigned int * preT, unsigned int * postT, unsigned long simulation_
     wavelength = 1000 / dt; //(int)(1.0 / rho);
 	recurrent_no_stims = 120; // repeat protocol x times
 	
-	inter_pf_gap = 70 / dt; //42;//5; // ms
+	inter_pf_gap = 5 / dt; //42;//5; // ms
 	no_pf_stims = 2;
 	//cf_offset = 40;
 	

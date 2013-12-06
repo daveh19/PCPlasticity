@@ -16,7 +16,7 @@ int main( int argc, char *argv[] ){
 	summary_outfile = fopen(summary_outname, "a");
 	fprintf(summary_outfile, "\n\n\n\n\n%% SafoOffset, SynID, alpha_d, alpha_p, GammaD, GammaP, LTP zone, LTD zone, AmountLTP, AmountLTD\n");
 	
-	for(safo_loop_counter = 0; safo_loop_counter< SAFO_STEPS; safo_loop_counter+=1){
+	for(safo_loop_counter = 0; safo_loop_counter< SAFO_STEPS; safo_loop_counter+=10000000){
 		printf("beginning loop %d\n", safo_loop_counter);
 		
 		int i;
@@ -105,7 +105,7 @@ int main( int argc, char *argv[] ){
 				sprintf(outfile, outfilepattern, syn[i].ID);
 				printf("writing...%s\n", outfile);
 				// not saving output file here
-				//saveSynapseOutputFile(outfile, &syn[i], siT, dCpre, dCpost, dThetaD, dThetaP, dGammaD, dGammaP, dSigma, iPreSpikeDelay, fTau, fTauC, dRhoFixed, poisson_param, initial_random_seed);
+				saveSynapseOutputFile(outfile, &syn[i], siT, dCpre, dCpost, dThetaD, dThetaP, dGammaD, dGammaP, dSigma, iCaSpikeDelay, iNOSpikeDelay, fTau, fTauC, dRhoFixed, poisson_param, initial_random_seed);
 			}
 		}
 
@@ -286,18 +286,18 @@ void updateCalciumConcentration(Synapse *syn){
 
 // Calculate contribution to next synaptic calcium concentration
 // from pre-synaptic spikes
-// Note: there is a delay iPreSpikeDelay before calcium from a
+// Note: there is a delay iCaSpikeDelay before calcium from a
 // pre-synaptic spike enters the synaptic cleft
 double calciumFromPreSynapticSpikes(Synapse *syn){
     double d;
 
     //printf("preT: %u ", (*syn).preT[siT]);
 
-    if (siT < iPreSpikeDelay){
+    if (siT < iCaSpikeDelay){
         d = 0.0;
     }
-    else if( (siT >= iPreSpikeDelay) && ( siT < (simulation_duration - 1) ) ){
-        d = ((double) (*syn).preT[siT - iPreSpikeDelay]) * dCpre;
+    else if( (siT >= iCaSpikeDelay) && ( siT < (simulation_duration - 1) ) ){
+        d = ((double) (*syn).preT[siT - iCaSpikeDelay]) * dCpre;
     }
     else{ // This shouldn't happen!
         fprintf(logfile, "ERROR: unexpected situation in calciumFromPreSynapticSpikes()\n");
