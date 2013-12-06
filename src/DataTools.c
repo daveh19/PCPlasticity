@@ -395,6 +395,7 @@ void loadSimulationParameters(int argc, char *argv[]){
 
         dSigma = 3.50;
         iPreSpikeDelay = 19;
+		iNOSpikeDelay = 19;
         poisson_param = 1.0/1000;
 		
 		lfTauNMDAR = 10; //70;
@@ -466,6 +467,9 @@ void loadSimulationParameters(int argc, char *argv[]){
                 }
                 else if (!strcmp(paramName, "PRE_SPIKE_DELAY")){
                     iPreSpikeDelay = (int) paramValue;
+                }
+				else if (!strcmp(paramName, "NO_SPIKE_DELAY")){
+                    iNOSpikeDelay = (int) paramValue;
                 }
                 else if (!strcmp(paramName, "TRAIN_FUNCTION")){
                     if ((int) paramValue == 1){
@@ -633,6 +637,7 @@ void loadSimulationParameters(int argc, char *argv[]){
 	iPreSpikeDelay = (int) ( ( iPreSpikeDelay / dt ) + EPSILLON );
 	//printf("DEBUG: iPreSpikeDelay set to %d\n", iPreSpikeDelay);
 	
+	iNOSpikeDelay = (int) ( ( iNOSpikeDelay / dt ) + EPSILLON );
 	
     // Make sure that directory 'output' exists
     if(mkdir("output",(S_IRUSR | S_IWUSR | S_IXUSR)) == -1){
