@@ -45,16 +45,17 @@ int iCaSpikeDelay; // measured in timesteps // delay on Calcium increase
 int iNOSpikeDelay; // measured in timesteps // delay on NO increase
 double poisson_param;
 
-//int iVOpeningDelay;
-//int iTauV;
-//int iTauNMDAR;
-//float fTauNMDAR;
+int iVOpeningDelay;
+double lfTauV;
+
 double lfTauNMDAR;
-//float fVjump;
-//float fNMDARjump;
+double lfVjump;
+
 double lfNMDARjump;
-//float fVmax;
+
+float fVmax;
 float fNMDARmax;
+
 float fThetaNO;
 float fThetaNO2;
 
@@ -86,7 +87,7 @@ typedef struct Synapse{
         double * c;
         unsigned int * preT;
         unsigned int * postT;
-		//float * V_pre;
+		double * V_pre;
 		double * NO_pre;
 	double * ltp;
 	double * ltd;
@@ -104,8 +105,8 @@ void updateCalciumConcentration(Synapse *);
 //BOOL h(Synapse *, double);
 BOOL h(float, double);
 void updateSynapticEfficacy(Synapse *);
-//float voltageTraceFromPreSynapticSpikes(Synapse *syn);
-//void updatePreSynapticVoltageTrace(Synapse *syn);
+float voltageTraceFromPreSynapticSpikes(Synapse *syn);
+void updatePreSynapticVoltageTrace(Synapse *syn);
 double nmdarFromPreSynapticSpikes(Synapse *syn);
 void updatePreSynapticNOConcentration(Synapse *syn);
 

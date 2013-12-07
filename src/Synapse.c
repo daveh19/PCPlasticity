@@ -16,7 +16,7 @@ int main( int argc, char *argv[] ){
 	summary_outfile = fopen(summary_outname, "a");
 	fprintf(summary_outfile, "\n\n\n\n\n%% SafoOffset, SynID, alpha_d, alpha_p, GammaD, GammaP, LTP zone, LTD zone, AmountLTP, AmountLTD\n");
 	
-	for(safo_loop_counter = 0; safo_loop_counter< SAFO_STEPS; safo_loop_counter+=10000000){
+	for(safo_loop_counter = 0; safo_loop_counter< SAFO_STEPS; safo_loop_counter+=1200){
 		printf("beginning loop %d\n", safo_loop_counter);
 		
 		int i;
@@ -73,7 +73,7 @@ int main( int argc, char *argv[] ){
 			// Update each synapse
 			for (i = 0; i < no_synapses; i++){
 				//printf("syn(%d) ", i);
-				//updatePreSynapticVoltageTrace(&syn[i]);
+				updatePreSynapticVoltageTrace(&syn[i]);
 				updatePreSynapticNOConcentration(&syn[i]);
 				updateCalciumConcentration(&syn[i]);
 				updateSynapticEfficacy(&syn[i]);
@@ -105,7 +105,7 @@ int main( int argc, char *argv[] ){
 				sprintf(outfile, outfilepattern, syn[i].ID);
 				printf("writing...%s\n", outfile);
 				// not saving output file here
-				saveSynapseOutputFile(outfile, &syn[i], siT, dCpre, dCpost, dThetaD, dThetaP, dGammaD, dGammaP, dSigma, iCaSpikeDelay, iNOSpikeDelay, fTau, fTauC, dRhoFixed, poisson_param, initial_random_seed);
+				//saveSynapseOutputFile(outfile, &syn[i], siT, dCpre, dCpost, dThetaD, dThetaP, dGammaD, dGammaP, dSigma, iCaSpikeDelay, iNOSpikeDelay, fTau, fTauC, dRhoFixed, poisson_param, initial_random_seed);
 			}
 		}
 
@@ -322,39 +322,43 @@ double calciumFromPostSynapticSpikes(Synapse *syn){
 // VGCCs which are open
 // Note: there is a delay iVGCCOpeningDelay before Magnesium block
 // is released by a pre-synaptic spike
-/*void updatePreSynapticVoltageTrace(Synapse *syn){
+// This variable tracks the proportion of NMDARs which have Glutatmate attached (6/12/13) 
+// ie. which are activated [ignore the function and variable names]
+void updatePreSynapticVoltageTrace(Synapse *syn){
 	//PF NMDARs
-	float vgcc, dvgcc;
+	double vgcc, dvgcc;
 	
 	vgcc = (*syn).V_pre[siT];
-	dvgcc = (-vgcc / (float)iTauV) + voltageTraceFromPreSynapticSpikes(syn);
-	if ((vgcc + dvgcc) < fVmax){
-		(*syn).V_pre[siT + 1] = vgcc + dvgcc;
-	}
-	else{
+	dvgcc = (-vgcc / lfTauV);
+	
+	(*syn).V_pre[siT + 1] = vgcc + (dvgcc * dt) + voltageTraceFromPreSynapticSpikes(syn);
+	
+	if ((*syn).V_pre[siT + 1] > fVmax){
 		(*syn).V_pre[siT + 1] = fVmax;
 	}
-}*/
+}
 
 
-/*float voltageTraceFromPreSynapticSpikes(Synapse *syn){
+float voltageTraceFromPreSynapticSpikes(Synapse *syn){
     float d;
 	
     if (siT < iVOpeningDelay){
         d = 0.0;
     }
     else if( (siT >= iVOpeningDelay) && ( siT < (simulation_duration - 1) ) ){
-        d = ((double) (*syn).preT[siT - iVOpeningDelay]) * fVjump;
+        d = ((double) (*syn).preT[siT - iVOpeningDelay]) * lfVjump;
     }
     else{ // This shouldn't happen!
         fprintf(logfile, "ERROR: unexpected situation in voltageTraceFromPreSynapticSpikes()");
     }
 	
     return d;
-}*/
+}
 
 
 // NMDAR state leads to NO concentration
+// This variable tracks the concentration of NO released via
+// convolution of NMDAR activation level with spikes
 void updatePreSynapticNOConcentration(Synapse *syn){
 	double no, dno;
 	
@@ -379,7 +383,9 @@ double nmdarFromPreSynapticSpikes(Synapse *syn){
         d = 0.0;
     }
     else if( (siT >= iNOSpikeDelay) && ( siT < (simulation_duration - 1) ) ){
-        d = ((double) (*syn).preT[siT - iNOSpikeDelay]) * lfNMDARjump;
+        //d = ((double) (*syn).preT[siT - iNOSpikeDelay]) * lfNMDARjump;
+		// we need the equal delay on the spike and on the V state in order to have consistency
+		d = ((double) (*syn).preT[siT - iNOSpikeDelay]) * lfNMDARjump * (*syn).V_pre[siT - iNOSpikeDelay];
     }
     else{ // This shouldn't happen!
         fprintf(logfile, "ERROR: unexpected situation in nmdarFromPreSynapticSpikes()");
@@ -424,7 +430,7 @@ void synapse_memory_init(Synapse *syn){
     double * local_rho;
     unsigned int * local_preT;
     unsigned int * local_postT;
-	//float * local_v_pre;
+	double * local_v_pre;
 	double * local_no_pre;
 	double * local_ltp;
 	double * local_ltd;
@@ -501,7 +507,7 @@ void synapse_memory_init(Synapse *syn){
         }
 		
 		// Memory allocation for VGCC and NO variables
-		/*local_v_pre = (float *) malloc( (simulation_duration) * sizeof(float) );
+		local_v_pre = (double *) malloc( (simulation_duration) * sizeof(double) );
         if (local_v_pre == NULL){
             perror("Memory allocation failure (V_pre)\n");
             fprintf(logfile, "ERROR: Memory allocation failure (V_pre)\n");
@@ -509,7 +515,7 @@ void synapse_memory_init(Synapse *syn){
         else{
             (syn[i]).V_pre = local_v_pre;
             fprintf(logfile, "syn(%d).V_pre successfully assigned\n", i);
-        }*/
+        }
 		local_no_pre = (double *) calloc( (simulation_duration), sizeof(double) );
         if (local_no_pre == NULL){
             perror("Memory allocation failure (NO_pre)\n");
@@ -562,7 +568,7 @@ int finalise(int status, Synapse *syn){
             free((syn[i]).rho);
             free((syn[i]).preT);
             free((syn[i]).postT);
-			//free((syn[i]).V_pre);
+			free((syn[i]).V_pre);
 			free((syn[i]).NO_pre);
 			free((syn[i]).ltp);
 			free((syn[i]).ltd);

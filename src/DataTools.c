@@ -327,10 +327,10 @@ int saveSynapseOutputFile(char* filename, void *obj, int duration, double dCpre,
 
         fprintf(fp, "\n\n%%# Params:\n%%#    Cpre: %f, Cpost: %f, thetaD: %f, thetaP: %f, gammaD: %f, gammaP: %f, sigma: %f\n%%#    CaDelay: %d, NODelay: %d, tau: %d, tauC: %d, rhoF: %f, poisson param: %f, seed: %ld\n", dCpre, dCpost, dThetaD, dThetaP, dGammaD, dGammaP, dSigma, iCaSpikeDelay, iNOSpikeDelay, iTau, iTauC, dRhoFixed, poisson_param, initial_random_seed);
         fprintf(fp, "%%#    lfTauNMDAR: %f, lfNMDARjump: %f, fThetaNO: %f, fThetaNO2: %f\n", lfTauNMDAR, lfNMDARjump, fThetaNO, fThetaNO2);
-		fprintf(fp,"%%#\n%%# Synaptic output, Synapse(%d):\n%%# t rho c preT postT NO_pre LTP LTD NO_threshold\n", (*syn).ID);
+		fprintf(fp,"%%#\n%%# Synaptic output, Synapse(%d):\n%%# t rho c preT postT V_pre NO_pre LTP LTD NO_threshold\n", (*syn).ID);
         for (i = 0; i <= duration; i++){
-            //fprintf(fp, "%d %f %0.10lf %u %u %f %f %f %f %f\n", i, (*syn).rho[i], (*syn).c[i], (*syn).preT[i], (*syn).postT[i], (*syn).V_pre[i], (*syn).NO_pre[i], (*syn).ltp[i], (*syn).ltd[i], (*syn).no_threshold[i]);
-			fprintf(fp, "%d %f %0.10lf %u %u %f %f %f %f\n", i, (*syn).rho[i], (*syn).c[i], (*syn).preT[i], (*syn).postT[i], (*syn).NO_pre[i], (*syn).ltp[i], (*syn).ltd[i], (*syn).no_threshold[i]);
+            fprintf(fp, "%d %f %0.10lf %u %u %f %f %f %f %f\n", i, (*syn).rho[i], (*syn).c[i], (*syn).preT[i], (*syn).postT[i], (*syn).V_pre[i], (*syn).NO_pre[i], (*syn).ltp[i], (*syn).ltd[i], (*syn).no_threshold[i]);
+			//fprintf(fp, "%d %f %0.10lf %u %u %f %f %f %f\n", i, (*syn).rho[i], (*syn).c[i], (*syn).preT[i], (*syn).postT[i], (*syn).NO_pre[i], (*syn).ltp[i], (*syn).ltd[i], (*syn).no_threshold[i]);
 		}
         fclose(fp);
         fprintf(logfile, "Completed saving\n");
@@ -356,15 +356,9 @@ void loadSimulationParameters(int argc, char *argv[]){
     siID = 0;
     time_of_last_save = -1;
 	
-	//iVOpeningDelay = 1;
-	//iTauV = 28; //from Bidoret'09
-	/*iTauNMDAR = 70;
-	//fVjump = 1.0;
-	fNMDARjump = 2.85;
-	//fVmax = 1.0;
+	/*
 	fNMDARmax = 200.0; // not applied at present
-	fThetaNO = 1;
-	fThetaNO2 = 20;*/
+	 */
 
 	
     if (argc < 2){
@@ -402,6 +396,10 @@ void loadSimulationParameters(int argc, char *argv[]){
 		lfNMDARjump = 2.85;
 		fThetaNO = 1;
 		fThetaNO2 = 1; //20;
+		
+		fVmax = 1.;
+		lfVjump = 1.;
+		lfTauV = 70.;
 		
     }
     else{
@@ -461,7 +459,16 @@ void loadSimulationParameters(int argc, char *argv[]){
                 }
                 else if (!strcmp(paramName, "GAMMA_P")){
                     dGammaP = paramValue;
-                }
+				}
+				else if (!strcmp(paramName, "V_MAX")){
+                    fVmax = paramValue;
+				}
+				else if (!strcmp(paramName, "V_JUMP")){
+                    lfVjump = paramValue;
+				}
+				else if (!strcmp(paramName, "TAU_V")){
+                    lfTauV = paramValue;
+				}
                 else if (!strcmp(paramName, "SIGMA")){
                     dSigma = paramValue;
                 }
@@ -638,6 +645,8 @@ void loadSimulationParameters(int argc, char *argv[]){
 	//printf("DEBUG: iCaSpikeDelay set to %d\n", iCaSpikeDelay);
 	
 	iNOSpikeDelay = (int) ( ( iNOSpikeDelay / dt ) + EPSILLON );
+	
+	iVOpeningDelay = 1 / dt; // single millisecond delay
 	
     // Make sure that directory 'output' exists
     if(mkdir("output",(S_IRUSR | S_IWUSR | S_IXUSR)) == -1){
