@@ -646,7 +646,7 @@ void loadSimulationParameters(int argc, char *argv[]){
 	
 	iNOSpikeDelay = (int) ( ( iNOSpikeDelay / dt ) + EPSILLON );
 	
-	iVOpeningDelay = 1 / dt; // single millisecond delay
+	iVOpeningDelay = 0.999 / dt; // single millisecond delay
 	
     // Make sure that directory 'output' exists
     if(mkdir("output",(S_IRUSR | S_IWUSR | S_IXUSR)) == -1){
