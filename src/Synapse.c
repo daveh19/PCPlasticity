@@ -80,7 +80,7 @@ int main( int argc, char *argv[] ){
 			// Update each synapse
 			for (i = 0; i < no_synapses; i++){
 				//printf("syn(%d) ", i);
-				updatePreSynapticVoltageTrace(&syn[i]);
+				//updatePreSynapticVoltageTrace(&syn[i]);
 				updatePreSynapticNOConcentration(&syn[i]);
 				updateCalciumConcentration(&syn[i]);
 				updateSynapticEfficacy(&syn[i]);
@@ -390,9 +390,11 @@ double nmdarFromPreSynapticSpikes(Synapse *syn){
         d = 0.0;
     }
     else if( (siT >= iNOSpikeDelay) && ( siT < (simulation_duration - 1) ) ){
-        //d = ((double) (*syn).preT[siT - iNOSpikeDelay]) * lfNMDARjump;
+        // Simple model, no dependence on presynaptic potential unblocking of NMDAR
+		d = ((double) (*syn).preT[siT - iNOSpikeDelay]) * lfNMDARjump;
+		// Dependence on activation of presynaptic NMDAR
 		// we need the equal delay on the spike and on the V state in order to have consistency
-		d = ((double) (*syn).preT[siT - iNOSpikeDelay]) * lfNMDARjump * (*syn).V_pre[siT - iNOSpikeDelay];
+		//d = ((double) (*syn).preT[siT - iNOSpikeDelay]) * lfNMDARjump * (*syn).V_pre[siT - iNOSpikeDelay];
     }
     else{ // This shouldn't happen!
         fprintf(logfile, "ERROR: unexpected situation in nmdarFromPreSynapticSpikes()");
