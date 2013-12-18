@@ -961,7 +961,7 @@ int train30(unsigned int * preT, unsigned int * postT, unsigned long simulation_
 	inter_pf_gap = 10 / dt;
 	no_pf_stims = 7;
 	//cf_offset = -250;
-	cf_offset = (-300 / dt) + safo_index;
+	cf_offset = (-300 / dt) + loop_index;
 	cf_offset += 30 / dt; // 30 accounts for middle (4th) spike
     wavelength = 10000 / dt;
 	
@@ -1151,7 +1151,7 @@ int train34(unsigned int * preT, unsigned int * postT, unsigned long simulation_
     wavelength = 1000 / dt; //(int)(1.0 / rho);
 	recurrent_no_stims = 120; // repeat protocol x times
 	
-	inter_pf_gap = 80 / dt; //42;//5; // ms
+	inter_pf_gap = (1 / dt) + loop_index; //42;//5; // ms
 	no_pf_stims = 2;
 	//cf_offset = 40;
 	

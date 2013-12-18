@@ -7,17 +7,19 @@
 #include "SpikeTrains.h"
 
 #define SAFO_STEPS (8001) /*(8001)*/
+#define BIDORET_STEPS (800)
 
 int main( int argc, char *argv[] ){
-	int safo_loop_counter;
-	float safo_increment = 0.1; // ms
+	int index_loop_counter;
+	float loop_increment = 0.1; // ms
 	
 	summary_outname = "output/summary_safo.dat";
 	summary_outfile = fopen(summary_outname, "a");
-	fprintf(summary_outfile, "\n\n\n\n\n%% SafoOffset, SynID, alpha_d, alpha_p, GammaD, GammaP, LTP zone, LTD zone, AmountLTP, AmountLTD\n");
+	fprintf(summary_outfile, "\n\n\n\n\n%% LoopOffset, SynID, alpha_d, alpha_p, GammaD, GammaP, LTP zone, LTD zone, AmountLTP, AmountLTD\n");
 	
-	for(safo_loop_counter = 0; safo_loop_counter< SAFO_STEPS; safo_loop_counter+=1){
-		printf("beginning loop %d\n", safo_loop_counter);
+	//for(index_loop_counter = 0; index_loop_counter< SAFO_STEPS; index_loop_counter+=1000){
+	for(index_loop_counter = 0; index_loop_counter< BIDORET_STEPS; index_loop_counter+=1){
+		printf("beginning loop %d\n", index_loop_counter);
 		
 		int i;
 		long j, t;
@@ -35,13 +37,18 @@ int main( int argc, char *argv[] ){
 		syn = checkpoint_init(argc, argv, syn);
 		fflush(logfile);
         
-        if (safo_loop_counter > 0)
-			safo_index = (safo_loop_counter * safo_increment) / dt;
-		else {
-			safo_index = 0;
+        if (index_loop_counter > 0){
+			loop_index = (index_loop_counter * loop_increment) / dt;
+			//bidoret_index = (index_loop_counter * loop_increment) / dt;
 		}
-		printf("safo index %d\n", safo_index);
-
+		else {
+			loop_index = 0;
+			//bidoret_index = 0;
+		}
+		//printf("safo index %d\n", safo_index);
+		//printf("bidoret index %d\n", bidoret_index);
+		printf("loop index %d\n", loop_index);
+		
 		//    for (k = 0; i < no_synapses; i++){
 		//        fprintf(logfile, "DEBUG:: main: syn(%d).c(0): %lf\n", i, syn[i].c[0]);
 		//    }
@@ -158,7 +165,7 @@ int main( int argc, char *argv[] ){
 			/*ltp[i] /= t_total;
 			ltd[i] /= t_total;*/
 			printf("Syn(%d), alpha_d: %f, alpha_p: %f, GammaD: %f, GammaP: %f, LTP zone: %lf, LTD zone: %lf, LTP: %lf, LTD: %lf\n", i, alpha_d[i], alpha_p[i], (alpha_d[i]*dGammaD), (alpha_p[i]*dGammaP), above_NO_p[i], above_NO_d[i], ltp[i], ltd[i]);
-			fprintf(summary_outfile, "%d, %d, %f, %f, %f, %f, %lf, %lf, %f, %f\n", safo_index, i, alpha_d[i], alpha_p[i], (alpha_d[i]*dGammaD), (alpha_p[i]*dGammaP), above_NO_p[i], above_NO_d[i], ltp[i], ltd[i]);
+			fprintf(summary_outfile, "%d, %d, %f, %f, %f, %f, %lf, %lf, %f, %f\n", loop_index, i, alpha_d[i], alpha_p[i], (alpha_d[i]*dGammaD), (alpha_p[i]*dGammaP), above_NO_p[i], above_NO_d[i], ltp[i], ltd[i]);
 		}
 
 		fflush(summary_outfile);
@@ -166,7 +173,7 @@ int main( int argc, char *argv[] ){
 		//return finalise(0, syn);
 		finalise(0, syn);
 		
-		printf("ending loop %d\n", safo_loop_counter);
+		printf("ending loop %d\n", index_loop_counter);
 		//end of safo loop
 	}
 	

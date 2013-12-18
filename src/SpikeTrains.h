@@ -1,4 +1,6 @@
-int safo_index;
+//int safo_index;
+//int bidoret_index;
+int loop_index;
 
 // train1 is one pre- and no post- synaptic spikes
 int train1(unsigned int * preT, unsigned int * postT, unsigned long simulation_duration);
