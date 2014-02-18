@@ -18,7 +18,7 @@ int main( int argc, char *argv[] ){
 	fprintf(summary_outfile, "\n\n\n\n\n%% LoopOffset, SynID, alpha_d, alpha_p, GammaD, GammaP, LTP zone, LTD zone, AmountLTP, AmountLTD\n");
 	
 	//for(index_loop_counter = 0; index_loop_counter< SAFO_STEPS; index_loop_counter+=1000){
-	for(index_loop_counter = 0; index_loop_counter< BIDORET_STEPS; index_loop_counter+=1){
+	for(index_loop_counter = 0; index_loop_counter< BIDORET_STEPS; index_loop_counter+=10000){
 		printf("beginning loop %d\n", index_loop_counter);
 		
 		int i;
