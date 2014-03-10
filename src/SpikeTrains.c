@@ -1050,7 +1050,8 @@ int train32(unsigned int * preT, unsigned int * postT, unsigned long simulation_
     wavelength = 1000 / dt; //(int)(1.0 / rho);
 	recurrent_no_stims = 300; //120; // repeat protocol x times
 	
-	inter_pf_gap = 5 / dt; // ms
+	//inter_pf_gap = 5 / dt; // ms
+	inter_pf_gap = (1 / dt) + loop_index; //42;//5; // ms
 	no_pf_stims = 5;
 	//cf_offset = 62;
 	
