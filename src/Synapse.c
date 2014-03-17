@@ -6,7 +6,7 @@
 #include "NumericalTools.h"
 #include "SpikeTrains.h"
 
-int initialise_parameter_optimisation_sweep(int argc, char *argv[]){
+Synapse* initialise_parameter_optimisation_sweep(int argc, char *argv[]){
 	Synapse *syn;
 	int i;
 	
@@ -86,7 +86,7 @@ int initialise_parameter_optimisation_sweep(int argc, char *argv[]){
 	
     fprintf(logfile, "Spike times initialised\n");
 	
-	return 0;
+	return syn;
 }
 
 #ifndef OPTIMISATION_PROGRAM
