@@ -6,6 +6,99 @@
 #include "NumericalTools.h"
 #include "SpikeTrains.h"
 
+float* cost_function(float *cost, Synapse *syn){
+	int i;
+	//float cost[17] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+	float objective_dw[17] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}; // these are the target dw values
+	float simulated_dw[17]; // these will be the values we acutally obtain
+	
+	// set new params based on what gsl sends
+	
+	// update sim
+	printf("DEBUG: performing sim\n");
+	perform_parameter_optimisation_sim(syn);
+	printf("done\n");
+	
+	// calculate cost based on (sim weight change - experimental weight change)
+	printf("Cost calculation: ");
+	for(i = 0; i < no_synapses; i++){
+		simulated_dw[i] = syn[i].rho[simulation_duration-1];
+		cost[i] = objective_dw[i] - simulated_dw[i];
+		printf(" %f ", cost[i]);
+	}
+	printf("\n");
+	
+	//calculate_summary_data(syn); // not needed for parameter optimisation, just nice for debugging
+
+	
+	return cost;
+}
+
+
+void calculate_summary_data(Synapse *syn){
+	int i, j;
+	
+	summary_outname = "output/summary_safo.dat";
+	summary_outfile = fopen(summary_outname, "a");
+	fprintf(summary_outfile, "\n\n\n\n\n%% LoopOffset, SynID, alpha_d, alpha_p, GammaD, GammaP, LTP zone, LTD zone, AmountLTP, AmountLTD\n");
+	
+	printf("Calculating summary data...\n");
+	// Calculate alpha_d and alpha_p
+	double alpha_d[no_synapses];
+	double alpha_p[no_synapses];
+	double above_NO_d[no_synapses];
+	double above_NO_p[no_synapses];
+	float theta_d = dThetaD;
+	float theta_p = dThetaP;
+	double ltp[no_synapses];
+	double ltd[no_synapses];
+	for(i = 0; i < no_synapses; i++){
+		alpha_d[i] = 0;
+		alpha_p[i] = 0;
+		above_NO_d[i] = 0;
+		above_NO_p[i] = 0;
+		ltp[i] = 0;
+		ltd[i] = 0;
+	}
+	int discard = 0;
+	for(j = discard; j < (simulation_duration-1); j++){ //discard first 'discard' ms
+		for(i = 0; i < no_synapses; i++){
+			if ( syn[i].c[j] > theta_d){
+				alpha_d[i]++;
+			}
+			if( syn[i].c[j] > theta_p){
+				alpha_p[i]++;
+			}
+			if ( syn[i].NO_pre[j] > syn[i].no_threshold[j] ){
+				if( syn[i].c[j] > theta_d ){
+					above_NO_d[i]++;
+				}
+				else{ 
+					above_NO_p[i]++;
+				}
+			}
+			ltp[i] += syn[i].ltp[j];
+			ltd[i] += syn[i].ltd[j];
+		}
+	}
+	long t_total = simulation_duration - 3000;
+	for(i = 0; i < no_synapses; i++){
+		printf("Syn(%d), alpha_d: %f, alpha_p: %f, GammaD: %f, GammaP: %f, LTP zone: %f, LTD zone: %f, LTP: %lf, LTD: %lf\n", i, alpha_d[i], alpha_p[i], (alpha_d[i]*dGammaD), (alpha_p[i]*dGammaP), above_NO_p[i], above_NO_d[i], ltp[i], ltd[i]);
+		alpha_d[i] /= t_total;
+		alpha_p[i] /= t_total;
+		/*above_NO_p[i] /= t_total;
+		 above_NO_d[i] /= t_total;*/
+		/*ltp[i] /= t_total;
+		 ltd[i] /= t_total;*/
+		printf("Syn(%d), alpha_d: %f, alpha_p: %f, GammaD: %f, GammaP: %f, LTP zone: %lf, LTD zone: %lf, LTP: %lf, LTD: %lf\n", i, alpha_d[i], alpha_p[i], (alpha_d[i]*dGammaD), (alpha_p[i]*dGammaP), above_NO_p[i], above_NO_d[i], ltp[i], ltd[i]);
+		fprintf(summary_outfile, "%d, %d, %f, %f, %f, %f, %lf, %lf, %f, %f\n", loop_index, i, alpha_d[i], alpha_p[i], (alpha_d[i]*dGammaD), (alpha_p[i]*dGammaP), above_NO_p[i], above_NO_d[i], ltp[i], ltd[i]);
+	}
+	
+	printf("done.\n");
+	fclose(summary_outfile);
+}
+
+
 Synapse* initialise_parameter_optimisation_sweep(int argc, char *argv[]){
 	Synapse *syn;
 	int i;
@@ -87,6 +180,25 @@ Synapse* initialise_parameter_optimisation_sweep(int argc, char *argv[]){
     fprintf(logfile, "Spike times initialised\n");
 	
 	return syn;
+}
+
+int perform_parameter_optimisation_sim(Synapse *syn){
+	int t, i;
+
+	// Loop over discrete time steps up to simulation_duration
+	for (t = 0; t < (simulation_duration-1); t++){
+		// Update each synapse
+		for (i = 0; i < no_synapses; i++){
+			//printf("syn(%d) ", i);
+			//updatePreSynapticVoltageTrace(&syn[i]);
+			updatePreSynapticNOConcentration(&syn[i]);
+			updateCalciumConcentration(&syn[i]);
+			updateSynapticEfficacy(&syn[i]);
+			//printf("t: %d, c: %f, rho: %f, NO: %f\n", siT, syn[i].c[siT-time_of_last_save], syn[i].rho[siT], syn[i].NO_pre[siT]);
+		}
+	}
+	
+	return 0;
 }
 
 #ifndef OPTIMISATION_PROGRAM

@@ -115,6 +115,9 @@ void updatePreSynapticVoltageTrace(Synapse *syn);
 double nmdarFromPreSynapticSpikes(Synapse *syn);
 void updatePreSynapticNOConcentration(Synapse *syn);
 
+void calculate_summary_data(Synapse *syn);
+int perform_parameter_optimisation_sim(Synapse *syn);
+float* cost_function(float *cost, Synapse *syn);
 Synapse* initialise_parameter_optimisation_sweep(int argc, char *argv[]);
 
 #endif /*SYNAPSE_H_*/
