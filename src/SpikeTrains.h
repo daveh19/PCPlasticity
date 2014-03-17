@@ -1,6 +1,10 @@
+#ifndef SPIKETRAINS_H_
+#define SPIKETRAINS_H_
+
 //int safo_index;
 //int bidoret_index;
 int loop_index;
+int trains_no_pf_stims;
 
 // train1 is one pre- and no post- synaptic spikes
 int train1(unsigned int * preT, unsigned int * postT, unsigned long simulation_duration);
@@ -102,3 +106,6 @@ int train34(unsigned int * preT, unsigned int * postT, unsigned long simulation_
 // train35 Predicted LTD protocol protocol: X PF stims with fixed gap between them, no CF stim,
 // repeated at intervals 300 times, then no further inputs.
 int train35(unsigned int * preT, unsigned int * postT, unsigned long simulation_duration);
+
+
+#endif /* SPIKETRAINS_H_ */

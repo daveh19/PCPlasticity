@@ -6,10 +6,90 @@
 #include "NumericalTools.h"
 #include "SpikeTrains.h"
 
-#define SAFO_STEPS (8001) /*(8001)*/
-#define BIDORET_STEPS (800)
-#define PF_LOOP_STEPS (601)
+int initialise_parameter_optimisation_sweep(int argc, char *argv[]){
+	Synapse *syn;
+	int i;
+	
+	loadSimulationParameters(argc, argv);
+	no_synapses = 17; // number of protocols we're trying
+	
+	// Memory allocation for array of synapses
+	syn = (Synapse *) malloc( no_synapses * sizeof(Synapse));
+	if (syn == NULL){
+		perror("Memory allocation failure (syn array)\n");
+		fprintf(logfile, "ERROR: Memory allocation failure (syn array)\n");
+	}
+	else{
+		fprintf(logfile, "syn array successfully assigned %d synapses\n", no_synapses);
+	}
+	
+	synapse_memory_init(syn);
+	for (i = 0; i < no_synapses; i++){
+		syn[i].rho[siT] = initial_rho;
+		syn[i].c[siT] = initial_c; 
+		//syn[i].V_pre[siT] = 0; //TODO: use variables to assign initial values to V_pre and NO_pre
+		syn[i].NO_pre[siT] = 0;
+	}
+	
+	fprintf(logfile, "Initialising spike times\n");
+    // Safo and Regehr: 7 protocols, loop_index/dt gives offset from -300 in timesteps
+	loop_index = 0;
+	train30(syn[0].preT, syn[0].postT, simulation_duration);
+	loop_index = 150 / dt;
+	train30(syn[1].preT, syn[1].postT, simulation_duration);
+	loop_index = 250 / dt;
+	train30(syn[2].preT, syn[2].postT, simulation_duration);
+	loop_index = 350 / dt;
+	train30(syn[3].preT, syn[3].postT, simulation_duration);
+	loop_index = 450 / dt;
+	train30(syn[4].preT, syn[4].postT, simulation_duration);
+	loop_index = 600 / dt;
+	train30(syn[5].preT, syn[5].postT, simulation_duration);
+	loop_index = 800 / dt;
+	train30(syn[6].preT, syn[6].postT, simulation_duration);
+	
+	// 3xPF at 200Hz no change
+	trains_no_pf_stims = 3;
+	loop_index = 4. / dt;
+	train32(syn[7].preT, syn[7].postT, simulation_duration);
+	
+	// 5xPF at 200Hz LTP
+	trains_no_pf_stims = 5;
+	loop_index = 4. / dt;
+	train32(syn[8].preT, syn[8].postT, simulation_duration);
+	// 5xPF at 33.3Hz LTP
+	trains_no_pf_stims = 5;
+	loop_index = 29. / dt;
+	train32(syn[9].preT, syn[9].postT, simulation_duration);
+	// 5xPF at 16.6Hz LTP
+	trains_no_pf_stims = 5;
+	loop_index = 59. / dt;
+	train32(syn[10].preT, syn[10].postT, simulation_duration);
+	trains_no_pf_stims = -1; // restore to defaults
+	
+	// Bidoret: 5 data points
+	loop_index = 0;
+	train34(syn[11].preT, syn[11].postT, simulation_duration);
+	loop_index = 4. / dt;
+	train34(syn[12].preT, syn[12].postT, simulation_duration);
+	loop_index = 14. / dt;
+	train34(syn[13].preT, syn[13].postT, simulation_duration);
+	loop_index = 29. / dt;
+	train34(syn[14].preT, syn[14].postT, simulation_duration);
+	loop_index = 59. / dt;
+	train34(syn[15].preT, syn[15].postT, simulation_duration);
+	
+	// Bidoret, single PF stim
+	trains_no_pf_stims = 1;
+	train34(syn[16].preT, syn[16].postT, simulation_duration);
+	
+	
+    fprintf(logfile, "Spike times initialised\n");
+	
+	return 0;
+}
 
+#ifndef OPTIMISATION_PROGRAM
 int main( int argc, char *argv[] ){
 	int index_loop_counter;
 	float loop_increment = 0.1; // ms
@@ -183,7 +263,7 @@ int main( int argc, char *argv[] ){
 	fclose(summary_outfile);
 	return 0;
 }
-
+#endif /* OPTIMISATION_PROGRAM */
 
 // Calculate synaptic efficacy for next time step
 void updateSynapticEfficacy(Synapse *syn){

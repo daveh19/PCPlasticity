@@ -356,6 +356,8 @@ void loadSimulationParameters(int argc, char *argv[]){
     siID = 0;
     time_of_last_save = -1;
 	
+	trains_no_pf_stims = -1; // -1 means use default values
+	
 	/*
 	fNMDARmax = 200.0; // not applied at present
 	 */

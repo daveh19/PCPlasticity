@@ -3,13 +3,18 @@
 
 #include "GeneralIncludes.h"
 
+#define OPTIMISATION_PROGRAM
+
+#define SAFO_STEPS (8001) /*(8001)*/
+#define BIDORET_STEPS (800)
+#define PF_LOOP_STEPS (601)
+
 /*
     In order to enable save and resume from a checkpoint export the
     following variables from the command shell:
         SYNAPSE_CHECKFILE=filename to save checkpoint information to
         SYNAPSE_RESTART=y if this is a resume, unset it otherwise
 */
-
 
 /* 
 	Reminder: the way the timings are coded, viewed from time t (after an update)
@@ -109,5 +114,7 @@ float voltageTraceFromPreSynapticSpikes(Synapse *syn);
 void updatePreSynapticVoltageTrace(Synapse *syn);
 double nmdarFromPreSynapticSpikes(Synapse *syn);
 void updatePreSynapticNOConcentration(Synapse *syn);
+
+int initialise_parameter_optimisation_sweep(int argc, char *argv[]);
 
 #endif /*SYNAPSE_H_*/
