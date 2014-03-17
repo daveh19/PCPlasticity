@@ -8,7 +8,7 @@
 
 #define SAFO_STEPS (8001) /*(8001)*/
 #define BIDORET_STEPS (800)
-#define PF_LOOP_STEPS (600)
+#define PF_LOOP_STEPS (601)
 
 int main( int argc, char *argv[] ){
 	int index_loop_counter;
@@ -18,9 +18,10 @@ int main( int argc, char *argv[] ){
 	summary_outfile = fopen(summary_outname, "a");
 	fprintf(summary_outfile, "\n\n\n\n\n%% LoopOffset, SynID, alpha_d, alpha_p, GammaD, GammaP, LTP zone, LTD zone, AmountLTP, AmountLTD\n");
 	
+	// Don't forget, index_loop_counter is in units of DT
 	//for(index_loop_counter = 0; index_loop_counter< SAFO_STEPS; index_loop_counter+=1000){
 	//for(index_loop_counter = 0; index_loop_counter< BIDORET_STEPS; index_loop_counter+=10000){
-	for(index_loop_counter = 0; index_loop_counter< PF_LOOP_STEPS; index_loop_counter+=10000){
+	for(index_loop_counter = 0; index_loop_counter< PF_LOOP_STEPS; index_loop_counter+=100){
 		printf("beginning loop %d\n", index_loop_counter);
 		
 		int i;
