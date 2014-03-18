@@ -3,6 +3,8 @@
 
 #include "GeneralIncludes.h"
 
+#include <gsl/gsl_multifit_nlin.h>
+
 #define OPTIMISATION_PROGRAM
 
 #define SAFO_STEPS (8001) /*(8001)*/
@@ -100,6 +102,9 @@ typedef struct Synapse{
         int ID;
 } Synapse;
 
+struct data {
+	Synapse * syn;
+};
 
 void synapse_memory_init(Synapse *);
 int finalise(int, Synapse *);
@@ -117,7 +122,8 @@ void updatePreSynapticNOConcentration(Synapse *syn);
 
 void calculate_summary_data(Synapse *syn);
 int perform_parameter_optimisation_sim(Synapse *syn);
-float* cost_function(float *cost, Synapse *syn);
+//float* cost_function(float *cost, Synapse *syn);
+int cost_function(const gsl_vector * x, void * data, gsl_vector * f);
 Synapse* initialise_parameter_optimisation_sweep(int argc, char *argv[]);
 
 #endif /*SYNAPSE_H_*/

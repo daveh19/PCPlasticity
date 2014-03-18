@@ -6,10 +6,35 @@
 #include "NumericalTools.h"
 #include "SpikeTrains.h"
 
-float* cost_function(float *cost, Synapse *syn){
+#include <gsl/gsl_multifit_nlin.h>
+
+
+//float* cost_function(float *cost, Synapse *syn){
+int cost_function(const gsl_vector * x, void * data, gsl_vector * f){
 	int i;
-	//float cost[17] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-	float objective_dw[17] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}; // these are the target dw values
+	Synapse * syn;
+	syn = ((struct data *) data)->syn;
+	
+	float objective_dw[17] = { //TODO: some of these are departures from 1 and others are absolute values
+	0.04,
+	0.108,
+	-0.16,
+	-0.28,
+	-0.208,
+	0,
+	0.148, /*end safo*/
+		0, /* 3xPF */
+		1.6868986114, /* 2xPF 200Hz */
+		1.2690685961, /* 33Hz */
+		1.0449483297, /* 16Hz */
+		-0.325, /*Bidoret pairs */
+		-0.35,
+		-0.31,
+		-0.15,
+		-0.08, /* end Bidoret pairs */
+		0}; // these are the target dw values
+
+	
 	float simulated_dw[17]; // these will be the values we acutally obtain
 	
 	// set new params based on what gsl sends
@@ -22,16 +47,17 @@ float* cost_function(float *cost, Synapse *syn){
 	// calculate cost based on (sim weight change - experimental weight change)
 	printf("Cost calculation: ");
 	for(i = 0; i < no_synapses; i++){
-		simulated_dw[i] = syn[i].rho[simulation_duration-1];
-		cost[i] = objective_dw[i] - simulated_dw[i];
-		printf(" %f ", cost[i]);
+		simulated_dw[i] = syn[i].rho[simulation_duration-1] / 0.5; // divide by 0.5 to normalise
+		//cost[i] = objective_dw[i] - simulated_dw[i];
+		gsl_vector_set(f, i, objective_dw[i] - simulated_dw[i]);
+		//printf(" %f ", cost[i]);
 	}
 	printf("\n");
 	
 	//calculate_summary_data(syn); // not needed for parameter optimisation, just nice for debugging
 
 	
-	return cost;
+	return GSL_SUCCESS;
 }
 
 
