@@ -13,44 +13,46 @@
 int cost_function(const gsl_vector * x, void * data, gsl_vector * f){
 	int i;
 	Synapse * syn;
-	syn = ((struct data *) data)->syn;
+	syn = ((struct fitting_data *) data)->syn;
 	
-	float objective_dw[17] = { //TODO: some of these are departures from 1 and others are absolute values
-	0.04,
-	0.108,
-	-0.16,
-	-0.28,
-	-0.208,
-	0,
-	0.148, /*end safo*/
-		0, /* 3xPF */
+	const float objective_dw[17] = { //TODO: some of these are departures from 1 and others are absolute values
+	1.04, /* Safo */
+	1.108,
+	1-0.16,
+	1-0.28,
+	1-0.208,
+	1,
+	1.148, /*end safo*/
+		1, /* 3xPF */
 		1.6868986114, /* 2xPF 200Hz */
 		1.2690685961, /* 33Hz */
 		1.0449483297, /* 16Hz */
-		-0.325, /*Bidoret pairs */
-		-0.35,
-		-0.31,
-		-0.15,
-		-0.08, /* end Bidoret pairs */
-		0}; // these are the target dw values
+		1-0.325, /*Bidoret pairs */
+		1-0.35,
+		1-0.31,
+		1-0.15,
+		1-0.08, /* end Bidoret pairs */
+		1 /* depol and single pf */}; // these are the target dw values
 
 	
 	float simulated_dw[17]; // these will be the values we acutally obtain
+	float cost[17];
 	
 	// set new params based on what gsl sends
+	set_optimisation_sim_params(x);
 	
 	// update sim
-	printf("DEBUG: performing sim\n");
+	printf("DEBUG: performing sim... ");
 	perform_parameter_optimisation_sim(syn);
 	printf("done\n");
 	
 	// calculate cost based on (sim weight change - experimental weight change)
-	printf("Cost calculation: ");
+	printf("Cost calculation: \n");
 	for(i = 0; i < no_synapses; i++){
 		simulated_dw[i] = syn[i].rho[simulation_duration-1] / 0.5; // divide by 0.5 to normalise
-		//cost[i] = objective_dw[i] - simulated_dw[i];
+		cost[i] = objective_dw[i] - simulated_dw[i];
 		gsl_vector_set(f, i, objective_dw[i] - simulated_dw[i]);
-		//printf(" %f ", cost[i]);
+		printf(" %f %f %f %f \n", cost[i], objective_dw[i], simulated_dw[i], syn[i].rho[simulation_duration-1]);
 	}
 	printf("\n");
 	
@@ -60,6 +62,26 @@ int cost_function(const gsl_vector * x, void * data, gsl_vector * f){
 	return GSL_SUCCESS;
 }
 
+void set_optimisation_sim_params(const gsl_vector * x){
+	fTauC = gsl_vector_get(x, 0);
+	lfTauNMDAR = fTauC; //gsl_vector_get(x, 0);
+	
+	iCaSpikeDelay = gsl_vector_get(x, 1);
+	iNOSpikeDelay = iCaSpikeDelay; //gsl_vector_get(x, 1);
+
+	dCpre = gsl_vector_get(x, 2);
+	dCpost = gsl_vector_get(x, 3);
+	lfNMDARjump = gsl_vector_get(x, 4);
+	
+	dThetaD = gsl_vector_get(x, 5);
+
+	dGammaD = gsl_vector_get(x, 6);
+	dGammaP = gsl_vector_get(x, 7);
+	
+	/*V_MAX 1
+	V_JUMP 1
+	TAU_V 70.*/
+}
 
 void calculate_summary_data(Synapse *syn){
 	int i, j;
@@ -128,6 +150,7 @@ void calculate_summary_data(Synapse *syn){
 Synapse* initialise_parameter_optimisation_sweep(int argc, char *argv[]){
 	Synapse *syn;
 	int i;
+	siT = 0; // carry over global var from checkpointing method
 	
 	loadSimulationParameters(argc, argv);
 	no_synapses = 17; // number of protocols we're trying
@@ -210,9 +233,14 @@ Synapse* initialise_parameter_optimisation_sweep(int argc, char *argv[]){
 
 int perform_parameter_optimisation_sim(Synapse *syn){
 	int t, i;
-
+	
+	// It looks like we can avoid resetting rho(0), c(0), etc because of forward method
+	
+	siT = 0; // siT is a global which detects the time within each update function
+	
+	//TODO: consider changing order of looping, may give speed gain
 	// Loop over discrete time steps up to simulation_duration
-	for (t = 0; t < (simulation_duration-1); t++){
+	for (t = siT; t < (simulation_duration-1); t++){
 		// Update each synapse
 		for (i = 0; i < no_synapses; i++){
 			//printf("syn(%d) ", i);
@@ -222,7 +250,14 @@ int perform_parameter_optimisation_sim(Synapse *syn){
 			updateSynapticEfficacy(&syn[i]);
 			//printf("t: %d, c: %f, rho: %f, NO: %f\n", siT, syn[i].c[siT-time_of_last_save], syn[i].rho[siT], syn[i].NO_pre[siT]);
 		}
+		siT++; 
 	}
+	
+	printf("Final rho values:\n");
+	for (i = 0; i < no_synapses; i++){
+		printf(" %f %f %f \n", syn[i].rho[siT], syn[i].rho[simulation_duration-1], syn[i].rho[simulation_duration-2]);
+	}
+	printf("\n");
 	
 	return 0;
 }
