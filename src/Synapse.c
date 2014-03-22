@@ -9,6 +9,46 @@
 #include <gsl/gsl_multifit_nlin.h>
 
 
+int perform_parameter_optimisation_sim(Synapse *syn){
+	int t, i;
+	
+	// It looks like we can avoid resetting rho(0), c(0), etc because of forward method
+	
+	siT = 0; // siT is a global which detects the time within each update function
+	
+    printf("DEBUG: simulation_duration %ld\n", simulation_duration);
+    
+	//TODO: consider changing order of looping, may give speed gain
+	// Loop over discrete time steps up to simulation_duration
+	for (t = siT; t < (simulation_duration-1); t++){
+		// Update each synapse
+		for (i = 0; i < no_synapses; i++){
+			//printf("syn(%d) ", i);
+			//updatePreSynapticVoltageTrace(&syn[i]);
+			updatePreSynapticNOConcentration(&syn[i]);
+			updateCalciumConcentration(&syn[i]);
+			updateSynapticEfficacy(&syn[i]);
+			//printf("t: %d, c: %f, rho: %f, NO: %f\n", siT, syn[i].c[siT-time_of_last_save], syn[i].rho[siT], syn[i].NO_pre[siT]);
+		}
+        //printf("DEBUG: RHO %f\n", syn[0].rho[siT]);
+        /*if(siT == 100000){
+            printf("DEBUG: RHO %f\n", syn[0].rho[siT]);
+            
+        }*/
+		siT++;
+	}
+	
+	/*printf("Final rho values:\n");
+	for (i = 0; i < no_synapses; i++){
+		printf(" %f %f %f \n", syn[i].rho[siT], syn[i].rho[simulation_duration-1], syn[i].rho[simulation_duration-2]);
+	}
+    printf("%ld %ld\n", siT, simulation_duration);
+	printf("\n");*/
+	
+	return 0;
+}
+
+
 //float* cost_function(float *cost, Synapse *syn){
 int cost_function(const gsl_vector * x, void * data, gsl_vector * f){
 	int i;
@@ -47,7 +87,7 @@ int cost_function(const gsl_vector * x, void * data, gsl_vector * f){
 	printf("done\n");
 	
 	// calculate cost based on (sim weight change - experimental weight change)
-	printf("Cost calculation: \n");
+	printf("Cost calculation: \n  \t cost \t objective \t simulation \r rho final\n");
 	for(i = 0; i < no_synapses; i++){
 		simulated_dw[i] = syn[i].rho[simulation_duration-1] / 0.5; // divide by 0.5 to normalise
 		cost[i] = objective_dw[i] - simulated_dw[i];
@@ -231,36 +271,6 @@ Synapse* initialise_parameter_optimisation_sweep(int argc, char *argv[]){
 	return syn;
 }
 
-int perform_parameter_optimisation_sim(Synapse *syn){
-	int t, i;
-	
-	// It looks like we can avoid resetting rho(0), c(0), etc because of forward method
-	
-	siT = 0; // siT is a global which detects the time within each update function
-	
-	//TODO: consider changing order of looping, may give speed gain
-	// Loop over discrete time steps up to simulation_duration
-	for (t = siT; t < (simulation_duration-1); t++){
-		// Update each synapse
-		for (i = 0; i < no_synapses; i++){
-			//printf("syn(%d) ", i);
-			//updatePreSynapticVoltageTrace(&syn[i]);
-			updatePreSynapticNOConcentration(&syn[i]);
-			updateCalciumConcentration(&syn[i]);
-			updateSynapticEfficacy(&syn[i]);
-			//printf("t: %d, c: %f, rho: %f, NO: %f\n", siT, syn[i].c[siT-time_of_last_save], syn[i].rho[siT], syn[i].NO_pre[siT]);
-		}
-		siT++; 
-	}
-	
-	printf("Final rho values:\n");
-	for (i = 0; i < no_synapses; i++){
-		printf(" %f %f %f \n", syn[i].rho[siT], syn[i].rho[simulation_duration-1], syn[i].rho[simulation_duration-2]);
-	}
-	printf("\n");
-	
-	return 0;
-}
 
 #ifndef OPTIMISATION_PROGRAM
 int main( int argc, char *argv[] ){
