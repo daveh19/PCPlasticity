@@ -7,7 +7,11 @@
 #include "SpikeTrains.h"
 
 #include <gsl/gsl_multifit_nlin.h>
+#include <gsl/gsl_vector.h>
+#include <gsl/gsl_blas.h>
 
+#include <gsl/gsl_rng.h>
+#include <gsl/gsl_randist.h>
 
 int perform_parameter_optimisation_sim(Synapse *syn){
 	int t, i;
@@ -16,19 +20,23 @@ int perform_parameter_optimisation_sim(Synapse *syn){
 	
 	siT = 0; // siT is a global which detects the time within each update function
 	
+	print_params();
     printf("DEBUG: simulation_duration %ld\n", simulation_duration);
     
 	//TODO: consider changing order of looping, may give speed gain
 	// Loop over discrete time steps up to simulation_duration
 	for (t = siT; t < (simulation_duration-1); t++){
 		// Update each synapse
-		for (i = 0; i < no_synapses; i++){
+		for (i = 0; i < no_synapses; i++)
+		{
+			//i = 12;
 			//printf("syn(%d) ", i);
 			//updatePreSynapticVoltageTrace(&syn[i]);
 			updatePreSynapticNOConcentration(&syn[i]);
 			updateCalciumConcentration(&syn[i]);
 			updateSynapticEfficacy(&syn[i]);
-			//printf("t: %d, c: %f, rho: %f, NO: %f\n", siT, syn[i].c[siT-time_of_last_save], syn[i].rho[siT], syn[i].NO_pre[siT]);
+			//if (i == 12)
+				//printf("t: %d, c: %f, rho: %f, NO: %f\n", siT, syn[i].c[siT-time_of_last_save], syn[i].rho[siT], syn[i].NO_pre[siT]);
 		}
         //printf("DEBUG: RHO %f\n", syn[0].rho[siT]);
         /*if(siT == 100000){
@@ -38,12 +46,19 @@ int perform_parameter_optimisation_sim(Synapse *syn){
 		siT++;
 	}
 	
-	/*printf("Final rho values:\n");
+	/*char outfile[FILE_NAME_LENGTH];
+	sprintf(outfile, outfilepattern, syn[i].ID);
+	printf("writing...%s\n", outfile);
+	saveSynapseOutputFile(outfile, &syn[i], siT, dCpre, dCpost, dThetaD, dThetaP, dGammaD, dGammaP, dSigma, iCaSpikeDelay, iNOSpikeDelay, fTau, fTauC, dRhoFixed, poisson_param, initial_random_seed);
+	printf("Final rho values:\n");
 	for (i = 0; i < no_synapses; i++){
 		printf(" %f %f %f \n", syn[i].rho[siT], syn[i].rho[simulation_duration-1], syn[i].rho[simulation_duration-2]);
 	}
     printf("%ld %ld\n", siT, simulation_duration);
 	printf("\n");*/
+	for (i = 0; i < no_synapses; i++){
+		printf("syn(%d) t: %ld, c: %f, rho: %f\n", i, siT, syn[i].c[siT], syn[i].rho[siT]);
+	}
 	
 	return 0;
 }
@@ -64,7 +79,7 @@ int cost_function(const gsl_vector * x, void * data, gsl_vector * f){
 	1,
 	1.148, /*end safo*/
 		1, /* 3xPF */
-		1.6868986114, /* 2xPF 200Hz */
+		1.6868986114, /* 5xPF 200Hz */
 		1.2690685961, /* 33Hz */
 		1.0449483297, /* 16Hz */
 		1-0.325, /*Bidoret pairs */
@@ -79,21 +94,28 @@ int cost_function(const gsl_vector * x, void * data, gsl_vector * f){
 	float cost[17];
 	
 	// set new params based on what gsl sends
-	set_optimisation_sim_params(x);
+	//set_optimisation_sim_params(x);
+	printf("DEBUG gsl_vector_get %0.15f\n", (double)gsl_vector_get(x, 0));
+	printf("DEBUG gsl_vector_get %0.15f\n", (float)gsl_vector_get(x, 0));
+	fTauC = (double)gsl_vector_get(x, 0);
 	
+	//print_params();
 	// update sim
-	printf("DEBUG: performing sim... ");
+	printf("DEBUG: performing sim...\n ");
 	perform_parameter_optimisation_sim(syn);
 	printf("done\n");
 	
 	// calculate cost based on (sim weight change - experimental weight change)
-	printf("Cost calculation: \n  \t cost \t objective \t simulation \r rho final\n");
+	printf("Cost calculation: \n\t cost \t objective \t simulation \t rho final\n");
+	double norm = 0;
 	for(i = 0; i < no_synapses; i++){
 		simulated_dw[i] = syn[i].rho[simulation_duration-1] / 0.5; // divide by 0.5 to normalise
-		cost[i] = objective_dw[i] - simulated_dw[i];
-		gsl_vector_set(f, i, objective_dw[i] - simulated_dw[i]);
-		printf(" %f %f %f %f \n", cost[i], objective_dw[i], simulated_dw[i], syn[i].rho[simulation_duration-1]);
+		cost[i] = 100 * (objective_dw[i] - simulated_dw[i]);
+		gsl_vector_set(f, i, cost[i]);
+		printf("\t %f\t %f\t %f\t %f \n", cost[i], objective_dw[i], simulated_dw[i], syn[i].rho[simulation_duration-1]);
+		norm += cost[i] * cost[i];
 	}
+	printf("norm %f\n", sqrt(norm));
 	printf("\n");
 	
 	//calculate_summary_data(syn); // not needed for parameter optimisation, just nice for debugging
@@ -103,10 +125,12 @@ int cost_function(const gsl_vector * x, void * data, gsl_vector * f){
 }
 
 void set_optimisation_sim_params(const gsl_vector * x){
+	double temp = fTauC;
 	fTauC = gsl_vector_get(x, 0);
 	lfTauNMDAR = fTauC; //gsl_vector_get(x, 0);
 	
-	iCaSpikeDelay = gsl_vector_get(x, 1);
+	printf("DEBUG difference %g\n", (temp - fTauC));
+	/*iCaSpikeDelay = gsl_vector_get(x, 1);
 	iNOSpikeDelay = iCaSpikeDelay; //gsl_vector_get(x, 1);
 
 	dCpre = gsl_vector_get(x, 2);
@@ -116,11 +140,15 @@ void set_optimisation_sim_params(const gsl_vector * x){
 	dThetaD = gsl_vector_get(x, 5);
 
 	dGammaD = gsl_vector_get(x, 6);
-	dGammaP = gsl_vector_get(x, 7);
+	dGammaP = gsl_vector_get(x, 7);*/
 	
 	/*V_MAX 1
 	V_JUMP 1
 	TAU_V 70.*/
+}
+
+void print_params(){
+	printf("Parameters: tauC %0.30f, tauNO %0.10f, DC %d, DN, %d, Cpre %0.10f, Cpost %0.10f, Npre %0.10f, thetaD %0.10f, gammaD %0.10f, gammaP %0.10f\n", fTauC, lfTauNMDAR, iCaSpikeDelay, iNOSpikeDelay, dCpre, dCpost, lfNMDARjump, dThetaD, dGammaD, dGammaP);
 }
 
 void calculate_summary_data(Synapse *syn){
@@ -283,8 +311,8 @@ int main( int argc, char *argv[] ){
 	
 	// Don't forget, index_loop_counter is in units of DT
 	//for(index_loop_counter = 0; index_loop_counter< SAFO_STEPS; index_loop_counter+=1000){
-	//for(index_loop_counter = 0; index_loop_counter< BIDORET_STEPS; index_loop_counter+=10000){
-	for(index_loop_counter = 0; index_loop_counter< PF_LOOP_STEPS; index_loop_counter+=100){
+	for(index_loop_counter = 40; index_loop_counter< BIDORET_STEPS; index_loop_counter+=10000){
+	//for(index_loop_counter = 0; index_loop_counter< PF_LOOP_STEPS; index_loop_counter+=100){
 		printf("beginning loop %d\n", index_loop_counter);
 		
 		int i;
@@ -340,6 +368,7 @@ int main( int argc, char *argv[] ){
 		// Main simulation loop
 		fprintf(logfile, "Entering main simulation loop\n");
 		printf("Entering main simulation loop\n");
+		//perform_parameter_optimisation_sim(syn);
 		// Loop over discrete time steps up to simulation_duration
 		for (t = siT; t < (simulation_duration-1); t++){
 			//checkpoint_save(syn);
@@ -378,7 +407,7 @@ int main( int argc, char *argv[] ){
 				sprintf(outfile, outfilepattern, syn[i].ID);
 				printf("writing...%s\n", outfile);
 				// not saving output file here
-				//saveSynapseOutputFile(outfile, &syn[i], siT, dCpre, dCpost, dThetaD, dThetaP, dGammaD, dGammaP, dSigma, iCaSpikeDelay, iNOSpikeDelay, fTau, fTauC, dRhoFixed, poisson_param, initial_random_seed);
+				saveSynapseOutputFile(outfile, &syn[i], siT, dCpre, dCpost, dThetaD, dThetaP, dGammaD, dGammaP, dSigma, iCaSpikeDelay, iNOSpikeDelay, fTau, fTauC, dRhoFixed, poisson_param, initial_random_seed);
 			}
 		}
 

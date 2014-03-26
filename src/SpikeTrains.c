@@ -1165,6 +1165,7 @@ int train34(unsigned int * preT, unsigned int * postT, unsigned long simulation_
 		no_pf_stims = 2;
 	}
 	//cf_offset = 40;
+	printf("DEBUG: inter_pf_gap %d\n", inter_pf_gap);
 	
     for (i = 0; i < recurrent_no_stims; i++){
 		for ( int j = 0; j < (120/dt); j++){ // PC depolarisation (adjusted for dt)

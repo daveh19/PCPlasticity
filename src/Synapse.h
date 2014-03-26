@@ -120,6 +120,7 @@ void updatePreSynapticVoltageTrace(Synapse *syn);
 double nmdarFromPreSynapticSpikes(Synapse *syn);
 void updatePreSynapticNOConcentration(Synapse *syn);
 
+void print_params();
 void set_optimisation_sim_params(const gsl_vector * x);
 void calculate_summary_data(Synapse *syn);
 int perform_parameter_optimisation_sim(Synapse *syn);
