@@ -94,10 +94,10 @@ int cost_function(const gsl_vector * x, void * data, gsl_vector * f){
 	float cost[17];
 	
 	// set new params based on what gsl sends
-	//set_optimisation_sim_params(x);
+	set_optimisation_sim_params(x);
 	printf("DEBUG gsl_vector_get %0.15f\n", (double)gsl_vector_get(x, 0));
 	printf("DEBUG gsl_vector_get %0.15f\n", (float)gsl_vector_get(x, 0));
-	fTauC = (double)gsl_vector_get(x, 0);
+	//fTauC = (double)gsl_vector_get(x, 0);
 	
 	//print_params();
 	// update sim
@@ -110,7 +110,7 @@ int cost_function(const gsl_vector * x, void * data, gsl_vector * f){
 	double norm = 0;
 	for(i = 0; i < no_synapses; i++){
 		simulated_dw[i] = syn[i].rho[simulation_duration-1] / 0.5; // divide by 0.5 to normalise
-		cost[i] = 100 * (objective_dw[i] - simulated_dw[i]);
+		cost[i] = 10000 * (objective_dw[i] - simulated_dw[i]);
 		gsl_vector_set(f, i, cost[i]);
 		printf("\t %f\t %f\t %f\t %f \n", cost[i], objective_dw[i], simulated_dw[i], syn[i].rho[simulation_duration-1]);
 		norm += cost[i] * cost[i];
@@ -125,22 +125,27 @@ int cost_function(const gsl_vector * x, void * data, gsl_vector * f){
 }
 
 void set_optimisation_sim_params(const gsl_vector * x){
-	double temp = fTauC;
+	double temp;
 	fTauC = gsl_vector_get(x, 0);
 	lfTauNMDAR = fTauC; //gsl_vector_get(x, 0);
 	
-	printf("DEBUG difference %g\n", (temp - fTauC));
-	/*iCaSpikeDelay = gsl_vector_get(x, 1);
+	temp = iCaSpikeDelay;
+	double local_delay = gsl_vector_get(x, 1);
+	iCaSpikeDelay = (int)local_delay; //gsl_vector_get(x, 1);
 	iNOSpikeDelay = iCaSpikeDelay; //gsl_vector_get(x, 1);
-
+	printf("DEBUG difference %g %g\n", (temp - iCaSpikeDelay), local_delay);
+	
 	dCpre = gsl_vector_get(x, 2);
 	dCpost = gsl_vector_get(x, 3);
 	lfNMDARjump = gsl_vector_get(x, 4);
 	
 	dThetaD = gsl_vector_get(x, 5);
 
+	temp = dGammaD;
 	dGammaD = gsl_vector_get(x, 6);
-	dGammaP = gsl_vector_get(x, 7);*/
+	dGammaP = gsl_vector_get(x, 7);
+	
+	printf("DEBUG difference %g\n", (temp - dGammaD));
 	
 	/*V_MAX 1
 	V_JUMP 1

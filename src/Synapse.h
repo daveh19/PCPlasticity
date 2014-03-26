@@ -35,7 +35,7 @@ long random_seed;
 //int iTau;
 //int iTauC;
 float fTau;
-float fTauC;
+double fTauC;
 double dt; // using 1 = 1ms, so 0.1=0.1ms
 
 double dRhoFixed;
@@ -60,8 +60,8 @@ double lfVjump;
 
 double lfNMDARjump;
 
-float fVmax;
-float fNMDARmax;
+double fVmax;
+double fNMDARmax;
 
 float fThetaNO;
 float fThetaNO2;
