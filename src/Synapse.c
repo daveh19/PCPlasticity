@@ -69,6 +69,7 @@ int cost_function(const gsl_vector * x, void * data, gsl_vector * f){
 	int i;
 	Synapse * syn;
 	syn = ((struct fitting_data *) data)->syn;
+	int signal_change = 0;
 	
 	const float objective_dw[17] = { //TODO: some of these are departures from 1 and others are absolute values
 	1.04, /* Safo */
@@ -90,9 +91,12 @@ int cost_function(const gsl_vector * x, void * data, gsl_vector * f){
 		1 /* depol and single pf */}; // these are the target dw values
 
 	
-	float simulated_dw[17]; // these will be the values we acutally obtain
-	float cost[17];
+	double simulated_dw[17]; // these will be the values we acutally obtain
+	double cost[17];
 	
+    printf("Times through cost function %d\n", times_through_cost_function);
+    times_through_cost_function++;
+    
 	// set new params based on what gsl sends
 	set_optimisation_sim_params(x);
 	printf("DEBUG gsl_vector_get %0.15f\n", (double)gsl_vector_get(x, 0));
@@ -110,12 +114,19 @@ int cost_function(const gsl_vector * x, void * data, gsl_vector * f){
 	double norm = 0;
 	for(i = 0; i < no_synapses; i++){
 		simulated_dw[i] = syn[i].rho[simulation_duration-1] / 0.5; // divide by 0.5 to normalise
-		cost[i] = 10000 * (objective_dw[i] - simulated_dw[i]);
+		cost[i] = 1 * (objective_dw[i] - simulated_dw[i]);
 		gsl_vector_set(f, i, cost[i]);
 		printf("\t %f\t %f\t %f\t %f \n", cost[i], objective_dw[i], simulated_dw[i], syn[i].rho[simulation_duration-1]);
 		norm += cost[i] * cost[i];
+		if(fabs(old_simulated_dw[i] - simulated_dw[i]) > 0.0000001)
+		{
+			signal_change++;
+			printf("change detected, i %d, old value %0.15f, new value %0.15f\n", i, old_simulated_dw[i], simulated_dw[i]);
+			old_simulated_dw[i] = simulated_dw[i];
+		}
 	}
 	printf("norm %f\n", sqrt(norm));
+	printf("number of elements of f which changed %d\n", signal_change);
 	printf("\n");
 	
 	//calculate_summary_data(syn); // not needed for parameter optimisation, just nice for debugging
@@ -227,6 +238,11 @@ Synapse* initialise_parameter_optimisation_sweep(int argc, char *argv[]){
 	
 	loadSimulationParameters(argc, argv);
 	no_synapses = 17; // number of protocols we're trying
+	
+	for(i = 0; i < 17; i++){
+		old_simulated_dw[i] = 0.0;
+	}
+	i = 0;
 	
 	// Memory allocation for array of synapses
 	syn = (Synapse *) malloc( no_synapses * sizeof(Synapse));
@@ -412,7 +428,7 @@ int main( int argc, char *argv[] ){
 				sprintf(outfile, outfilepattern, syn[i].ID);
 				printf("writing...%s\n", outfile);
 				// not saving output file here
-				saveSynapseOutputFile(outfile, &syn[i], siT, dCpre, dCpost, dThetaD, dThetaP, dGammaD, dGammaP, dSigma, iCaSpikeDelay, iNOSpikeDelay, fTau, fTauC, dRhoFixed, poisson_param, initial_random_seed);
+				//saveSynapseOutputFile(outfile, &syn[i], siT, dCpre, dCpost, dThetaD, dThetaP, dGammaD, dGammaP, dSigma, iCaSpikeDelay, iNOSpikeDelay, fTau, fTauC, dRhoFixed, poisson_param, initial_random_seed);
 			}
 		}
 

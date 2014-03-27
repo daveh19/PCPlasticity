@@ -73,6 +73,7 @@ int main( int argc, char *argv[] ){
 
 	x = gsl_vector_view_array(x_init, p); // setup initial guess
 	
+    times_through_cost_function = 0;
 	status = gsl_multifit_fdfsolver_set (s, &f, &x.vector); // setup solver
 	printf("status = %s\n", gsl_strerror(status));
 	
@@ -83,10 +84,13 @@ int main( int argc, char *argv[] ){
 	printf("Beginning iteration loop\n");
 	do{
 		iter++;
+        times_through_cost_function = 0;
 		status = gsl_multifit_fdfsolver_iterate(s);
 		
 		printf("status = %s\n", gsl_strerror(status));
 		
+        print_jacobian(s);
+        
 		print_state(iter, s);
 		
 		if(status){

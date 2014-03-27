@@ -106,6 +106,10 @@ struct fitting_data {
 	Synapse * syn;
 };
 
+double old_simulated_dw[17];// = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+
+int times_through_cost_function;
+
 void synapse_memory_init(Synapse *);
 int finalise(int, Synapse *);
 void loadInitialSpikeTimes(Synapse *);

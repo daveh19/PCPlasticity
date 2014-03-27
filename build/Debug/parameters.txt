@@ -1,7 +1,7 @@
 #format: ParamName ParamValue
 #do not include any other symbols on parameter lines
 SIMULATION_DURATION 400000
-NO_SYNAPSES 17
+NO_SYNAPSES 1
 INITIAL_C 0.0
 INITIAL_RHO 0.5
 RHO_FIXED 0.5
