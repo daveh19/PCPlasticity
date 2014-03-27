@@ -136,7 +136,7 @@ int cost_function(const gsl_vector * x, void * data, gsl_vector * f){
 }
 
 void set_optimisation_sim_params(const gsl_vector * x){
-    double param_multiplier = 100;
+    double param_multiplier = 1000;
 	double temp;
 	fTauC = gsl_vector_get(x, 0);
 	lfTauNMDAR = fTauC; //gsl_vector_get(x, 0);

@@ -34,9 +34,8 @@ int print_jacobian(gsl_multifit_fdfsolver * s);
 int main( int argc, char *argv[] ){
 	Synapse *syn;
 	struct fitting_data data_struct;
-	const gsl_multifit_fdfsolver_type * T = gsl_multifit_fdfsolver_lmder;
-	//const gsl_multifit_fdfsolver_type * T = gsl_multifit_fdfsolver_lmsder; // type of solver
-	//const gsl_multifit_fsolver_type * T = gsl_multifit_fsolver_lmder;
+	//const gsl_multifit_fdfsolver_type * T = gsl_multifit_fdfsolver_lmder;
+	const gsl_multifit_fdfsolver_type * T = gsl_multifit_fdfsolver_lmsder; // type of solver
 	gsl_multifit_function_fdf f; // function to fit
 	gsl_multifit_fdfsolver * s; // solver
 	gsl_vector_view x; // initial guess
