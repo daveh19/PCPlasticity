@@ -44,8 +44,8 @@ double dCpre;
 double dCpost;
 double dThetaD;
 double dThetaP;
-double dGammaD; //CONSIDER: does this really need to be double?
-double dGammaP; //CONSIDER: does this really need to be double?
+double dGammaD;
+double dGammaP;
 
 double dSigma;
 int iCaSpikeDelay; // measured in timesteps // delay on Calcium increase
@@ -109,6 +109,10 @@ struct fitting_data {
 double old_simulated_dw[17];// = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 
 int times_through_cost_function;
+
+double dGammaDfixed;
+double dGammaPfixed;
+
 
 void synapse_memory_init(Synapse *);
 int finalise(int, Synapse *);

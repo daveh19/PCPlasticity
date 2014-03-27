@@ -55,7 +55,8 @@ int main( int argc, char *argv[] ){
 	//printf("DEBUG: float %.20f, double %.20lf\n", test, test);
 	
 	// tau, D, C_pf, C_cs, N_pf, theta_d, gamma_d, gamma_p
-	double x_init[8] = {185,(80./dt),0.07,0.6,0.2,0.522,2.3809e-4,7.9365e-5};
+	//double x_init[8] = {185,(80./dt),0.07,0.6,0.2,0.522,2.3809e-4,7.9365e-5};
+    double x_init[8] = {185,(80./dt),0.07,0.6,0.2,0.522,0,0};
 	//double x_init[1] = {1.0};//{185.};//,(int)(80./dt),0.07,0.6,0.2,0.522,2.3809e-4,7.9365e-5};
 	
 	data_struct.syn = syn;
