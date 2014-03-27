@@ -136,30 +136,30 @@ int cost_function(const gsl_vector * x, void * data, gsl_vector * f){
 }
 
 void set_optimisation_sim_params(const gsl_vector * x){
-    double param_multiplier = 1000;
-	double temp;
-	fTauC = gsl_vector_get(x, 0);
+    double param_multiplier[8] = {1,1,1,1,1,1,100,1000}; //{1,1e-6,1,1,1,1,1000,1000};
+	double temp_reader;
+    double delay_as_double;
+    
+	fTauC = (param_multiplier[0] * fTauCfixed + gsl_vector_get(x,0)) / param_multiplier[0]; //gsl_vector_get(x, 0);
 	lfTauNMDAR = fTauC; //gsl_vector_get(x, 0);
 	
-	temp = iCaSpikeDelay;
-	double local_delay = gsl_vector_get(x, 1);
-	iCaSpikeDelay = (int)local_delay; //gsl_vector_get(x, 1);
+	temp_reader = iCaSpikeDelay;
+	delay_as_double = (param_multiplier[1] * iCaSpikeDelayFixed + gsl_vector_get(x,1)) / param_multiplier[1]; //gsl_vector_get(x,1);
+	iCaSpikeDelay = (int) delay_as_double; //gsl_vector_get(x, 1);
 	iNOSpikeDelay = iCaSpikeDelay; //gsl_vector_get(x, 1);
-	printf("DEBUG difference %g %g\n", (temp - iCaSpikeDelay), local_delay);
+	printf("DEBUG difference %g %g\n", (temp_reader - iCaSpikeDelay), delay_as_double);
 	
-	dCpre = gsl_vector_get(x, 2);
-	dCpost = gsl_vector_get(x, 3);
-	lfNMDARjump = gsl_vector_get(x, 4);
+	dCpre = (param_multiplier[2] * dCpreFixed + gsl_vector_get(x,2)) / param_multiplier[2]; //gsl_vector_get(x, 2);
+	dCpost = (param_multiplier[3] * dCpostFixed + gsl_vector_get(x,3)) / param_multiplier[3]; //gsl_vector_get(x, 3);
+	lfNMDARjump = (param_multiplier[4] * lfNMDARjumpFixed + gsl_vector_get(x,4)) / param_multiplier[4]; //gsl_vector_get(x, 4);
 	
-	dThetaD = gsl_vector_get(x, 5);
+	dThetaD = (param_multiplier[5] * fTauCfixed + gsl_vector_get(x,5)) / param_multiplier[5]; //gsl_vector_get(x, 5);
 
-	temp = dGammaD;
-    //double local_dGammaD = gsl_vector_get(x, 6);
-    //double local_dGammaP = gsl_vector_get(x, 7);
-	dGammaD = (param_multiplier * dGammaDfixed + gsl_vector_get(x,6)) / param_multiplier; //gsl_vector_get(x, 6);
-	dGammaP = (param_multiplier * dGammaPfixed + gsl_vector_get(x,7)) / param_multiplier; //gsl_vector_get(x, 7);
+	temp_reader = dGammaD;
+	dGammaD = (param_multiplier[6] * dGammaDfixed + gsl_vector_get(x,6)) / param_multiplier[6]; //gsl_vector_get(x, 6);
+	dGammaP = (param_multiplier[7] * dGammaPfixed + gsl_vector_get(x,7)) / param_multiplier[7]; //gsl_vector_get(x, 7);
 	
-	printf("DEBUG difference %g\n", (temp - dGammaD));
+	printf("DEBUG difference %g\n", (temp_reader - dGammaD));
 	
 	/*V_MAX 1
 	V_JUMP 1
@@ -167,7 +167,7 @@ void set_optimisation_sim_params(const gsl_vector * x){
 }
 
 void print_params(){
-	printf("Parameters: tauC %0.30f, tauNO %0.10f, DC %d, DN, %d, Cpre %0.10f, Cpost %0.10f, Npre %0.10f, thetaD %0.10f, gammaD %0.30f, gammaP %0.30f\n", fTauC, lfTauNMDAR, iCaSpikeDelay, iNOSpikeDelay, dCpre, dCpost, lfNMDARjump, dThetaD, dGammaD, dGammaP);
+	printf("Parameters: tauC %0.30f, tauNO %0.10f, DC %d, DN, %d, Cpre %0.30f, Cpost %0.30f, Npre %0.30f, thetaD %0.30f, gammaD %0.30f, gammaP %0.30f\n", fTauC, lfTauNMDAR, iCaSpikeDelay, iNOSpikeDelay, dCpre, dCpost, lfNMDARjump, dThetaD, dGammaD, dGammaP);
 }
 
 void calculate_summary_data(Synapse *syn){
@@ -243,6 +243,17 @@ Synapse* initialise_parameter_optimisation_sweep(int argc, char *argv[]){
 	no_synapses = 17; // number of protocols we're trying
     dGammaDfixed = dGammaD;
     dGammaPfixed = dGammaP;
+    
+    dCpreFixed = dCpre;
+    dCpostFixed = dCpost;
+    lfNMDARjumpFixed = lfNMDARjump;
+    dThetaDfixed = dThetaD;
+    
+    fTauCfixed = fTauC;
+    lfTauNMDARfixed = lfTauNMDAR;
+    
+    iCaSpikeDelayFixed = iCaSpikeDelay;
+    iNOSpikeDelayFixed = iNOSpikeDelay;
 	
 	for(i = 0; i < 17; i++){
 		old_simulated_dw[i] = 0.0;

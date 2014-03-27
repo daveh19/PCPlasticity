@@ -113,6 +113,16 @@ int times_through_cost_function;
 double dGammaDfixed;
 double dGammaPfixed;
 
+double dCpreFixed;
+double dCpostFixed;
+double lfNMDARjumpFixed;
+double dThetaDfixed;
+
+double fTauCfixed;
+double lfTauNMDARfixed;
+
+double iCaSpikeDelayFixed;
+int iNOSpikeDelayFixed; 
 
 void synapse_memory_init(Synapse *);
 int finalise(int, Synapse *);
