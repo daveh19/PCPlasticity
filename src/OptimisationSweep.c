@@ -110,6 +110,7 @@ int main( int argc, char *argv[] ){
 		printf("Final Error\n");
 	}
 
+    print_params();
 	
 	printf("Freeing memory and exiting...\n");
 	gsl_multifit_fdfsolver_free (s); // free solver memory
@@ -144,7 +145,7 @@ int print_jacobian(gsl_multifit_fdfsolver * s){
 
 
 void print_state(size_t iter, gsl_multifit_fdfsolver * s){
-		printf("iter: %3u %f %f %f %f %f %f %f %f |f(x)| = %g\n",
+		printf("iter: %3u %g %g %g %g %g %g %g %g |f(x)| = %g\n",
 			   (unsigned int)iter,
 			   gsl_vector_get(s->x, 0),
 			   gsl_vector_get(s->x, 1),

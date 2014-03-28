@@ -70,8 +70,10 @@ int cost_function(const gsl_vector * x, void * data, gsl_vector * f){
 	Synapse * syn;
 	syn = ((struct fitting_data *) data)->syn;
 	int signal_change = 0;
+    
+    const double cost_coeffs[17] = {3,1,1,3,1,1,3,1,1,1,1,3,3,1,1,1,1};
 	
-	const float objective_dw[17] = { //TODO: some of these are departures from 1 and others are absolute values
+	const double objective_dw[17] = { // some of these were departures from 1 and others were absolute values
 	1.04, /* Safo */
 	1.108,
 	1-0.16,
@@ -79,16 +81,16 @@ int cost_function(const gsl_vector * x, void * data, gsl_vector * f){
 	1-0.208,
 	1,
 	1.148, /*end safo*/
-		1, /* 3xPF */
+		1, /* 3xPF  (7)*/
 		1.6868986114, /* 5xPF 200Hz */
 		1.2690685961, /* 33Hz */
 		1.0449483297, /* 16Hz */
-		1-0.325, /*Bidoret pairs */
+		1-0.325, /*Bidoret pairs  (11)*/
 		1-0.35,
 		1-0.31,
 		1-0.15,
 		1-0.08, /* end Bidoret pairs */
-		1 /* depol and single pf */}; // these are the target dw values
+		1 /* depol and single pf (16) */}; // these are the target dw values
 
 	
 	double simulated_dw[17]; // these will be the values we acutally obtain
@@ -114,7 +116,7 @@ int cost_function(const gsl_vector * x, void * data, gsl_vector * f){
 	double norm = 0;
 	for(i = 0; i < no_synapses; i++){
 		simulated_dw[i] = syn[i].rho[simulation_duration-1] / 0.5; // divide by 0.5 to normalise
-		cost[i] = 1 * (objective_dw[i] - simulated_dw[i]);
+		cost[i] = cost_coeffs[i] * (objective_dw[i] - simulated_dw[i]);
 		gsl_vector_set(f, i, cost[i]);
 		printf("\t %f\t %f\t %f\t %f \n", cost[i], objective_dw[i], simulated_dw[i], syn[i].rho[simulation_duration-1]);
 		norm += cost[i] * cost[i];
@@ -122,7 +124,9 @@ int cost_function(const gsl_vector * x, void * data, gsl_vector * f){
 		{
 			signal_change++;
 			printf("change detected, i %d, old value %0.15f, new value %0.15f\n", i, old_simulated_dw[i], simulated_dw[i]);
-			old_simulated_dw[i] = simulated_dw[i];
+            if(times_through_cost_function ==1 ){
+                old_simulated_dw[i] = simulated_dw[i];
+            }
 		}
 	}
 	printf("norm %f\n", sqrt(norm));
@@ -136,8 +140,9 @@ int cost_function(const gsl_vector * x, void * data, gsl_vector * f){
 }
 
 void set_optimisation_sim_params(const gsl_vector * x){
-    double param_multiplier[8] = {1,1,1,1,1,1,100,1000}; //{1,1e-6,1,1,1,1,1000,1000};
-	double temp_reader;
+    //double param_multiplier[8] = {1e-8, 1e-8, 1e-5, 1e-4, 1e-5, 1e-4, 1e2, 1e3}; //{1,1e-6,1,1,1,1,1000,1000};
+	double param_multiplier[8] = {1e-8, 1e-10, 1e-6, 1e-6, 1e-6, 1e-7, 1e0, 1e1}; //{1,1e-6,1,1,1,1,1000,1000};
+    double temp_reader;
     double delay_as_double;
     
 	fTauC = (param_multiplier[0] * fTauCfixed + gsl_vector_get(x,0)) / param_multiplier[0]; //gsl_vector_get(x, 0);
@@ -153,7 +158,7 @@ void set_optimisation_sim_params(const gsl_vector * x){
 	dCpost = (param_multiplier[3] * dCpostFixed + gsl_vector_get(x,3)) / param_multiplier[3]; //gsl_vector_get(x, 3);
 	lfNMDARjump = (param_multiplier[4] * lfNMDARjumpFixed + gsl_vector_get(x,4)) / param_multiplier[4]; //gsl_vector_get(x, 4);
 	
-	dThetaD = (param_multiplier[5] * fTauCfixed + gsl_vector_get(x,5)) / param_multiplier[5]; //gsl_vector_get(x, 5);
+	dThetaD = (param_multiplier[5] * dThetaDfixed + gsl_vector_get(x,5)) / param_multiplier[5]; //gsl_vector_get(x, 5);
 
 	temp_reader = dGammaD;
 	dGammaD = (param_multiplier[6] * dGammaDfixed + gsl_vector_get(x,6)) / param_multiplier[6]; //gsl_vector_get(x, 6);
