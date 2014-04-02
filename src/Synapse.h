@@ -124,6 +124,8 @@ double lfTauNMDARfixed;
 double iCaSpikeDelayFixed;
 int iNOSpikeDelayFixed; 
 
+double lfTauVfixed;
+
 void synapse_memory_init(Synapse *);
 int finalise(int, Synapse *);
 void loadInitialSpikeTimes(Synapse *);

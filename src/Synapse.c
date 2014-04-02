@@ -31,7 +31,7 @@ int perform_parameter_optimisation_sim(Synapse *syn){
 		{
 			//i = 12;
 			//printf("syn(%d) ", i);
-			//updatePreSynapticVoltageTrace(&syn[i]);
+			updatePreSynapticVoltageTrace(&syn[i]);
 			updatePreSynapticNOConcentration(&syn[i]);
 			updateCalciumConcentration(&syn[i]);
 			updateSynapticEfficacy(&syn[i]);
@@ -71,7 +71,10 @@ int cost_function(const gsl_vector * x, void * data, gsl_vector * f){
 	syn = ((struct fitting_data *) data)->syn;
 	int signal_change = 0;
     
-    const double cost_coeffs[17] = {3,1,1,3,1,1,3,1,1,1,1,3,3,1,1,1,1};
+    //const double cost_coeffs[17] = {3,1,1,3,1,1,3,1,1,1,1,3,3,1,1,1,1}; // version used for first set of figs: priority max dw on Safo and Bidoret
+	//const double cost_coeffs[17] = {1,1,1,1,1,1,1,1,3,3,1,3,3,1,1,1,1}; // prioritise PF and Bidoret max dw
+	//const double cost_coeffs[17] = {3,1,1,3,1,1,3,1,3,3,1,1,1,1,1,1,1}; // prioritise PF and Safo max dw
+	const double cost_coeffs[17] = {2000000,3000000,1000000,3000000,1000000,1000000,3000000,1000000,1000000,1000000,1000000,1000000,1000000,1000000,1000000,1000000,1000000};
 	
 	const double objective_dw[17] = { // some of these were departures from 1 and others were absolute values
 	1.04, /* Safo */
@@ -141,12 +144,14 @@ int cost_function(const gsl_vector * x, void * data, gsl_vector * f){
 
 void set_optimisation_sim_params(const gsl_vector * x){
     //double param_multiplier[8] = {1e-8, 1e-8, 1e-5, 1e-4, 1e-5, 1e-4, 1e2, 1e3}; //{1,1e-6,1,1,1,1,1000,1000};
-	double param_multiplier[8] = {1e-8, 1e-10, 1e-6, 1e-6, 1e-6, 1e-7, 1e0, 1e1}; //{1,1e-6,1,1,1,1,1000,1000};
-    double temp_reader;
+	//double param_multiplier[8] = {1e-8, 1e-10, 1e-6, 1e-6, 1e-6, 1e-7, 1e0, 1e1}; //{1,1e-6,1,1,1,1,1000,1000};
+    //double param_multiplier[9] = {1e-8, 1e-10, 1e-6, 1e-6, 1e-6, 1e-7, 1e0, 1e1, 1e-8}; //{1,1e-6,1,1,1,1,1000,1000};
+	double param_multiplier[10] = {1e-10, 1e-10, 1e-6, 1e-6, 1e-6, 1e-7, 1e0, 1e1, 1e-8, 1e-10}; //{1,1e-6,1,1,1,1,1000,1000};
+	double temp_reader;
     double delay_as_double;
     
 	fTauC = (param_multiplier[0] * fTauCfixed + gsl_vector_get(x,0)) / param_multiplier[0]; //gsl_vector_get(x, 0);
-	lfTauNMDAR = fTauC; //gsl_vector_get(x, 0);
+	lfTauNMDAR = (param_multiplier[9] * lfTauNMDARfixed + gsl_vector_get(x,9)) / param_multiplier[9]; //fTauC; //gsl_vector_get(x, 0);
 	
 	temp_reader = iCaSpikeDelay;
 	delay_as_double = (param_multiplier[1] * iCaSpikeDelayFixed + gsl_vector_get(x,1)) / param_multiplier[1]; //gsl_vector_get(x,1);
@@ -164,6 +169,9 @@ void set_optimisation_sim_params(const gsl_vector * x){
 	dGammaD = (param_multiplier[6] * dGammaDfixed + gsl_vector_get(x,6)) / param_multiplier[6]; //gsl_vector_get(x, 6);
 	dGammaP = (param_multiplier[7] * dGammaPfixed + gsl_vector_get(x,7)) / param_multiplier[7]; //gsl_vector_get(x, 7);
 	
+	//lfTauV = (param_multiplier[8] * lfTauVfixed + gsl_vector_get(x,8)) / param_multiplier[8]; //gsl_vector_get(x, 7);
+	lfTauV = lfTauVfixed;
+	
 	printf("DEBUG difference %g\n", (temp_reader - dGammaD));
 	
 	/*V_MAX 1
@@ -172,7 +180,7 @@ void set_optimisation_sim_params(const gsl_vector * x){
 }
 
 void print_params(){
-	printf("Parameters: tauC %0.30f, tauNO %0.10f, DC %d, DN, %d, Cpre %0.30f, Cpost %0.30f, Npre %0.30f, thetaD %0.30f, gammaD %0.30f, gammaP %0.30f\n", fTauC, lfTauNMDAR, iCaSpikeDelay, iNOSpikeDelay, dCpre, dCpost, lfNMDARjump, dThetaD, dGammaD, dGammaP);
+	printf("Parameters: tauC %0.30f, tauNO %0.10f, DC %d, DN, %d, Cpre %0.30f, Cpost %0.30f, Npre %0.30f, thetaD %0.30f, gammaD %0.30f, gammaP %0.30f, tau_v %0.30f\n", fTauC, lfTauNMDAR, iCaSpikeDelay, iNOSpikeDelay, dCpre, dCpost, lfNMDARjump, dThetaD, dGammaD, dGammaP, lfTauV);
 }
 
 void calculate_summary_data(Synapse *syn){
@@ -259,6 +267,8 @@ Synapse* initialise_parameter_optimisation_sweep(int argc, char *argv[]){
     
     iCaSpikeDelayFixed = iCaSpikeDelay;
     iNOSpikeDelayFixed = iNOSpikeDelay;
+	
+	lfTauVfixed = lfTauV;
 	
 	for(i = 0; i < 17; i++){
 		old_simulated_dw[i] = 0.0;
@@ -728,10 +738,11 @@ double nmdarFromPreSynapticSpikes(Synapse *syn){
     }
     else if( (siT >= iNOSpikeDelay) && ( siT < (simulation_duration - 1) ) ){
         // Simple model, no dependence on presynaptic potential unblocking of NMDAR
-		d = ((double) (*syn).preT[siT - iNOSpikeDelay]) * lfNMDARjump;
+		//d = ((double) (*syn).preT[siT - iNOSpikeDelay]) * lfNMDARjump;
+		
 		// Dependence on activation of presynaptic NMDAR
 		// we need the equal delay on the spike and on the V state in order to have consistency
-		//d = ((double) (*syn).preT[siT - iNOSpikeDelay]) * lfNMDARjump * (*syn).V_pre[siT - iNOSpikeDelay];
+		d = ((double) (*syn).preT[siT - iNOSpikeDelay]) * lfNMDARjump * (*syn).V_pre[siT - iNOSpikeDelay];
     }
     else{ // This shouldn't happen!
         fprintf(logfile, "ERROR: unexpected situation in nmdarFromPreSynapticSpikes()");

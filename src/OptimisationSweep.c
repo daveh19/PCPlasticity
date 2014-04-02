@@ -43,7 +43,7 @@ int main( int argc, char *argv[] ){
 	int status;
 	unsigned int iter = 0;
 	const size_t n = 17;
-	const size_t p = 8;
+	const size_t p = 10;//8;//9;
 	
 	syn = initialise_parameter_optimisation_sweep(argc, argv);
 	print_params();
@@ -55,7 +55,9 @@ int main( int argc, char *argv[] ){
 	
 	// tau, D, C_pf, C_cs, N_pf, theta_d, gamma_d, gamma_p
 	//double x_init[8] = {185,(80./dt),0.07,0.6,0.2,0.522,2.3809e-4,7.9365e-5};
-    double x_init[8] = {0,0,0,0,0,0,0,0};
+    //double x_init[8] = {0,0,0,0,0,0,0,0};
+	//double x_init[9] = {0,0,0,0,0,0,0,0,0};
+	double x_init[10] = {0,0,0,0,0,0,0,0,0,0};
 	//double x_init[1] = {1.0};//{185.};//,(int)(80./dt),0.07,0.6,0.2,0.522,2.3809e-4,7.9365e-5};
 	
 	data_struct.syn = syn;
@@ -98,7 +100,7 @@ int main( int argc, char *argv[] ){
 			break;
 		}
 		
-		status = gsl_multifit_test_delta(s->dx, s->x, 1e-4, 1e-4);		
+		status = gsl_multifit_test_delta(s->dx, s->x, 1e-6, 1e-6);		
 	} 
 	while ( (status == GSL_CONTINUE) && (iter < 10));
 		
