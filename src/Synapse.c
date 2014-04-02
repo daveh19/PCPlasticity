@@ -83,15 +83,15 @@ int cost_function(const gsl_vector * x, void * data, gsl_vector * f){
 	//const double cost_coeffs[17] = {3,1,1,3,1,1,3,1,3,3,1,1,1,1,1,1,1}; // prioritise PF and Safo max dw
 	//const double cost_coeffs[17] = {2000000,3000000,1000000,3000000,1000000,1000000,3000000,1000000,1000000,1000000,1000000,1000000,1000000,1000000,1000000,1000000,1000000};
 	
-    const double objective_error_bars[17] = {0.0600*0.0600,
+    /*const double objective_error_bars[17] = {0.0600*0.0600,
     0.0440*0.0440,
     0.0400*0.0400,
     0.0400*0.0400,
     0.0800*0.0800,
     0.0800*0.0800,
     0.0700*0.0700,
-    0.0512*0.0512, /* 2xPF */
-    0.1120*0.1120,
+    0.0512*0.0512, */ /* 2xPF */
+   /* 0.1120*0.1120,
     0.0733*0.0733,
     0.1546*0.1546,
     0.0500*0.0500,
@@ -99,7 +99,25 @@ int cost_function(const gsl_vector * x, void * data, gsl_vector * f){
     0.1000*0.1000,
     0.1200*0.1200,
     0.0300*0.0300,
-        0.0600*0.0600};
+        0.0600*0.0600};*/
+    
+    const double objective_error_bars[17] = {0.0600,
+        0.0440,
+        0.0400,
+        0.0400,
+        0.0800,
+        0.0800,
+        0.0700,
+        0.0512, /* 2xPF */
+        0.1120,
+        0.0733,
+        0.1546,
+        0.0500,
+        0.0500,
+        0.1000,
+        0.1200,
+        0.0300,
+        0.0600};
     
 	const double objective_dw[17] = { // some of these were departures from 1 and others were absolute values
 	1.04, /* Safo */
@@ -141,9 +159,11 @@ int cost_function(const gsl_vector * x, void * data, gsl_vector * f){
 	double norm = 0;
 	for(i = 0; i < no_synapses; i++){
 		simulated_dw[i] = syn[i].rho[simulation_duration-1] / 0.5; // divide by 0.5 to normalise
-		cost[i] = ( ( (objective_dw[i] - simulated_dw[i]) * (objective_dw[i] - simulated_dw[i]) ) / objective_error_bars[i] );
-		printf("\t %f\t %f\t %f\t %f\t ", cost[i], objective_dw[i], simulated_dw[i], syn[i].rho[simulation_duration-1]);
-		norm += cost[i]; // * cost[i];
+		//cost[i] = ( ( (objective_dw[i] - simulated_dw[i]) * (objective_dw[i] - simulated_dw[i]) ) / objective_error_bars[i] );
+		cost[i] = ( ( (objective_dw[i] - simulated_dw[i]) ) / objective_error_bars[i] );
+        printf("\t %f\t %f\t %f\t %f\t ", cost[i], objective_dw[i], simulated_dw[i], syn[i].rho[simulation_duration-1]);
+		//norm += cost[i]; // * cost[i];
+        norm += cost[i] * cost[i];
         cost[i] *= cost_coeffs[i];
         printf("%f \n", cost[i]);
         gsl_vector_set(f, i, cost[i]);
@@ -171,7 +191,7 @@ int cost_function(const gsl_vector * x, void * data, gsl_vector * f){
 
 void set_optimisation_sim_params(const gsl_vector * x){
     //double param_multiplier[8] = {1e-8, 1e-8, 1e-5, 1e-4, 1e-5, 1e-4, 1e2, 1e3}; //{1,1e-6,1,1,1,1,1000,1000};
-	double param_multiplier[8] = {1,1,1,1,1,1,1,1};// {1e-8, 1e-10, 1e-6, 1e-6, 1e-6, 1e-7, 1e0, 1e1}; //{1,1e-6,1,1,1,1,1000,1000};
+	double param_multiplier[8] = {1e-8,1,1,1,1,1,1,1};// {1e-8, 1e-10, 1e-6, 1e-6, 1e-6, 1e-7, 1e0, 1e1}; //{1,1e-6,1,1,1,1,1000,1000};
     //double param_multiplier[9] = {1e-8, 1e-10, 1e-6, 1e-6, 1e-6, 1e-7, 1e0, 1e1, 1e-8}; //{1,1e-6,1,1,1,1,1000,1000};
 	//double param_multiplier[10] = {1e-10, 1e-10, 1e-6, 1e-6, 1e-6, 1e-7, 1e0, 1e1, 1e-8, 1e-10}; //{1,1e-6,1,1,1,1,1000,1000};
 	double temp_reader;
