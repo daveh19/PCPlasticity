@@ -63,8 +63,8 @@ double lfNMDARjump;
 double fVmax;
 double fNMDARmax;
 
-float fThetaNO;
-float fThetaNO2;
+double fThetaNO;
+double fThetaNO2;
 
 long int siT; // no longer static
 int siID; // no longer static
@@ -98,7 +98,7 @@ typedef struct Synapse{
 		double * NO_pre;
 	double * ltp;
 	double * ltd;
-	float * no_threshold;
+	double * no_threshold;
         int ID;
 } Synapse;
 

@@ -300,7 +300,7 @@ int createOutputFileHeader(char* filename, void *obj, int duration, double dCpre
         fprintf(logfile, "Saving to file: %s\n", filename);
 
         fprintf(fp, "\n\n%%# Params:\n%%#    Cpre: %f, Cpost: %f, thetaD: %f, thetaP: %f, gammaD: %f, gammaP: %f, sigma: %f\n%%#    CaDelay: %d, NODelay: %d, tau: %d, tauC: %d, rhoF: %f, poisson param: %f, seed: %ld\n", dCpre, dCpost, dThetaD, dThetaP, dGammaD, dGammaP, dSigma, iCaSpikeDelay, iNOSpikeDelay, iTau, iTauC, dRhoFixed, poisson_param, initial_random_seed);
-        fprintf(fp, "%%#    lfTauNMDAR: %f, lfNMDARjump: %f, fThetaNO: %f, fThetaNO2: %f\n", lfTauNMDAR, lfNMDARjump, fThetaNO, fThetaNO2);
+        fprintf(fp, "%%#    lfTauNMDAR: %f, lfNMDARjump: %f, fThetaNO: %lf, fThetaNO2: %lf\n", lfTauNMDAR, lfNMDARjump, fThetaNO, fThetaNO2);
 		fprintf(fp,"%%#\n%%# Synaptic output, Synapse(%d):\n%%# t rho c preT postT\n", (*syn).ID);
 
         fclose(fp);
@@ -326,7 +326,7 @@ int saveSynapseOutputFile(char* filename, void *obj, int duration, double dCpre,
         fprintf(logfile, "Saving to file: %s\n", filename);
 
         fprintf(fp, "\n\n%%# Params:\n%%#    Cpre: %f, Cpost: %f, thetaD: %f, thetaP: %f, gammaD: %f, gammaP: %f, sigma: %f\n%%#    CaDelay: %d, NODelay: %d, tau: %d, tauC: %d, rhoF: %f, poisson param: %f, seed: %ld\n", dCpre, dCpost, dThetaD, dThetaP, dGammaD, dGammaP, dSigma, iCaSpikeDelay, iNOSpikeDelay, iTau, iTauC, dRhoFixed, poisson_param, initial_random_seed);
-        fprintf(fp, "%%#    lfTauNMDAR: %f, lfNMDARjump: %f, fThetaNO: %f, fThetaNO2: %f\n", lfTauNMDAR, lfNMDARjump, fThetaNO, fThetaNO2);
+        fprintf(fp, "%%#    lfTauNMDAR: %f, lfNMDARjump: %f, fThetaNO: %lf, fThetaNO2: %lf\n", lfTauNMDAR, lfNMDARjump, fThetaNO, fThetaNO2);
 		fprintf(fp,"%%#\n%%# Synaptic output, Synapse(%d):\n%%# t rho c preT postT V_pre NO_pre LTP LTD NO_threshold\n", (*syn).ID);
         for (i = 0; i <= duration; i++){
             fprintf(fp, "%d %f %0.10lf %u %u %f %f %f %f %f\n", i, (*syn).rho[i], (*syn).c[i], (*syn).preT[i], (*syn).postT[i], (*syn).V_pre[i], (*syn).NO_pre[i], (*syn).ltp[i], (*syn).ltd[i], (*syn).no_threshold[i]);

@@ -25,25 +25,31 @@ int perform_parameter_optimisation_sim(Synapse *syn){
     
 	//TODO: consider changing order of looping, may give speed gain
 	// Loop over discrete time steps up to simulation_duration
-	for (t = siT; t < (simulation_duration-1); t++){
-		// Update each synapse
-		for (i = 0; i < no_synapses; i++)
+	//for (t = siT; t < (simulation_duration-1); t++){
+    for (i = 0; i < no_synapses; i++){
+        // Update each synapse
+		
+        siT = 0;
+    
+        //for (i = 0; i < no_synapses; i++)
+        for (t = 0; t < (simulation_duration-1); t++)
 		{
 			//i = 12;
-			//printf("syn(%d) ", i);
-			updatePreSynapticVoltageTrace(&syn[i]);
+			//printf("syn(%d) t %d\n", i, t);
+			//updatePreSynapticVoltageTrace(&syn[i]);
 			updatePreSynapticNOConcentration(&syn[i]);
 			updateCalciumConcentration(&syn[i]);
 			updateSynapticEfficacy(&syn[i]);
 			//if (i == 12)
 				//printf("t: %d, c: %f, rho: %f, NO: %f\n", siT, syn[i].c[siT-time_of_last_save], syn[i].rho[siT], syn[i].NO_pre[siT]);
+            siT++;
 		}
         //printf("DEBUG: RHO %f\n", syn[0].rho[siT]);
         /*if(siT == 100000){
             printf("DEBUG: RHO %f\n", syn[0].rho[siT]);
             
         }*/
-		siT++;
+		//siT++;
 	}
 	
 	/*char outfile[FILE_NAME_LENGTH];
@@ -71,11 +77,30 @@ int cost_function(const gsl_vector * x, void * data, gsl_vector * f){
 	syn = ((struct fitting_data *) data)->syn;
 	int signal_change = 0;
     
+    const double cost_coeffs[17] = {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
     //const double cost_coeffs[17] = {3,1,1,3,1,1,3,1,1,1,1,3,3,1,1,1,1}; // version used for first set of figs: priority max dw on Safo and Bidoret
 	//const double cost_coeffs[17] = {1,1,1,1,1,1,1,1,3,3,1,3,3,1,1,1,1}; // prioritise PF and Bidoret max dw
 	//const double cost_coeffs[17] = {3,1,1,3,1,1,3,1,3,3,1,1,1,1,1,1,1}; // prioritise PF and Safo max dw
-	const double cost_coeffs[17] = {2000000,3000000,1000000,3000000,1000000,1000000,3000000,1000000,1000000,1000000,1000000,1000000,1000000,1000000,1000000,1000000,1000000};
+	//const double cost_coeffs[17] = {2000000,3000000,1000000,3000000,1000000,1000000,3000000,1000000,1000000,1000000,1000000,1000000,1000000,1000000,1000000,1000000,1000000};
 	
+    const double objective_error_bars[17] = {0.0600*0.0600,
+    0.0440*0.0440,
+    0.0400*0.0400,
+    0.0400*0.0400,
+    0.0800*0.0800,
+    0.0800*0.0800,
+    0.0700*0.0700,
+    0.0512*0.0512, /* 2xPF */
+    0.1120*0.1120,
+    0.0733*0.0733,
+    0.1546*0.1546,
+    0.0500*0.0500,
+    0.0500*0.0500,
+    0.1000*0.1000,
+    0.1200*0.1200,
+    0.0300*0.0300,
+        0.0600*0.0600};
+    
 	const double objective_dw[17] = { // some of these were departures from 1 and others were absolute values
 	1.04, /* Safo */
 	1.108,
@@ -84,7 +109,7 @@ int cost_function(const gsl_vector * x, void * data, gsl_vector * f){
 	1-0.208,
 	1,
 	1.148, /*end safo*/
-		1, /* 3xPF  (7)*/
+		0.937, /* 2xPF  (7)*/
 		1.6868986114, /* 5xPF 200Hz */
 		1.2690685961, /* 33Hz */
 		1.0449483297, /* 16Hz */
@@ -104,35 +129,37 @@ int cost_function(const gsl_vector * x, void * data, gsl_vector * f){
     
 	// set new params based on what gsl sends
 	set_optimisation_sim_params(x);
-	printf("DEBUG gsl_vector_get %0.15f\n", (double)gsl_vector_get(x, 0));
-	printf("DEBUG gsl_vector_get %0.15f\n", (float)gsl_vector_get(x, 0));
-	//fTauC = (double)gsl_vector_get(x, 0);
-	
 	//print_params();
+    
 	// update sim
 	printf("DEBUG: performing sim...\n ");
 	perform_parameter_optimisation_sim(syn);
 	printf("done\n");
 	
-	// calculate cost based on (sim weight change - experimental weight change)
-	printf("Cost calculation: \n\t cost \t objective \t simulation \t rho final\n");
+	// calculate cost based on (sim weight change - experimental weight change)^2 / sigma^2
+	printf("Cost calculation: \n\t cost \t objective \t simulation \t rho final \t weighted cost \n");
 	double norm = 0;
 	for(i = 0; i < no_synapses; i++){
 		simulated_dw[i] = syn[i].rho[simulation_duration-1] / 0.5; // divide by 0.5 to normalise
-		cost[i] = cost_coeffs[i] * (objective_dw[i] - simulated_dw[i]);
-		gsl_vector_set(f, i, cost[i]);
-		printf("\t %f\t %f\t %f\t %f \n", cost[i], objective_dw[i], simulated_dw[i], syn[i].rho[simulation_duration-1]);
-		norm += cost[i] * cost[i];
-		if(fabs(old_simulated_dw[i] - simulated_dw[i]) > 0.0000001)
-		{
-			signal_change++;
-			printf("change detected, i %d, old value %0.15f, new value %0.15f\n", i, old_simulated_dw[i], simulated_dw[i]);
-            if(times_through_cost_function ==1 ){
+		cost[i] = ( ( (objective_dw[i] - simulated_dw[i]) * (objective_dw[i] - simulated_dw[i]) ) / objective_error_bars[i] );
+		printf("\t %f\t %f\t %f\t %f\t ", cost[i], objective_dw[i], simulated_dw[i], syn[i].rho[simulation_duration-1]);
+		norm += cost[i]; // * cost[i];
+        cost[i] *= cost_coeffs[i];
+        printf("%f \n", cost[i]);
+        gsl_vector_set(f, i, cost[i]);
+        if (times_through_cost_function > 1){
+            if(fabs(old_simulated_dw[i] - simulated_dw[i]) > 0.0000001)
+            {
+                signal_change++;
+                printf("change detected, i %d, old value %0.15f, new value %0.15f\n", i, old_simulated_dw[i], simulated_dw[i]);
                 old_simulated_dw[i] = simulated_dw[i];
             }
-		}
+        }
+        else{
+            old_simulated_dw[i] = simulated_dw[i];
+        }
 	}
-	printf("norm %f\n", sqrt(norm));
+	printf("chi-squared %f\n", norm);
 	printf("number of elements of f which changed %d\n", signal_change);
 	printf("\n");
 	
@@ -144,20 +171,24 @@ int cost_function(const gsl_vector * x, void * data, gsl_vector * f){
 
 void set_optimisation_sim_params(const gsl_vector * x){
     //double param_multiplier[8] = {1e-8, 1e-8, 1e-5, 1e-4, 1e-5, 1e-4, 1e2, 1e3}; //{1,1e-6,1,1,1,1,1000,1000};
-	//double param_multiplier[8] = {1e-8, 1e-10, 1e-6, 1e-6, 1e-6, 1e-7, 1e0, 1e1}; //{1,1e-6,1,1,1,1,1000,1000};
+	double param_multiplier[8] = {1,1,1,1,1,1,1,1};// {1e-8, 1e-10, 1e-6, 1e-6, 1e-6, 1e-7, 1e0, 1e1}; //{1,1e-6,1,1,1,1,1000,1000};
     //double param_multiplier[9] = {1e-8, 1e-10, 1e-6, 1e-6, 1e-6, 1e-7, 1e0, 1e1, 1e-8}; //{1,1e-6,1,1,1,1,1000,1000};
-	double param_multiplier[10] = {1e-10, 1e-10, 1e-6, 1e-6, 1e-6, 1e-7, 1e0, 1e1, 1e-8, 1e-10}; //{1,1e-6,1,1,1,1,1000,1000};
+	//double param_multiplier[10] = {1e-10, 1e-10, 1e-6, 1e-6, 1e-6, 1e-7, 1e0, 1e1, 1e-8, 1e-10}; //{1,1e-6,1,1,1,1,1000,1000};
 	double temp_reader;
     double delay_as_double;
     
+    printf("DEBUG, setting new params. ");
+    print_params();
+    
 	fTauC = (param_multiplier[0] * fTauCfixed + gsl_vector_get(x,0)) / param_multiplier[0]; //gsl_vector_get(x, 0);
-	lfTauNMDAR = (param_multiplier[9] * lfTauNMDARfixed + gsl_vector_get(x,9)) / param_multiplier[9]; //fTauC; //gsl_vector_get(x, 0);
+	lfTauNMDAR = fTauC;
+    //lfTauNMDAR = (param_multiplier[9] * lfTauNMDARfixed + gsl_vector_get(x,9)) / param_multiplier[9]; //fTauC; //gsl_vector_get(x, 0);
 	
 	temp_reader = iCaSpikeDelay;
 	delay_as_double = (param_multiplier[1] * iCaSpikeDelayFixed + gsl_vector_get(x,1)) / param_multiplier[1]; //gsl_vector_get(x,1);
 	iCaSpikeDelay = (int) delay_as_double; //gsl_vector_get(x, 1);
 	iNOSpikeDelay = iCaSpikeDelay; //gsl_vector_get(x, 1);
-	printf("DEBUG difference %g %g\n", (temp_reader - iCaSpikeDelay), delay_as_double);
+	printf("DEBUG C delay difference %g %g\n", (temp_reader - iCaSpikeDelay), delay_as_double);
 	
 	dCpre = (param_multiplier[2] * dCpreFixed + gsl_vector_get(x,2)) / param_multiplier[2]; //gsl_vector_get(x, 2);
 	dCpost = (param_multiplier[3] * dCpostFixed + gsl_vector_get(x,3)) / param_multiplier[3]; //gsl_vector_get(x, 3);
@@ -172,15 +203,17 @@ void set_optimisation_sim_params(const gsl_vector * x){
 	//lfTauV = (param_multiplier[8] * lfTauVfixed + gsl_vector_get(x,8)) / param_multiplier[8]; //gsl_vector_get(x, 7);
 	lfTauV = lfTauVfixed;
 	
-	printf("DEBUG difference %g\n", (temp_reader - dGammaD));
+	printf("DEBUG gammaD difference %g\n", (temp_reader - dGammaD));
 	
+    printf("DEBUG, end of setting new params. ");
+    print_params();
 	/*V_MAX 1
 	V_JUMP 1
 	TAU_V 70.*/
 }
 
 void print_params(){
-	printf("Parameters: tauC %0.30f, tauNO %0.10f, DC %d, DN, %d, Cpre %0.30f, Cpost %0.30f, Npre %0.30f, thetaD %0.30f, gammaD %0.30f, gammaP %0.30f, tau_v %0.30f\n", fTauC, lfTauNMDAR, iCaSpikeDelay, iNOSpikeDelay, dCpre, dCpost, lfNMDARjump, dThetaD, dGammaD, dGammaP, lfTauV);
+	printf("Parameters: tauC %0.30f, DC %d, DN, %d, Cpre %0.30f, Cpost %0.30f, Npre %0.30f, thetaD %0.30f, gammaD %0.30f, gammaP %0.30f, tau_v %0.30f, tauNO %0.30f\n", fTauC, iCaSpikeDelay, iNOSpikeDelay, dCpre, dCpost, lfNMDARjump, dThetaD, dGammaD, dGammaP, lfTauV, lfTauNMDAR);
 }
 
 void calculate_summary_data(Synapse *syn){
@@ -311,7 +344,9 @@ Synapse* initialise_parameter_optimisation_sweep(int argc, char *argv[]){
 	train30(syn[6].preT, syn[6].postT, simulation_duration);
 	
 	// 3xPF at 200Hz no change
-	trains_no_pf_stims = 3;
+	//trains_no_pf_stims = 3;
+    // experimental data was for 2xPF, no change (slight depression)
+    trains_no_pf_stims = 2;
 	loop_index = 4. / dt;
 	train32(syn[7].preT, syn[7].postT, simulation_duration);
 	
@@ -716,6 +751,8 @@ float voltageTraceFromPreSynapticSpikes(Synapse *syn){
 void updatePreSynapticNOConcentration(Synapse *syn){
 	double no, dno;
 	
+    //printf("DEBUG NO_pre %lf \n", (*syn).NO_pre[siT]);
+    
 	no = (*syn).NO_pre[siT];
 	dno = (-no / lfTauNMDAR);
 	
@@ -738,11 +775,11 @@ double nmdarFromPreSynapticSpikes(Synapse *syn){
     }
     else if( (siT >= iNOSpikeDelay) && ( siT < (simulation_duration - 1) ) ){
         // Simple model, no dependence on presynaptic potential unblocking of NMDAR
-		//d = ((double) (*syn).preT[siT - iNOSpikeDelay]) * lfNMDARjump;
+		d = ((double) (*syn).preT[siT - iNOSpikeDelay]) * lfNMDARjump;
 		
 		// Dependence on activation of presynaptic NMDAR
 		// we need the equal delay on the spike and on the V state in order to have consistency
-		d = ((double) (*syn).preT[siT - iNOSpikeDelay]) * lfNMDARjump * (*syn).V_pre[siT - iNOSpikeDelay];
+		//d = ((double) (*syn).preT[siT - iNOSpikeDelay]) * lfNMDARjump * (*syn).V_pre[siT - iNOSpikeDelay];
     }
     else{ // This shouldn't happen!
         fprintf(logfile, "ERROR: unexpected situation in nmdarFromPreSynapticSpikes()");
@@ -791,7 +828,7 @@ void synapse_memory_init(Synapse *syn){
 	double * local_no_pre;
 	double * local_ltp;
 	double * local_ltd;
-	float * local_no_threshold;
+	double * local_no_threshold;
     //Synapse * local_synapse;
     fprintf(logfile, "Synapse simulator initialising.\n");
 
@@ -864,7 +901,7 @@ void synapse_memory_init(Synapse *syn){
         }
 		
 		// Memory allocation for VGCC and NO variables
-		local_v_pre = (double *) malloc( (simulation_duration) * sizeof(double) );
+		local_v_pre = (double *) calloc( (simulation_duration), sizeof(double) );
         if (local_v_pre == NULL){
             perror("Memory allocation failure (V_pre)\n");
             fprintf(logfile, "ERROR: Memory allocation failure (V_pre)\n");
@@ -902,7 +939,7 @@ void synapse_memory_init(Synapse *syn){
             (syn[i]).ltd = local_ltd;
             fprintf(logfile, "syn(%d).ltd successfully assigned\n", i);
         }
-		local_no_threshold = (float *) calloc( (simulation_duration), sizeof(float) );
+		local_no_threshold = (double *) calloc( (simulation_duration), sizeof(double) );
         if (local_no_threshold == NULL){
             perror("Memory allocation failure (no_threshold)\n");
             fprintf(logfile, "ERROR: Memory allocation failure (no_threshold)\n");

@@ -34,8 +34,8 @@ int print_jacobian(gsl_multifit_fdfsolver * s);
 int main( int argc, char *argv[] ){
 	Synapse *syn;
 	struct fitting_data data_struct;
-	//const gsl_multifit_fdfsolver_type * T = gsl_multifit_fdfsolver_lmder;
-	const gsl_multifit_fdfsolver_type * T = gsl_multifit_fdfsolver_lmsder; // type of solver
+	const gsl_multifit_fdfsolver_type * T = gsl_multifit_fdfsolver_lmder;
+	//const gsl_multifit_fdfsolver_type * T = gsl_multifit_fdfsolver_lmsder; // type of solver
 	gsl_multifit_function_fdf f; // function to fit
 	gsl_multifit_fdfsolver * s; // solver
 	gsl_vector_view x; // initial guess
@@ -43,7 +43,7 @@ int main( int argc, char *argv[] ){
 	int status;
 	unsigned int iter = 0;
 	const size_t n = 17;
-	const size_t p = 10;//8;//9;
+	const size_t p = 8; //10;//8;//9;
 	
 	syn = initialise_parameter_optimisation_sweep(argc, argv);
 	print_params();
@@ -55,9 +55,9 @@ int main( int argc, char *argv[] ){
 	
 	// tau, D, C_pf, C_cs, N_pf, theta_d, gamma_d, gamma_p
 	//double x_init[8] = {185,(80./dt),0.07,0.6,0.2,0.522,2.3809e-4,7.9365e-5};
-    //double x_init[8] = {0,0,0,0,0,0,0,0};
+    double x_init[8] = {0,0,0,0,0,0,0,0};
 	//double x_init[9] = {0,0,0,0,0,0,0,0,0};
-	double x_init[10] = {0,0,0,0,0,0,0,0,0,0};
+	//double x_init[10] = {0,0,0,0,0,0,0,0,0,0};
 	//double x_init[1] = {1.0};//{185.};//,(int)(80./dt),0.07,0.6,0.2,0.522,2.3809e-4,7.9365e-5};
 	
 	data_struct.syn = syn;
