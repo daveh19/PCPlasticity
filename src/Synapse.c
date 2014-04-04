@@ -125,9 +125,9 @@ int calculate_jacobian(const gsl_vector * x_orig, void * data, gsl_matrix * J){
     }
     
     // Zero out the effects of Safo7, just to see if it helps numerical solution
-    for (int j = 0; j < rows; j++){
+    /*for (int j = 0; j < cols; j++){
         gsl_matrix_set(J, 6, j, 0);
-    }
+    }*/
     
     // Are these calls to free necessary? Surely the function stack will be completely destroyed. (But perhaps the vectors reside in the GSL library space)
     gsl_vector_free(new_x);
