@@ -7,7 +7,7 @@
 
 //#define LM_OPTIMISATION_PROGRAM
 //#define SIM_LOOP_PROGRAM
-#define NEW_OPTIMISATION_PROGRAM
+#define PR_OPTIMISATION_PROGRAM
 
 
 #define SAFO_STEPS (8001) /*(8001)*/
@@ -147,13 +147,19 @@ void updatePreSynapticVoltageTrace(Synapse *syn);
 double nmdarFromPreSynapticSpikes(Synapse *syn);
 void updatePreSynapticNOConcentration(Synapse *syn);
 
-int calculate_jacobian(const gsl_vector * x, void * data, gsl_matrix * J);
 void print_params();
+Synapse* initialise_parameter_optimisation_sweep(int argc, char *argv[]);
 void set_optimisation_sim_params(const gsl_vector * x);
 void calculate_summary_data(Synapse *syn);
 int perform_parameter_optimisation_sim(Synapse *syn);
+#ifdef LM_OPTIMISATION_PROGRAM
+	int calculate_jacobian(const gsl_vector * x, void * data, gsl_matrix * J);
+	int cost_function(const gsl_vector * x, void * data, gsl_vector * f);
+#endif /* LM_OPTIMISATION_PROGRAM */
+#ifdef PR_OPTIMISATION_PROGRAM
+	void calculate_jacobian(const gsl_vector * x, void * data, gsl_vector * J);
+	double cost_function(const gsl_vector * x, void * data);
+#endif /* PR_OPTIMISATION_PROGRAM */
 //float* cost_function(float *cost, Synapse *syn);
-int cost_function(const gsl_vector * x, void * data, gsl_vector * f);
-Synapse* initialise_parameter_optimisation_sweep(int argc, char *argv[]);
 
 #endif /*SYNAPSE_H_*/

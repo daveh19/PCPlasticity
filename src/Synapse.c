@@ -13,63 +13,202 @@
 #include <gsl/gsl_rng.h>
 #include <gsl/gsl_randist.h>
 
-int perform_parameter_optimisation_sim(Synapse *syn){
-	int t, i;
-	
-	// It looks like we can avoid resetting rho(0), c(0), etc because of forward method
-	
-	siT = 0; // siT is a global which detects the time within each update function
-	
-	print_params();
-    printf("DEBUG: simulation_duration %ld\n", simulation_duration);
+#ifdef PR_OPTIMISATION_PROGRAM
+void calculate_jacobian(const gsl_vector * x_orig, void * data, gsl_vector * J){ /* PR_OPTIMISATION_PROGRAM */
+    // TODO: completely rewrite gradient for vector method
+	printf("Numerically calculating gradient vector\n");
+    //int rows = (int)(J->size);
+    int cols = (int)(J->size);
+    printf("DEBUG: size %d\n", cols);
     
-	//TODO: consider changing order of looping, may give speed gain
-	// Loop over discrete time steps up to simulation_duration
-	//for (t = siT; t < (simulation_duration-1); t++){
-    for (i = 0; i < no_synapses; i++){
-        // Update each synapse
-		
-        siT = 0;
+    double x_local;
+    double df_dx;
+	double basic_cost;
+	double new_cost;
+	double diff;
+	double diff_norm;
+	
+    gsl_vector * new_x = gsl_vector_alloc(cols);
+    //gsl_vector * f_base = gsl_vector_alloc(rows);
+    //gsl_vector * f_delta = gsl_vector_alloc(rows);
     
-        //for (i = 0; i < no_synapses; i++)
-        for (t = 0; t < (simulation_duration-1); t++)
-		{
-			//i = 12;
-			//printf("syn(%d) t %d\n", i, t);
-			//updatePreSynapticVoltageTrace(&syn[i]);
-			updatePreSynapticNOConcentration(&syn[i]);
-			updateCalciumConcentration(&syn[i]);
-			updateSynapticEfficacy(&syn[i]);
-			//if (i == 12)
-				//printf("t: %d, c: %f, rho: %f, NO: %f\n", siT, syn[i].c[siT-time_of_last_save], syn[i].rho[siT], syn[i].NO_pre[siT]);
-            siT++;
-		}
-        //printf("DEBUG: RHO %f\n", syn[0].rho[siT]);
-        /*if(siT == 100000){
-            printf("DEBUG: RHO %f\n", syn[0].rho[siT]);
+    const double dx[8] = {1, 1, 0.001, 0.001, 0.001, 0.001, 1e-6, 1e-6};
+    //const double dx[9] = {1, 1, 0.001, 0.001, 0.001, 0.001, 1e-6, 1e-6, 0.5};
+    //const double dx[10] = {1, 1, 0.001, 0.001, 0.001, 0.001, 1e-6, 1e-6, 0.5, 1};
+    
+    // make copy of original x_values to which we will add dx
+    gsl_vector_memcpy(new_x, x_orig);
+    
+    // setup baseline f, for calculation of df/dx
+    basic_cost = cost_function(new_x, data);
+    
+    for (int j = 0; j < cols; j++) { // loop over parameters (cols)
+        // save original value of x, was previously doing this inline but this looks faster
+        x_local = gsl_vector_get(x_orig, j);
+        
+        // increment element j of x by dx
+        gsl_vector_set(new_x, j, ( x_local + dx[j] ) );
+        
+        // calculate cost_function
+        new_cost = cost_function(new_x, data);
+        
+		diff = basic_cost - new_cost;
+        diff_norm = diff/dx[j];
+        //printf("old %lf, new %lf, diff %lf, diff_norm %lf\n", old, new, diff, diff_norm);
             
-        }*/
-		//siT++;
-	}
-	
-	/*char outfile[FILE_NAME_LENGTH];
-	sprintf(outfile, outfilepattern, syn[i].ID);
-	printf("writing...%s\n", outfile);
-	saveSynapseOutputFile(outfile, &syn[i], siT, dCpre, dCpost, dThetaD, dThetaP, dGammaD, dGammaP, dSigma, iCaSpikeDelay, iNOSpikeDelay, fTau, fTauC, dRhoFixed, poisson_param, initial_random_seed);
-	printf("Final rho values:\n");
-	for (i = 0; i < no_synapses; i++){
-		printf(" %f %f %f \n", syn[i].rho[siT], syn[i].rho[simulation_duration-1], syn[i].rho[simulation_duration-2]);
-	}
-    printf("%ld %ld\n", siT, simulation_duration);
-	printf("\n");*/
-	for (i = 0; i < no_synapses; i++){
-		printf("syn(%d) t: %ld, c: %f, rho: %f\n", i, siT, syn[i].c[siT], syn[i].rho[siT]);
-	}
-	
-	return 0;
-}
+        // calculate df/dx
+        df_dx = (basic_cost - new_cost) / dx[j];
+            
+		// save in Jacobian matrix
+        gsl_vector_set(J, j, df_dx);
+            
+		printf("j %d, old %lf, new %lf, diff %lf, diff_norm %lf, df_dx %lf, matrix el %lf\n", j, basic_cost, new_cost, diff, diff_norm, df_dx, gsl_vector_get(J, j));
+        
+        // reset new_x to original guess values
+        //gsl_vector_memcpy(&new_x, x);
+        gsl_vector_set(new_x, j, x_local);
+        
+        times_through_cost_function_jacobian++;
+    }
+    
+    // Zero out the effects of Safo7, just to see if it helps numerical solution
+    /*for (int j = 0; j < cols; j++){
+	 gsl_matrix_set(J, 6, j, 0);
+	 }*/
+    
+    // Are these calls to free necessary? Surely the function stack will be completely destroyed. (But perhaps the vectors reside in the GSL library space)
+    gsl_vector_free(new_x);
+    //gsl_vector_free(f_base);
+    //gsl_vector_free(f_delta);
+    printf("Finished numerically calculating gradient\n");
+    //return GSL_SUCCESS;
+} /* PR_OPTIMISATION_PROGRAM */
 
-int calculate_jacobian(const gsl_vector * x_orig, void * data, gsl_matrix * J){
+//float* cost_function(float *cost, Synapse *syn){
+double cost_function(const gsl_vector * x, void * data){ /* PR_OPTIMISATION_PROGRAM */
+	int i;
+	Synapse * syn;
+	syn = ((struct fitting_data *) data)->syn;
+	int signal_change = 0;
+    double final_cost = 0;
+	
+    const double cost_coeffs[17] = {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
+    //const double cost_coeffs[17] = {3,1,1,3,1,1,3,1,1,1,1,3,3,1,1,1,1}; // version used for first set of figs: priority max dw on Safo and Bidoret
+	//const double cost_coeffs[17] = {1,1,1,1,1,1,1,1,3,3,1,3,3,1,1,1,1}; // prioritise PF and Bidoret max dw
+	//const double cost_coeffs[17] = {3,1,1,3,1,1,3,1,3,3,1,1,1,1,1,1,1}; // prioritise PF and Safo max dw
+	//const double cost_coeffs[17] = {2000000,3000000,1000000,3000000,1000000,1000000,3000000,1000000,1000000,1000000,1000000,1000000,1000000,1000000,1000000,1000000,1000000};
+	
+    /*const double objective_error_bars[17] = {0.0600*0.0600,
+	 0.0440*0.0440,
+	 0.0400*0.0400,
+	 0.0400*0.0400,
+	 0.0800*0.0800,
+	 0.0800*0.0800,
+	 0.0700*0.0700,
+	 0.0512*0.0512, */ /* 2xPF */
+	/* 0.1120*0.1120,
+	 0.0733*0.0733,
+	 0.1546*0.1546,
+	 0.0500*0.0500,
+	 0.0500*0.0500,
+	 0.1000*0.1000,
+	 0.1200*0.1200,
+	 0.0300*0.0300,
+	 0.0600*0.0600};*/
+    
+    const double objective_error_bars[17] = {0.0600,
+        0.0440,
+        0.0400,
+        0.0400,
+        0.0800,
+        0.0800,
+        0.0700,
+        0.0512, /* 2xPF */
+        0.1120,
+        0.0733,
+        0.1546,
+        0.0500,
+        0.0500,
+        0.1000,
+        0.1200,
+        0.0300,
+        0.0600};
+    
+	const double objective_dw[17] = { // some of these were departures from 1 and others were absolute values
+		1.04, /* Safo */
+		1.108,
+		1-0.16,
+		1-0.28,
+		1-0.208,
+		1,
+		1.148, /*end safo*/
+		0.937, /* 2xPF  (7)*/
+		1.6868986114, /* 5xPF 200Hz */
+		1.2690685961, /* 33Hz */
+		1.0449483297, /* 16Hz */
+		1-0.325, /*Bidoret pairs  (11)*/
+		1-0.35,
+		1-0.31,
+		1-0.15,
+		1-0.08, /* end Bidoret pairs */
+		1 /* depol and single pf (16) */}; // these are the target dw values
+	
+	
+	double simulated_dw[17]; // these will be the values we acutally obtain
+	double cost[17];
+	
+    printf("Times through cost function %d, from jacobian %d\n", times_through_cost_function, times_through_cost_function_jacobian);
+    times_through_cost_function++;
+    
+	// set new params based on what gsl sends
+	set_optimisation_sim_params(x);
+	//print_params();
+    
+	// update sim
+	printf("DEBUG: performing sim...\n ");
+	perform_parameter_optimisation_sim(syn);
+	printf("done\n");
+	
+	// calculate cost based on (sim weight change - experimental weight change)^2 / sigma^2
+	printf("Cost calculation: \n\t cost \t objective \t simulation \t rho final \t weighted cost \n");
+	double norm = 0;
+	for(i = 0; i < no_synapses; i++){
+		simulated_dw[i] = syn[i].rho[simulation_duration-1] / 0.5; // divide by 0.5 to normalise
+		//cost[i] = ( ( (objective_dw[i] - simulated_dw[i]) * (objective_dw[i] - simulated_dw[i]) ) / objective_error_bars[i] );
+		cost[i] = ( ( (objective_dw[i] - simulated_dw[i]) ) / objective_error_bars[i] );
+        printf("\t %f\t %f\t %f\t %f\t ", cost[i], objective_dw[i], simulated_dw[i], syn[i].rho[simulation_duration-1]);
+		//norm += cost[i]; // * cost[i];
+        norm += cost[i] * cost[i];
+        cost[i] *= cost_coeffs[i];
+        printf("%f \n", cost[i]);
+        //gsl_vector_set(f, i, cost[i]);
+        if (times_through_cost_function > 1){
+            if(fabs(old_simulated_dw[i] - simulated_dw[i]) > 0.0000001)
+            {
+                signal_change++;
+                printf("change detected, i %d, old value %0.15f, new value %0.15f\n", i, old_simulated_dw[i], simulated_dw[i]);
+                old_simulated_dw[i] = simulated_dw[i];
+            }
+        }
+        else{
+            old_simulated_dw[i] = simulated_dw[i];
+        }
+	}
+	final_cost = norm;
+	printf("chi-squared %f\n", norm);
+	printf("number of elements of f which changed %d\n", signal_change);
+	printf("\n");
+	
+	//calculate_summary_data(syn); // not needed for parameter optimisation, just nice for debugging
+	
+	
+	return final_cost;
+}
+#endif /* PR_OPTIMISATION_PROGRAM */
+
+
+#ifdef LM_OPTIMISATION_PROGRAM
+int calculate_jacobian(const gsl_vector * x_orig, void * data, gsl_matrix * J){ /* LM_OPTIMISATION_PROGRAM */
     printf("Numerically calculating Jacobian\n");
     int rows = (int)(J->size1);
     int cols = (int)(J->size2);
@@ -126,8 +265,8 @@ int calculate_jacobian(const gsl_vector * x_orig, void * data, gsl_matrix * J){
     
     // Zero out the effects of Safo7, just to see if it helps numerical solution
     /*for (int j = 0; j < cols; j++){
-        gsl_matrix_set(J, 6, j, 0);
-    }*/
+	 gsl_matrix_set(J, 6, j, 0);
+	 }*/
     
     // Are these calls to free necessary? Surely the function stack will be completely destroyed. (But perhaps the vectors reside in the GSL library space)
     gsl_vector_free(new_x);
@@ -135,10 +274,10 @@ int calculate_jacobian(const gsl_vector * x_orig, void * data, gsl_matrix * J){
     gsl_vector_free(f_delta);
     printf("Finished numerically calculating Jacobian\n");
     return GSL_SUCCESS;
-}
+} /* LM_OPTIMISATION_PROGRAM */
 
 //float* cost_function(float *cost, Synapse *syn){
-int cost_function(const gsl_vector * x, void * data, gsl_vector * f){
+int cost_function(const gsl_vector * x, void * data, gsl_vector * f){ /* LM_OPTIMISATION_PROGRAM */
 	int i;
 	Synapse * syn;
 	syn = ((struct fitting_data *) data)->syn;
@@ -151,22 +290,22 @@ int cost_function(const gsl_vector * x, void * data, gsl_vector * f){
 	//const double cost_coeffs[17] = {2000000,3000000,1000000,3000000,1000000,1000000,3000000,1000000,1000000,1000000,1000000,1000000,1000000,1000000,1000000,1000000,1000000};
 	
     /*const double objective_error_bars[17] = {0.0600*0.0600,
-    0.0440*0.0440,
-    0.0400*0.0400,
-    0.0400*0.0400,
-    0.0800*0.0800,
-    0.0800*0.0800,
-    0.0700*0.0700,
-    0.0512*0.0512, */ /* 2xPF */
-   /* 0.1120*0.1120,
-    0.0733*0.0733,
-    0.1546*0.1546,
-    0.0500*0.0500,
-    0.0500*0.0500,
-    0.1000*0.1000,
-    0.1200*0.1200,
-    0.0300*0.0300,
-        0.0600*0.0600};*/
+	 0.0440*0.0440,
+	 0.0400*0.0400,
+	 0.0400*0.0400,
+	 0.0800*0.0800,
+	 0.0800*0.0800,
+	 0.0700*0.0700,
+	 0.0512*0.0512, */ /* 2xPF */
+	/* 0.1120*0.1120,
+	 0.0733*0.0733,
+	 0.1546*0.1546,
+	 0.0500*0.0500,
+	 0.0500*0.0500,
+	 0.1000*0.1000,
+	 0.1200*0.1200,
+	 0.0300*0.0300,
+	 0.0600*0.0600};*/
     
     const double objective_error_bars[17] = {0.0600,
         0.0440,
@@ -187,13 +326,13 @@ int cost_function(const gsl_vector * x, void * data, gsl_vector * f){
         0.0600};
     
 	const double objective_dw[17] = { // some of these were departures from 1 and others were absolute values
-	1.04, /* Safo */
-	1.108,
-	1-0.16,
-	1-0.28,
-	1-0.208,
-	1,
-	1.148, /*end safo*/
+		1.04, /* Safo */
+		1.108,
+		1-0.16,
+		1-0.28,
+		1-0.208,
+		1,
+		1.148, /*end safo*/
 		0.937, /* 2xPF  (7)*/
 		1.6868986114, /* 5xPF 200Hz */
 		1.2690685961, /* 33Hz */
@@ -204,7 +343,7 @@ int cost_function(const gsl_vector * x, void * data, gsl_vector * f){
 		1-0.15,
 		1-0.08, /* end Bidoret pairs */
 		1 /* depol and single pf (16) */}; // these are the target dw values
-
+	
 	
 	double simulated_dw[17]; // these will be the values we acutally obtain
 	double cost[17];
@@ -251,10 +390,69 @@ int cost_function(const gsl_vector * x, void * data, gsl_vector * f){
 	printf("\n");
 	
 	//calculate_summary_data(syn); // not needed for parameter optimisation, just nice for debugging
-
+	
 	
 	return GSL_SUCCESS;
 }
+#endif /* LM_OPTIMISATION_PROGRAM */
+
+
+int perform_parameter_optimisation_sim(Synapse *syn){
+	int t, i;
+	
+	// It looks like we can avoid resetting rho(0), c(0), etc because of forward method
+	
+	siT = 0; // siT is a global which detects the time within each update function
+	
+	print_params();
+    printf("DEBUG: simulation_duration %ld\n", simulation_duration);
+    
+	//TODO: consider changing order of looping, may give speed gain
+	// Loop over discrete time steps up to simulation_duration
+	//for (t = siT; t < (simulation_duration-1); t++){
+    for (i = 0; i < no_synapses; i++){
+        // Update each synapse
+		
+        siT = 0;
+    
+        //for (i = 0; i < no_synapses; i++)
+        for (t = 0; t < (simulation_duration-1); t++)
+		{
+			//i = 12;
+			//printf("syn(%d) t %d\n", i, t);
+			//updatePreSynapticVoltageTrace(&syn[i]);
+			updatePreSynapticNOConcentration(&syn[i]);
+			updateCalciumConcentration(&syn[i]);
+			updateSynapticEfficacy(&syn[i]);
+			//if (i == 12)
+				//printf("t: %d, c: %f, rho: %f, NO: %f\n", siT, syn[i].c[siT-time_of_last_save], syn[i].rho[siT], syn[i].NO_pre[siT]);
+            siT++;
+		}
+        //printf("DEBUG: RHO %f\n", syn[0].rho[siT]);
+        /*if(siT == 100000){
+            printf("DEBUG: RHO %f\n", syn[0].rho[siT]);
+            
+        }*/
+		//siT++;
+	}
+	
+	/*char outfile[FILE_NAME_LENGTH];
+	sprintf(outfile, outfilepattern, syn[i].ID);
+	printf("writing...%s\n", outfile);
+	saveSynapseOutputFile(outfile, &syn[i], siT, dCpre, dCpost, dThetaD, dThetaP, dGammaD, dGammaP, dSigma, iCaSpikeDelay, iNOSpikeDelay, fTau, fTauC, dRhoFixed, poisson_param, initial_random_seed);
+	printf("Final rho values:\n");
+	for (i = 0; i < no_synapses; i++){
+		printf(" %f %f %f \n", syn[i].rho[siT], syn[i].rho[simulation_duration-1], syn[i].rho[simulation_duration-2]);
+	}
+    printf("%ld %ld\n", siT, simulation_duration);
+	printf("\n");*/
+	for (i = 0; i < no_synapses; i++){
+		printf("syn(%d) t: %ld, c: %f, rho: %f\n", i, siT, syn[i].c[siT], syn[i].rho[siT]);
+	}
+	
+	return 0;
+}
+
 
 void set_optimisation_sim_params(const gsl_vector * x){
     //double param_multiplier[8] = {1e-8, 1e-8, 1e-5, 1e-4, 1e-5, 1e-4, 1e2, 1e3}; //{1,1e-6,1,1,1,1,1000,1000};

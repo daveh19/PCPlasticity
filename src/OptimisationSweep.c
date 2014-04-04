@@ -15,10 +15,7 @@
 #include <gsl/gsl_multifit_nlin.h>
 #include <gsl/gsl_multimin.h>
 
-void print_state(size_t iter, gsl_multifit_fdfsolver * s);
-int print_jacobian(gsl_multifit_fdfsolver * s);
-void print_final_fit(gsl_multifit_fdfsolver * s);
-void print_final_params(gsl_multifit_fdfsolver *s);
+
 
 /*int main( int argc, char *argv[] ){
 	Synapse *syn;
@@ -34,60 +31,73 @@ void print_final_params(gsl_multifit_fdfsolver *s);
 
 
 
-#ifdef NEW_OPTIMISATION_PROGRAM
+#ifdef PR_OPTIMISATION_PROGRAM
+void print_state(size_t iter, gsl_multimin_fdfminimizer * s);
+void print_gradient(gsl_multimin_fdfminimizer * s);
+void print_final_fit(gsl_multimin_fdfminimizer * s);
+void print_final_params(gsl_multimin_fdfminimizer *s);
+
 int main( int argc, char *argv[] ){
 	Synapse *syn;
 	struct fitting_data data_struct;
     
     // Choose type of nonlinear solver here
-	const gsl_multifit_fdfsolver_type * T = gsl_multifit_fdfsolver_lmder;
-	//const gsl_multifit_fdfsolver_type * T = gsl_multifit_fdfsolver_lmsder;
+	const gsl_multimin_fdfminimizer_type * T = gsl_multimin_fdfminimizer_conjugate_pr;
     
-	gsl_multifit_function_fdf f; // function to fit
-	gsl_multifit_fdfsolver * s; // solver
-	gsl_vector_view x; // initial guess
+	gsl_multimin_fdfminimizer * s; // solver
+	
+	gsl_vector *x; // initial guess
+	gsl_multimin_function_fdf f; // function to fit
 	
 	int status;
 	unsigned int iter = 0;
-	const size_t n = 17;
+	//const size_t n = 17;
 	const size_t p = 8; //10;//8;//9;
 	
 	syn = initialise_parameter_optimisation_sweep(argc, argv);
 	print_params();
 	printf("Initialistation complete\n");
 	
-	//float test = 1;
-	//test += 0.000000014901161193847656250000;
-	//printf("DEBUG: float %.20f, double %.20lf\n", test, test);
-	
+	// initial guess
+	x = gsl_vector_alloc(8);
+	gsl_vector_set(x, 0, 1);
+	gsl_vector_set(x, 1, 1);
+	gsl_vector_set(x, 2, 1e-2);
+	gsl_vector_set(x, 3, 1e-2);
+	gsl_vector_set(x, 4, 1e-2);
+	gsl_vector_set(x, 5, 1e-3);
+	gsl_vector_set(x, 6, 1e-5);
+	gsl_vector_set(x, 7, 1e-5);
 	// tau, D, C_pf, C_cs, N_pf, theta_d, gamma_d, gamma_p
 	//double x_init[8] = {185,(80./dt),0.07,0.6,0.2,0.522,2.3809e-4,7.9365e-5};
-    double x_init[8] = {1,1,1e-2,1e-2,1e-2,1e-3,1e-5,1e-5};
+    //double x_init[8] = {1,1,1e-2,1e-2,1e-2,1e-3,1e-5,1e-5};
 	//double x_init[9] = {0,0,0,0,0,0,0,0,0};
 	//double x_init[10] = {0,0,0,0,0,0,0,0,0,0};
 	//double x_init[1] = {1.0};//{185.};//,(int)(80./dt),0.07,0.6,0.2,0.522,2.3809e-4,7.9365e-5};
 	
 	data_struct.syn = syn;
 	
-	s = gsl_multifit_fdfsolver_alloc (T, n, p);
-	printf ("s is a '%s' solver\n", 
-			gsl_multifit_fdfsolver_name (s));
+	s = gsl_multimin_fdfminimizer_alloc (T, p);
+	
+	printf ("s is a '%s' minimizer\n", 
+			gsl_multimin_fdfminimizer_name (s));
 	
 	f.f = &cost_function;
 	f.df = &calculate_jacobian; //NULL;
 	f.fdf = NULL;
-	f.n = n;
-	f.p = p;
+	f.n = p; //n;
+	//f.p = p;
 	f.params = &data_struct;
 	
-	x = gsl_vector_view_array(x_init, p); // setup initial guess
+	//x = gsl_vector_view_array(x_init, p); // setup initial guess
 	
     times_through_cost_function = 0;
-    printf("Setting up solver \n");
-	status = gsl_multifit_fdfsolver_set (s, &f, &x.vector); // setup solver
-	printf("Solver setup complete, status = %s\n", gsl_strerror(status));
+    printf("Setting up minimiser \n");
+	//gsl_multimin_fdfminimizer_set (s, &f, x, stepsize, tolerance);
+	status = gsl_multimin_fdfminimizer_set (s, &f, x, 0.01, 1e-4); // setup solver
+	printf("Minimiser setup complete, status = %s\n", gsl_strerror(status));
 	
-	print_jacobian(s);
+	print_gradient(s);
 	
 	print_state(iter, s);
 	
@@ -97,11 +107,11 @@ int main( int argc, char *argv[] ){
         times_through_cost_function = 0;
         times_through_cost_function_jacobian = 0;
         printf("\nNew iteration\n");
-		status = gsl_multifit_fdfsolver_iterate(s);
+		status = gsl_multimin_fdfminimizer_iterate(s);
 		printf("end of iteration update, ");
 		printf("status = %s\n", gsl_strerror(status));
 		
-        print_jacobian(s);
+        print_gradient(s);
         
 		print_state(iter, s);
 		
@@ -110,9 +120,9 @@ int main( int argc, char *argv[] ){
 			break;
 		}
 		
-        printf("Calculating delta test\n");
-		status = gsl_multifit_test_delta(s->dx, s->x, 1e-12, 1e-12);
-		printf("Delta test completed\n");
+        printf("Calculating gradient test\n");
+		status = gsl_multimin_test_gradient(s->gradient, 1e-12);
+		printf("Gradient test completed\n");
 	} 
 	while ( (status == GSL_CONTINUE) && (iter < 10));
 	
@@ -127,21 +137,96 @@ int main( int argc, char *argv[] ){
     print_params();
     print_state(iter, s);
     
-    gsl_vector * temp = gsl_vector_alloc(n);
-    cost_function(s->x, &data_struct, temp);
+    //gsl_vector * temp = gsl_vector_alloc(n);
+    //cost_function(s->x, &data_struct, temp);
     
     print_final_params(s);
     
-    print_final_fit(s);
+    //print_final_fit(s);
 	
 	printf("Freeing memory and exiting...\n");
-	gsl_multifit_fdfsolver_free (s); // free solver memory
+	gsl_multimin_fdfminimizer_free (s); // free solver memory
+	gsl_vector_free(x);
 	return finalise(0, syn);
 }
-#endif /* NEW_OPTIMISATION_PROGRAM */
+
+void print_gradient(gsl_multimin_fdfminimizer * s){
+	printf("Printing gradient:\n");
+	//printf("%f\n", gsl_vector_get(s->J, 0));
+
+	int status, n = 0;
+	
+	gsl_vector * m = s->gradient;
+    
+	//gsl_matrix_fprintf(stdout, s->J, "%g");
+	for (size_t i = 0; i < m->size; i++) {
+		if ((status = fprintf(stdout, "%g ", gsl_vector_get(m, i))) < 0)
+			break;
+		n += status;
+	}
+    
+    printf("\n-------------------\n");
+    
+	printf("End of gradient\n");
+}
+
+
+void print_state(size_t iter, gsl_multimin_fdfminimizer * s){
+    printf("iter: %3u", (int)iter);
+    for(int i = 0; i < s->x->size; i++){
+        printf(" %g", gsl_vector_get(s->x, i));
+    }
+	printf(" |f(x)| = %g\n", s->f);
+}
+
+
+void print_final_params(gsl_multimin_fdfminimizer *s){
+    gsl_vector * x = s->x;
+    printf("in print final params, setting params\n");
+    set_optimisation_sim_params(x);
+    printf("in print final params, printing params\n");
+    print_params();
+}
+
+#ifdef COMMENT_OUT
+void print_final_fit(gsl_multimin_fdfminimizer * s){
+    gsl_vector * cost = s->f;
+    
+    const double objective_dw[17] = { // some of these were departures from 1 and others were absolute values
+        1.04, */ /* Safo */
+        1.108,
+        1-0.16,
+        1-0.28,
+        1-0.208,
+        1,
+        1.148, /*end safo*/
+		0.937, /* 2xPF  (7)*/
+		1.6868986114, /* 5xPF 200Hz */
+		1.2690685961, /* 33Hz */
+		1.0449483297, /* 16Hz */
+		1-0.325, /*Bidoret pairs  (11)*/
+		1-0.35,
+		1-0.31,
+		1-0.15,
+		1-0.08, /* end Bidoret pairs */
+		1 /* depol and single pf (16) */}; // these are the target dw values
+    
+    printf("\tObjective\tCost\n");
+    for(int i = 0; i < 17; i++){
+        printf("\t %g\t %g\n", objective_dw[i], gsl_vector_get(cost, i));
+    }
+    printf("END\n");
+}
+#endif
+#endif /* PR_OPTIMISATION_PROGRAM */
 
 
 #ifdef LM_OPTIMISATION_PROGRAM
+void print_state(size_t iter, gsl_multifit_fdfsolver * s);
+int print_jacobian(gsl_multifit_fdfsolver * s);
+void print_final_fit(gsl_multifit_fdfsolver * s);
+void print_final_params(gsl_multifit_fdfsolver *s);
+
 int main( int argc, char *argv[] ){
 	Synapse *syn;
 	struct fitting_data data_struct;
@@ -245,7 +330,6 @@ int main( int argc, char *argv[] ){
 	gsl_multifit_fdfsolver_free (s); // free solver memory
 	return finalise(0, syn);
 }
-#endif /* LM_OPTIMISATION_PROGRAM */
 
 int print_jacobian(gsl_multifit_fdfsolver * s){
 	printf("Printing Jacobian:\n");
@@ -286,27 +370,27 @@ int print_jacobian(gsl_multifit_fdfsolver * s){
 
 
 void print_state(size_t iter, gsl_multifit_fdfsolver * s){
-		/*printf("iter: %3u %g %g %g %g %g %g %g %g |f(x)| = %g\n",
-			   (unsigned int)iter,
-			   gsl_vector_get(s->x, 0),
-			   gsl_vector_get(s->x, 1),
-			   gsl_vector_get(s->x, 2),
-			   gsl_vector_get(s->x, 3),
-			   gsl_vector_get(s->x, 4),
-			   gsl_vector_get(s->x, 5),
-			   gsl_vector_get(s->x, 6),
-			   gsl_vector_get(s->x, 7),
-			   gsl_blas_dnrm2(s->f));*/
+	/*printf("iter: %3u %g %g %g %g %g %g %g %g |f(x)| = %g\n",
+	 (unsigned int)iter,
+	 gsl_vector_get(s->x, 0),
+	 gsl_vector_get(s->x, 1),
+	 gsl_vector_get(s->x, 2),
+	 gsl_vector_get(s->x, 3),
+	 gsl_vector_get(s->x, 4),
+	 gsl_vector_get(s->x, 5),
+	 gsl_vector_get(s->x, 6),
+	 gsl_vector_get(s->x, 7),
+	 gsl_blas_dnrm2(s->f));*/
     printf("iter: %3u", (int)iter);
     for(int i = 0; i < s->x->size; i++){
         printf(" %g", gsl_vector_get(s->x, i));
         
     }
     printf(" |f(x)| = %g\n", gsl_blas_dnrm2(s->f));
-		/*printf("iter: %3u %f |f(x)| = %g\n",
-		   (unsigned int)iter,
-		   gsl_vector_get(s->x, 0),
-		   gsl_blas_dnrm2(s->f));*/
+	/*printf("iter: %3u %f |f(x)| = %g\n",
+	 (unsigned int)iter,
+	 gsl_vector_get(s->x, 0),
+	 gsl_blas_dnrm2(s->f));*/
 }
 
 
@@ -346,5 +430,4 @@ void print_final_fit(gsl_multifit_fdfsolver * s){
     }
     printf("END\n");
 }
-
-
+#endif /* LM_OPTIMISATION_PROGRAM */
