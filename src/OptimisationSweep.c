@@ -10,11 +10,11 @@
 //#include "OptimisationSweep.h"
 #include "Synapse.h"
 
-#include <gsl/gsl_multifit_nlin.h>
 #include <gsl/gsl_vector.h>
 #include <gsl/gsl_blas.h>
+#include <gsl/gsl_multifit_nlin.h>
+#include <gsl/gsl_multimin.h>
 
-#ifdef OPTIMISATION_PROGRAM
 void print_state(size_t iter, gsl_multifit_fdfsolver * s);
 int print_jacobian(gsl_multifit_fdfsolver * s);
 void print_final_fit(gsl_multifit_fdfsolver * s);
@@ -33,6 +33,115 @@ void print_final_params(gsl_multifit_fdfsolver *s);
 }*/
 
 
+
+#ifdef NEW_OPTIMISATION_PROGRAM
+int main( int argc, char *argv[] ){
+	Synapse *syn;
+	struct fitting_data data_struct;
+    
+    // Choose type of nonlinear solver here
+	const gsl_multifit_fdfsolver_type * T = gsl_multifit_fdfsolver_lmder;
+	//const gsl_multifit_fdfsolver_type * T = gsl_multifit_fdfsolver_lmsder;
+    
+	gsl_multifit_function_fdf f; // function to fit
+	gsl_multifit_fdfsolver * s; // solver
+	gsl_vector_view x; // initial guess
+	
+	int status;
+	unsigned int iter = 0;
+	const size_t n = 17;
+	const size_t p = 8; //10;//8;//9;
+	
+	syn = initialise_parameter_optimisation_sweep(argc, argv);
+	print_params();
+	printf("Initialistation complete\n");
+	
+	//float test = 1;
+	//test += 0.000000014901161193847656250000;
+	//printf("DEBUG: float %.20f, double %.20lf\n", test, test);
+	
+	// tau, D, C_pf, C_cs, N_pf, theta_d, gamma_d, gamma_p
+	//double x_init[8] = {185,(80./dt),0.07,0.6,0.2,0.522,2.3809e-4,7.9365e-5};
+    double x_init[8] = {1,1,1e-2,1e-2,1e-2,1e-3,1e-5,1e-5};
+	//double x_init[9] = {0,0,0,0,0,0,0,0,0};
+	//double x_init[10] = {0,0,0,0,0,0,0,0,0,0};
+	//double x_init[1] = {1.0};//{185.};//,(int)(80./dt),0.07,0.6,0.2,0.522,2.3809e-4,7.9365e-5};
+	
+	data_struct.syn = syn;
+	
+	s = gsl_multifit_fdfsolver_alloc (T, n, p);
+	printf ("s is a '%s' solver\n", 
+			gsl_multifit_fdfsolver_name (s));
+	
+	f.f = &cost_function;
+	f.df = &calculate_jacobian; //NULL;
+	f.fdf = NULL;
+	f.n = n;
+	f.p = p;
+	f.params = &data_struct;
+	
+	x = gsl_vector_view_array(x_init, p); // setup initial guess
+	
+    times_through_cost_function = 0;
+    printf("Setting up solver \n");
+	status = gsl_multifit_fdfsolver_set (s, &f, &x.vector); // setup solver
+	printf("Solver setup complete, status = %s\n", gsl_strerror(status));
+	
+	print_jacobian(s);
+	
+	print_state(iter, s);
+	
+	printf("Beginning iteration loop\n");
+	do{
+		iter++;
+        times_through_cost_function = 0;
+        times_through_cost_function_jacobian = 0;
+        printf("\nNew iteration\n");
+		status = gsl_multifit_fdfsolver_iterate(s);
+		printf("end of iteration update, ");
+		printf("status = %s\n", gsl_strerror(status));
+		
+        print_jacobian(s);
+        
+		print_state(iter, s);
+		
+		if(status){
+			printf("Breaking\n");
+			break;
+		}
+		
+        printf("Calculating delta test\n");
+		status = gsl_multifit_test_delta(s->dx, s->x, 1e-12, 1e-12);
+		printf("Delta test completed\n");
+	} 
+	while ( (status == GSL_CONTINUE) && (iter < 10));
+	
+	printf("------------------------\n");
+	if (status == GSL_SUCCESS){
+		printf("Final Success\n");
+	}
+	else{
+		printf("Final Error\n");
+	}
+	
+    print_params();
+    print_state(iter, s);
+    
+    gsl_vector * temp = gsl_vector_alloc(n);
+    cost_function(s->x, &data_struct, temp);
+    
+    print_final_params(s);
+    
+    print_final_fit(s);
+	
+	printf("Freeing memory and exiting...\n");
+	gsl_multifit_fdfsolver_free (s); // free solver memory
+	return finalise(0, syn);
+}
+#endif /* NEW_OPTIMISATION_PROGRAM */
+
+
+#ifdef LM_OPTIMISATION_PROGRAM
 int main( int argc, char *argv[] ){
 	Synapse *syn;
 	struct fitting_data data_struct;
@@ -136,7 +245,7 @@ int main( int argc, char *argv[] ){
 	gsl_multifit_fdfsolver_free (s); // free solver memory
 	return finalise(0, syn);
 }
-
+#endif /* LM_OPTIMISATION_PROGRAM */
 
 int print_jacobian(gsl_multifit_fdfsolver * s){
 	printf("Printing Jacobian:\n");
@@ -237,5 +346,5 @@ void print_final_fit(gsl_multifit_fdfsolver * s){
     }
     printf("END\n");
 }
-#endif
+
 

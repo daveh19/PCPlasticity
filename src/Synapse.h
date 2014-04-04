@@ -5,7 +5,10 @@
 
 #include <gsl/gsl_multifit_nlin.h>
 
-#define OPTIMISATION_PROGRAM
+//#define LM_OPTIMISATION_PROGRAM
+//#define SIM_LOOP_PROGRAM
+#define NEW_OPTIMISATION_PROGRAM
+
 
 #define SAFO_STEPS (8001) /*(8001)*/
 #define BIDORET_STEPS (800)

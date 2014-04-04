@@ -482,7 +482,7 @@ Synapse* initialise_parameter_optimisation_sweep(int argc, char *argv[]){
 }
 
 
-#ifndef OPTIMISATION_PROGRAM
+#ifdef SIM_LOOP_PROGRAM
 int main( int argc, char *argv[] ){
 	int index_loop_counter;
 	float loop_increment = 0.1; // ms
@@ -657,7 +657,7 @@ int main( int argc, char *argv[] ){
 	fclose(summary_outfile);
 	return 0;
 }
-#endif /* OPTIMISATION_PROGRAM */
+#endif /* SIM_LOOP_PROGRAM */
 
 // Calculate synaptic efficacy for next time step
 void updateSynapticEfficacy(Synapse *syn){
