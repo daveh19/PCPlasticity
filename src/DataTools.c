@@ -367,41 +367,41 @@ void loadSimulationParameters(int argc, char *argv[]){
         printf("No command-line arguments passed....loading defaults.\n");
         printf("arg0 is %s\n", argv[0]);
 
-        simulation_duration = 100000;
+        simulation_duration = 400000;
         no_synapses = 1;
 
         initial_c = 0;
-        initial_rho = 0;
+        initial_rho = 0.5;
 
         initial_random_seed = (-13);
         random_seed = initial_random_seed;
 
 		dt = 0.1; // default to 1ms timestep
-        fTau = 150000;  // measured in ms (equivalent to 150sec)
-        fTauC = 20;  // measured in ms
+        fTau = 1;  // measured in ms
+        fTauC = 142;  // measured in ms
 
         dRhoFixed = 0.5;
 
-        dCpre = 10.0;
-        dCpost = 4.0;
-        dThetaD = 0.5;
+        dCpre = 0.084;
+        dCpost = 0.840;
+        dThetaD = 0.549;
         dThetaP = 0.0;
-        dGammaD = 50;
-        dGammaP = 100;
+        dGammaD = 9.682597e-5;
+        dGammaP = 3.9012e-5;
 
         dSigma = 3.50;
-        iCaSpikeDelay = 19;
-		iNOSpikeDelay = 19;
+        iCaSpikeDelay = 78;
+		iNOSpikeDelay = 78;
         poisson_param = 1.0/1000;
 		
-		lfTauNMDAR = 10; //70;
-		lfNMDARjump = 2.85;
+		lfTauNMDAR = 142; //70;
+		lfNMDARjump = 0.402;
 		fThetaNO = 1;
 		fThetaNO2 = 1; //20;
 		
 		fVmax = 1.;
 		lfVjump = 1.;
-		lfTauV = 70.;
+		lfTauV = 36.;
 		
     }
     else{

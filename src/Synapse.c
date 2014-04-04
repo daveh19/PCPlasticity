@@ -69,6 +69,73 @@ int perform_parameter_optimisation_sim(Synapse *syn){
 	return 0;
 }
 
+int calculate_jacobian(const gsl_vector * x_orig, void * data, gsl_matrix * J){
+    printf("Numerically calculating Jacobian\n");
+    int rows = (int)(J->size1);
+    int cols = (int)(J->size2);
+    printf("DEBUG: size1 %d, size2 %d\n", rows, cols);
+    
+    double x_local;
+    double df_dx;
+    gsl_vector * new_x = gsl_vector_alloc(cols);
+    gsl_vector * f_base = gsl_vector_alloc(rows);
+    gsl_vector * f_delta = gsl_vector_alloc(rows);
+    
+    const double dx[8] = {1, 1, 0.001, 0.001, 0.001, 0.001, 1e-6, 1e-6};
+    //const double dx[9] = {1, 1, 0.001, 0.001, 0.001, 0.001, 1e-6, 1e-6, 0.5};
+    //const double dx[10] = {1, 1, 0.001, 0.001, 0.001, 0.001, 1e-6, 1e-6, 0.5, 1};
+    
+    // make copy of original x_values to which we will add dx
+    gsl_vector_memcpy(new_x, x_orig);
+    
+    // setup baseline f, for calculation of df/dx
+    cost_function(new_x, data, f_base);
+    
+    for (int j = 0; j < cols; j++) { // loop over parameters (cols)
+        // save original value of x, was previously doing this inline but this looks faster
+        x_local = gsl_vector_get(x_orig, j);
+        
+        // increment element j of x by dx
+        gsl_vector_set(new_x, j, ( x_local + dx[j] ) );
+        
+        // calculate cost_function
+        cost_function(new_x, data, f_delta);
+        
+        for (int i = 0; i < rows; i++) {
+            double old = gsl_vector_get(f_base, i);
+            double new = gsl_vector_get(f_delta, i);
+            double diff = old - new;
+            double diff_norm = diff/dx[i];
+            //printf("old %lf, new %lf, diff %lf, diff_norm %lf\n", old, new, diff, diff_norm);
+            
+            // calculate df/dx
+            df_dx = (gsl_vector_get(f_base, i) - gsl_vector_get(f_delta, i)) / dx[i];
+            
+            // save in Jacobian matrix
+            gsl_matrix_set(J, i, j, df_dx);
+            
+            printf("i %d, j %d, old %lf, new %lf, diff %lf, diff_norm %lf, df_dx %lf, matrix el %lf\n", i, j, old, new, diff, diff_norm, df_dx, gsl_matrix_get(J, i, j));
+        }
+        
+        // reset new_x to original guess values
+        //gsl_vector_memcpy(&new_x, x);
+        gsl_vector_set(new_x, j, x_local);
+        
+        times_through_cost_function_jacobian++;
+    }
+    
+    // Zero out the effects of Safo7, just to see if it helps numerical solution
+    for (int j = 0; j < rows; j++){
+        gsl_matrix_set(J, 6, j, 0);
+    }
+    
+    // Are these calls to free necessary? Surely the function stack will be completely destroyed. (But perhaps the vectors reside in the GSL library space)
+    gsl_vector_free(new_x);
+    gsl_vector_free(f_base);
+    gsl_vector_free(f_delta);
+    printf("Finished numerically calculating Jacobian\n");
+    return GSL_SUCCESS;
+}
 
 //float* cost_function(float *cost, Synapse *syn){
 int cost_function(const gsl_vector * x, void * data, gsl_vector * f){
@@ -142,7 +209,7 @@ int cost_function(const gsl_vector * x, void * data, gsl_vector * f){
 	double simulated_dw[17]; // these will be the values we acutally obtain
 	double cost[17];
 	
-    printf("Times through cost function %d\n", times_through_cost_function);
+    printf("Times through cost function %d, from jacobian %d\n", times_through_cost_function, times_through_cost_function_jacobian);
     times_through_cost_function++;
     
 	// set new params based on what gsl sends
@@ -191,7 +258,7 @@ int cost_function(const gsl_vector * x, void * data, gsl_vector * f){
 
 void set_optimisation_sim_params(const gsl_vector * x){
     //double param_multiplier[8] = {1e-8, 1e-8, 1e-5, 1e-4, 1e-5, 1e-4, 1e2, 1e3}; //{1,1e-6,1,1,1,1,1000,1000};
-	double param_multiplier[8] = {1e-8,1,1,1,1,1,1,1};// {1e-8, 1e-10, 1e-6, 1e-6, 1e-6, 1e-7, 1e0, 1e1}; //{1,1e-6,1,1,1,1,1000,1000};
+	double param_multiplier[8] = {1,1,1,1,1,1,1,1};// {1e-8, 1e-10, 1e-6, 1e-6, 1e-6, 1e-7, 1e0, 1e1}; //{1,1e-6,1,1,1,1,1000,1000};
     //double param_multiplier[9] = {1e-8, 1e-10, 1e-6, 1e-6, 1e-6, 1e-7, 1e0, 1e1, 1e-8}; //{1,1e-6,1,1,1,1,1000,1000};
 	//double param_multiplier[10] = {1e-10, 1e-10, 1e-6, 1e-6, 1e-6, 1e-7, 1e0, 1e1, 1e-8, 1e-10}; //{1,1e-6,1,1,1,1,1000,1000};
 	double temp_reader;

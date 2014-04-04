@@ -109,6 +109,7 @@ struct fitting_data {
 double old_simulated_dw[17];// = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 
 int times_through_cost_function;
+int times_through_cost_function_jacobian;
 
 double dGammaDfixed;
 double dGammaPfixed;
@@ -140,6 +141,7 @@ void updatePreSynapticVoltageTrace(Synapse *syn);
 double nmdarFromPreSynapticSpikes(Synapse *syn);
 void updatePreSynapticNOConcentration(Synapse *syn);
 
+int calculate_jacobian(const gsl_vector * x, void * data, gsl_matrix * J);
 void print_params();
 void set_optimisation_sim_params(const gsl_vector * x);
 void calculate_summary_data(Synapse *syn);
