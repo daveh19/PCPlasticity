@@ -42,6 +42,7 @@ double dRhoFixed;
 
 double dCpre;
 double dCpost;
+double dCdepol;
 double dThetaD;
 double dThetaP;
 double dGammaD;
@@ -100,6 +101,7 @@ typedef struct Synapse{
 	double * ltd;
 	double * no_threshold;
         int ID;
+    int uses_depol;
 } Synapse;
 
 struct fitting_data {
@@ -116,6 +118,7 @@ double dGammaPfixed;
 
 double dCpreFixed;
 double dCpostFixed;
+double dCdepolFixed;
 double lfNMDARjumpFixed;
 double dThetaDfixed;
 

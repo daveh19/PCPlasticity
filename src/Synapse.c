@@ -268,8 +268,6 @@ void set_optimisation_sim_params(const gsl_vector * x){
     print_params();
     
 	fTauC = (param_multiplier[0] * fTauCfixed + gsl_vector_get(x,0)) / param_multiplier[0]; //gsl_vector_get(x, 0);
-	lfTauNMDAR = fTauC;
-    //lfTauNMDAR = (param_multiplier[9] * lfTauNMDARfixed + gsl_vector_get(x,9)) / param_multiplier[9]; //fTauC; //gsl_vector_get(x, 0);
 	
 	temp_reader = iCaSpikeDelay;
 	delay_as_double = (param_multiplier[1] * iCaSpikeDelayFixed + gsl_vector_get(x,1)) / param_multiplier[1]; //gsl_vector_get(x,1);
@@ -289,6 +287,9 @@ void set_optimisation_sim_params(const gsl_vector * x){
 	
 	//lfTauV = (param_multiplier[8] * lfTauVfixed + gsl_vector_get(x,8)) / param_multiplier[8]; //gsl_vector_get(x, 7);
 	lfTauV = lfTauVfixed;
+    lfTauNMDAR = fTauC;
+    //lfTauNMDAR = (param_multiplier[9] * lfTauNMDARfixed + gsl_vector_get(x,9)) / param_multiplier[9]; //fTauC; //gsl_vector_get(x, 0);
+    //dCdepol = (param_multiplier[8] * dCdepolFixed + gsl_vector_get(x,8)) / param_multiplier[8];
 	
 	printf("DEBUG gammaD difference %g\n", (temp_reader - dGammaD));
 	
@@ -300,7 +301,7 @@ void set_optimisation_sim_params(const gsl_vector * x){
 }
 
 void print_params(){
-	printf("Parameters: tauC %0.30f, DC %d, DN, %d, Cpre %0.30f, Cpost %0.30f, Npre %0.30f, thetaD %0.30f, gammaD %0.30f, gammaP %0.30f, tau_v %0.30f, tauNO %0.30f\n", fTauC, iCaSpikeDelay, iNOSpikeDelay, dCpre, dCpost, lfNMDARjump, dThetaD, dGammaD, dGammaP, lfTauV, lfTauNMDAR);
+	printf("Parameters: tauC %0.30f, DC %d, DN, %d, Cpre %0.30f, Cpost %0.30f, Npre %0.30f, thetaD %0.30f, gammaD %0.30f, gammaP %0.30f, tau_v %0.30f, tauNO %0.30f Cdepol %0.30f\n", fTauC, iCaSpikeDelay, iNOSpikeDelay, dCpre, dCpost, lfNMDARjump, dThetaD, dGammaD, dGammaP, lfTauV, lfTauNMDAR, dCdepol);
 }
 
 void calculate_summary_data(Synapse *syn){
@@ -389,6 +390,7 @@ Synapse* initialise_parameter_optimisation_sweep(int argc, char *argv[]){
     iNOSpikeDelayFixed = iNOSpikeDelay;
 	
 	lfTauVfixed = lfTauV;
+    dCdepolFixed = dCdepol;
 	
 	for(i = 0; i < 17; i++){
 		old_simulated_dw[i] = 0.0;
@@ -453,18 +455,24 @@ Synapse* initialise_parameter_optimisation_sweep(int argc, char *argv[]){
 	
 	// Bidoret: 5 data points
 	loop_index = 0;
+    syn[11].uses_depol = 1;
 	train34(syn[11].preT, syn[11].postT, simulation_duration);
 	loop_index = 4. / dt;
+    syn[12].uses_depol = 1;
 	train34(syn[12].preT, syn[12].postT, simulation_duration);
 	loop_index = 14. / dt;
+    syn[13].uses_depol = 1;
 	train34(syn[13].preT, syn[13].postT, simulation_duration);
 	loop_index = 29. / dt;
+    syn[14].uses_depol = 1;
 	train34(syn[14].preT, syn[14].postT, simulation_duration);
 	loop_index = 59. / dt;
+    syn[15].uses_depol = 1;
 	train34(syn[15].preT, syn[15].postT, simulation_duration);
 	
 	// Bidoret, single PF stim
 	trains_no_pf_stims = 1;
+    syn[16].uses_depol = 1;
 	train34(syn[16].preT, syn[16].postT, simulation_duration);
 	
 	
@@ -789,7 +797,12 @@ double calciumFromPreSynapticSpikes(Synapse *syn){
 double calciumFromPostSynapticSpikes(Synapse *syn){
     double d;
     //printf("postT: %u ", (*syn).postT[siT]);
-    d = ((double) (*syn).postT[siT]) * dCpost;
+    if ((*syn).uses_depol == 1){
+        d = ((double) (*syn).postT[siT]) * dCdepol;
+    }
+    else{
+        d = ((double) (*syn).postT[siT]) * dCpost;
+    }
     return d;
 }
 
@@ -930,6 +943,8 @@ void synapse_memory_init(Synapse *syn){
 //            (syn[i]) = local_synapse;
 //            fprintf(logfile, "syn(%d) successfully assigned\n", i);
 //        }
+        // default to not using depolarisation;
+        (syn[i]).uses_depol = 0;
         // Set synapse ID
         (syn[i]).ID = siID;
         siID++;
