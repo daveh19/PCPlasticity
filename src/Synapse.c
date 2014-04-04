@@ -14,6 +14,11 @@
 #include <gsl/gsl_randist.h>
 
 #ifdef PR_OPTIMISATION_PROGRAM
+void pr_fdf(const gsl_vector *x, void * params, double * f, gsl_vector *df){
+	*f = cost_function(x, params);
+	calculate_jacobian(x, params, df);
+}
+
 void calculate_jacobian(const gsl_vector * x_orig, void * data, gsl_vector * J){ /* PR_OPTIMISATION_PROGRAM */
     // TODO: completely rewrite gradient for vector method
 	printf("Numerically calculating gradient vector\n");

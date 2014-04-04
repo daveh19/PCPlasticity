@@ -84,7 +84,7 @@ int main( int argc, char *argv[] ){
 	
 	f.f = &cost_function;
 	f.df = &calculate_jacobian; //NULL;
-	f.fdf = NULL;
+	f.fdf = &pr_fdf;
 	f.n = p; //n;
 	//f.p = p;
 	f.params = &data_struct;

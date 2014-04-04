@@ -157,6 +157,7 @@ int perform_parameter_optimisation_sim(Synapse *syn);
 	int cost_function(const gsl_vector * x, void * data, gsl_vector * f);
 #endif /* LM_OPTIMISATION_PROGRAM */
 #ifdef PR_OPTIMISATION_PROGRAM
+	void pr_fdf(const gsl_vector *x, void * params, double * f, gsl_vector *df);
 	void calculate_jacobian(const gsl_vector * x, void * data, gsl_vector * J);
 	double cost_function(const gsl_vector * x, void * data);
 #endif /* PR_OPTIMISATION_PROGRAM */
