@@ -40,6 +40,7 @@ void calculate_gradient(const gsl_vector * x_orig, void * data, gsl_vector * J){
     
     // setup baseline f, for calculation of df/dx
     basic_cost = cost_function(new_x, data);
+	times_through_cost_function_jacobian++;
     
     for (int j = 0; j < cols; j++) { // loop over parameters (cols)
         // save original value of x, was previously doing this inline but this looks faster
