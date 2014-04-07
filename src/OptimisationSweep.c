@@ -40,6 +40,9 @@ int main( int argc, char *argv[] ){
 	
 	gsl_vector *x; // initial guess
 	gsl_multimin_function_fdf f; // function to fit
+	//gsl_vector * step_size; // step size
+	double step_size = 0.01;
+	double tolerance = 1e-6;
 	
 	int status;
 	unsigned int iter = 0;
@@ -51,15 +54,25 @@ int main( int argc, char *argv[] ){
 	printf("Initialistation complete\n");
 	
 	// initial guess
-	x = gsl_vector_alloc(8);
-	gsl_vector_set(x, 0, 1);
-	gsl_vector_set(x, 1, 1);
-	gsl_vector_set(x, 2, 1e-2);
-	gsl_vector_set(x, 3, 1e-2);
-	gsl_vector_set(x, 4, 1e-2);
-	gsl_vector_set(x, 5, 1e-3);
-	gsl_vector_set(x, 6, 1e-5);
-	gsl_vector_set(x, 7, 1e-5);
+	x = gsl_vector_alloc(p);
+	gsl_vector_set(x, 0, 0);
+	gsl_vector_set(x, 1, 0);
+	gsl_vector_set(x, 2, 0);
+	gsl_vector_set(x, 3, 0);
+	gsl_vector_set(x, 4, 0);
+	gsl_vector_set(x, 5, 0);
+	gsl_vector_set(x, 6, 0);
+	gsl_vector_set(x, 7, 0);
+	// step sizes (different per parameter)
+	/*step_size = gsl_vector_alloc(p);
+	gsl_vector_set(step_size, 0, 1);
+	gsl_vector_set(step_size, 1, 1);
+	gsl_vector_set(step_size, 2, 1);
+	gsl_vector_set(step_size, 3, 1);
+	gsl_vector_set(step_size, 4, 1);
+	gsl_vector_set(step_size, 5, 1);
+	gsl_vector_set(step_size, 6, 1);
+	gsl_vector_set(step_size, 7, 1);*/
 	// tau, D, C_pf, C_cs, N_pf, theta_d, gamma_d, gamma_p
 	//double x_init[8] = {185,(80./dt),0.07,0.6,0.2,0.522,2.3809e-4,7.9365e-5};
     //double x_init[8] = {1,1,1e-2,1e-2,1e-2,1e-3,1e-5,1e-5};
@@ -86,7 +99,7 @@ int main( int argc, char *argv[] ){
     times_through_cost_function = 0;
     printf("Setting up minimiser \n");
 	//gsl_multimin_fdfminimizer_set (s, &f, x, stepsize, tolerance);
-	status = gsl_multimin_fdfminimizer_set (s, &f, x, 0.01, 1e-4); // setup solver
+	status = gsl_multimin_fdfminimizer_set (s, &f, x, step_size, tolerance); // setup solver
 	printf("Minimiser setup complete, status = %s\n", gsl_strerror(status));
 	
 	print_gradient(s);
@@ -113,7 +126,7 @@ int main( int argc, char *argv[] ){
 		}
 		
         printf("Calculating gradient test\n");
-		status = gsl_multimin_test_gradient(s->gradient, 1e-12);
+		status = gsl_multimin_test_gradient(s->gradient, 1e-10);
 		printf("Gradient test completed\n");
 	} 
 	while ( (status == GSL_CONTINUE) && (iter < 10));
@@ -162,7 +175,6 @@ void print_gradient(gsl_multimin_fdfminimizer * s){
 	printf("End of gradient\n");
 }
 
-
 void print_state(size_t iter, gsl_multimin_fdfminimizer * s){
     printf("iter: %3u", (int)iter);
     for(int i = 0; i < s->x->size; i++){
@@ -170,7 +182,6 @@ void print_state(size_t iter, gsl_multimin_fdfminimizer * s){
     }
 	printf(" |f(x)| = %g\n", s->f);
 }
-
 
 void print_final_params(gsl_multimin_fdfminimizer *s){
     gsl_vector * x = s->x;
@@ -361,7 +372,6 @@ int print_jacobian(gsl_multifit_fdfsolver * s){
 	return n;
 }
 
-
 void print_state(size_t iter, gsl_multifit_fdfsolver * s){
 	/*printf("iter: %3u %g %g %g %g %g %g %g %g |f(x)| = %g\n",
 	 (unsigned int)iter,
@@ -385,7 +395,6 @@ void print_state(size_t iter, gsl_multifit_fdfsolver * s){
 	 gsl_vector_get(s->x, 0),
 	 gsl_blas_dnrm2(s->f));*/
 }
-
 
 void print_final_params(gsl_multifit_fdfsolver *s){
     gsl_vector * x = s->x;

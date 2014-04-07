@@ -10,8 +10,10 @@
 #ifdef PR_OPTIMISATION_PROGRAM
 //TODO: These are the Polak-Ribiere functions
 void pr_fdf(const gsl_vector *x, void * params, double * f, gsl_vector *df){
+	printf("Entering fdf function\n");
 	*f = cost_function(x, params);
 	calculate_gradient(x, params, df);
+	printf("Leaving fdf function\n");
 }
 
 void calculate_gradient(const gsl_vector * x_orig, void * data, gsl_vector * J){ /* PR_OPTIMISATION_PROGRAM */
@@ -276,7 +278,6 @@ int calculate_jacobian(const gsl_vector * x_orig, void * data, gsl_matrix * J){ 
     return GSL_SUCCESS;
 } /* LM_OPTIMISATION_PROGRAM */
 
-//float* cost_function(float *cost, Synapse *syn){
 int cost_function(const gsl_vector * x, void * data, gsl_vector * f){ /* LM_OPTIMISATION_PROGRAM */
 	int i;
 	Synapse * syn;
@@ -397,11 +398,11 @@ int cost_function(const gsl_vector * x, void * data, gsl_vector * f){ /* LM_OPTI
 #endif /* LM_OPTIMISATION_PROGRAM */
 
 
-//TODO: end of optimisation method specific functions
+//TODO: These are the generic optimisation functions
 int perform_parameter_optimisation_sim(Synapse *syn){
 	int t, i;
 	
-	// It looks like we can avoid resetting rho(0), c(0), etc because of forward method
+	// It looks like we can avoid resetting rho(0), c(0), etc because of forward method: they never get modified
 	
 	siT = 0; // siT is a global which detects the time within each update function
 	
@@ -468,7 +469,7 @@ void set_optimisation_sim_params(const gsl_vector * x){
 	fTauC = (param_multiplier[0] * fTauCfixed + gsl_vector_get(x,0)) / param_multiplier[0]; //gsl_vector_get(x, 0);
 	
 	temp_reader = iCaSpikeDelay;
-	delay_as_double = (param_multiplier[1] * iCaSpikeDelayFixed + gsl_vector_get(x,1)) / param_multiplier[1]; //gsl_vector_get(x,1);
+	delay_as_double = (param_multiplier[1] * (double)(iCaSpikeDelayFixed) + gsl_vector_get(x,1)) / param_multiplier[1]; //gsl_vector_get(x,1);
 	iCaSpikeDelay = (int) delay_as_double; //gsl_vector_get(x, 1);
 	iNOSpikeDelay = iCaSpikeDelay; //gsl_vector_get(x, 1);
 	printf("DEBUG C delay difference %g %g\n", (temp_reader - iCaSpikeDelay), delay_as_double);
@@ -498,9 +499,11 @@ void set_optimisation_sim_params(const gsl_vector * x){
 	TAU_V 70.*/
 }
 
+
 void print_params(){
 	printf("Parameters: tauC %0.30f, DC %d, DN, %d, Cpre %0.30f, Cpost %0.30f, Npre %0.30f, thetaD %0.30f, gammaD %0.30f, gammaP %0.30f, tau_v %0.30f, tauNO %0.30f Cdepol %0.30f\n", fTauC, iCaSpikeDelay, iNOSpikeDelay, dCpre, dCpost, lfNMDARjump, dThetaD, dGammaD, dGammaP, lfTauV, lfTauNMDAR, dCdepol);
 }
+
 
 void calculate_summary_data(Synapse *syn){
 	int i, j;
@@ -649,6 +652,7 @@ Synapse* initialise_parameter_optimisation_sweep(int argc, char *argv[]){
 	trains_no_pf_stims = 5;
 	loop_index = 59. / dt;
 	train32(syn[10].preT, syn[10].postT, simulation_duration);
+	
 	trains_no_pf_stims = -1; // restore to defaults
 	
 	// Bidoret: 5 data points
@@ -858,6 +862,7 @@ int main( int argc, char *argv[] ){
 }
 #endif /* SIM_LOOP_PROGRAM */
 
+
 //TODO: underlying synaptic efficacy evolution code
 // Calculate synaptic efficacy for next time step
 void updateSynapticEfficacy(Synapse *syn){
@@ -930,6 +935,7 @@ BOOL h(float c, double theta){
     else
         return 0;
 }
+
 
 // Calculate synaptic calcium concentration for next time step
 void updateCalciumConcentration(Synapse *syn){
