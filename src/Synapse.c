@@ -7,7 +7,7 @@
 #include "SpikeTrains.h"
 
 
-#ifdef PR_OPTIMISATION_PROGRAM
+#ifdef NM_OPTIMISATION_PROGRAM
 //TODO: These are the Polak-Ribiere functions
 void pr_fdf(const gsl_vector *x, void * params, double * f, gsl_vector *df){
 	printf("Entering fdf function\n");

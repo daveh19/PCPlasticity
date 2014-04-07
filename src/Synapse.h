@@ -10,9 +10,10 @@
 //#include <gsl/gsl_rng.h>
 //#include <gsl/gsl_randist.h>
 
-//#define LM_OPTIMISATION_PROGRAM
 //#define SIM_LOOP_PROGRAM
-#define PR_OPTIMISATION_PROGRAM
+//#define LM_OPTIMISATION_PROGRAM
+//#define PR_OPTIMISATION_PROGRAM
+#define NM_OPTIMISATION_PROGRAM
 
 
 #define SAFO_STEPS (8001) /*(8001)*/
@@ -161,7 +162,7 @@ int perform_parameter_optimisation_sim(Synapse *syn);
 	int calculate_jacobian(const gsl_vector * x, void * data, gsl_matrix * J);
 	int cost_function(const gsl_vector * x, void * data, gsl_vector * f);
 #endif /* LM_OPTIMISATION_PROGRAM */
-#ifdef PR_OPTIMISATION_PROGRAM
+#ifdef NM_OPTIMISATION_PROGRAM
 	void pr_fdf(const gsl_vector *x, void * params, double * f, gsl_vector *df);
 	void calculate_gradient(const gsl_vector * x, void * data, gsl_vector * J);
 	double cost_function(const gsl_vector * x, void * data);

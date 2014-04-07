@@ -22,6 +22,159 @@
 }*/
 
 
+#ifdef NM_OPTIMISATION_PROGRAM
+//TODO: These are the Nelder-Mead functions
+void print_state(size_t iter, gsl_multimin_fminimizer * s);
+//void print_gradient(gsl_multimin_fdfminimizer * s);
+//void print_final_fit(gsl_multimin_fdfminimizer * s);
+void print_final_params(gsl_multimin_fminimizer *s);
+
+int main( int argc, char *argv[] ){
+	Synapse *syn;
+	struct fitting_data data_struct;
+    
+    // Choose type of nonlinear solver here
+	const gsl_multimin_fminimizer_type * T = gsl_multimin_fminimizer_nmsimplex;
+    
+	gsl_multimin_fminimizer * s; // solver
+	
+	gsl_vector *x; // initial guess
+	gsl_multimin_function f; // function to fit
+	gsl_vector * step_size; // step size
+	//double step_size = 0.001;
+	double simplex_limit_size = 1e-2;
+	
+	double size;
+	int status;
+	unsigned int iter = 0;
+	//const size_t n = 17;
+	const size_t p = 8; //10;//8;//9;
+	
+	syn = initialise_parameter_optimisation_sweep(argc, argv);
+	print_params();
+	printf("Initialistation complete\n");
+	
+	// initial guess
+	x = gsl_vector_alloc(p);
+	gsl_vector_set(x, 0, 0);
+	gsl_vector_set(x, 1, 0);
+	gsl_vector_set(x, 2, 0);
+	gsl_vector_set(x, 3, 0);
+	gsl_vector_set(x, 4, 0);
+	gsl_vector_set(x, 5, 0);
+	gsl_vector_set(x, 6, 0);
+	gsl_vector_set(x, 7, 0);
+	// step sizes (different per parameter)
+	step_size = gsl_vector_alloc(p);
+	 gsl_vector_set(step_size, 0, 1);
+	 gsl_vector_set(step_size, 1, 1);
+	 gsl_vector_set(step_size, 2, 1e-2);
+	 gsl_vector_set(step_size, 3, 1e-2);
+	 gsl_vector_set(step_size, 4, 1e-2);
+	 gsl_vector_set(step_size, 5, 1e-2);
+	 gsl_vector_set(step_size, 6, 1e-6);
+	 gsl_vector_set(step_size, 7, 1e-6);
+	// tau, D, C_pf, C_cs, N_pf, theta_d, gamma_d, gamma_p
+	//double x_init[8] = {185,(80./dt),0.07,0.6,0.2,0.522,2.3809e-4,7.9365e-5};
+    //double x_init[8] = {1,1,1e-2,1e-2,1e-2,1e-3,1e-5,1e-5};
+	//double x_init[9] = {0,0,0,0,0,0,0,0,0};
+	//double x_init[10] = {0,0,0,0,0,0,0,0,0,0};
+	//double x_init[1] = {1.0};//{185.};//,(int)(80./dt),0.07,0.6,0.2,0.522,2.3809e-4,7.9365e-5};
+	
+	data_struct.syn = syn;
+	
+	s = gsl_multimin_fminimizer_alloc (T, p);
+	
+	printf ("s is a '%s' minimizer\n", 
+			gsl_multimin_fminimizer_name (s));
+	
+	f.f = &cost_function;
+	//f.df = &calculate_gradient; //NULL;
+	//f.fdf = &pr_fdf;
+	f.n = p; //n;
+	//f.p = p;
+	f.params = &data_struct;
+	
+	//x = gsl_vector_view_array(x_init, p); // setup initial guess
+	
+    times_through_cost_function = 0;
+    printf("Setting up minimiser \n");
+	//gsl_multimin_fdfminimizer_set (s, &f, x, stepsize, tolerance);
+	status = gsl_multimin_fminimizer_set (s, &f, x, step_size); // setup solver
+	printf("Minimiser setup complete, status = %s\n", gsl_strerror(status));
+	
+	//print_gradient(s);
+	
+	print_state(iter, s);
+	
+	printf("Beginning iteration loop\n");
+	do{
+		iter++;
+        times_through_cost_function = 0;
+        times_through_cost_function_jacobian = 0;
+        printf("\nNew iteration\n");
+		status = gsl_multimin_fminimizer_iterate(s);
+		printf("end of iteration update, ");
+		printf("status = %s\n", gsl_strerror(status));
+		
+        //print_gradient(s);
+        
+		print_state(iter, s);
+		
+		if(status){
+			printf("Breaking\n");
+			break;
+		}
+		
+		size = gsl_multimin_fminimizer_size(s);
+		status = gsl_multimin_test_size(size, simplex_limit_size);
+		
+		printf(" size = %g\n", size);
+	} 
+	while ( (status == GSL_CONTINUE) && (iter < 10));
+	
+	printf("------------------------\n");
+	if (status == GSL_SUCCESS){
+		printf("Final Success\n");
+	}
+	else{
+		printf("Final Error\n");
+	}
+	
+    print_params();
+    print_state(iter, s);
+    
+    //gsl_vector * temp = gsl_vector_alloc(n);
+    //cost_function(s->x, &data_struct, temp);
+    
+    print_final_params(s);
+    
+    //print_final_fit(s);
+	
+	printf("Freeing memory and exiting...\n");
+	gsl_multimin_fminimizer_free (s); // free solver memory
+	gsl_vector_free(x);
+	return finalise(0, syn);
+}
+
+void print_state(size_t iter, gsl_multimin_fminimizer * s){
+    printf("iter: %3u", (int)iter);
+    for(int i = 0; i < s->x->size; i++){
+        printf(" %g", gsl_vector_get(s->x, i));
+    }
+	printf(" |f(x)| = %g\n", s->fval);
+}
+
+void print_final_params(gsl_multimin_fminimizer *s){
+    gsl_vector * x = s->x;
+    printf("in print final params, setting params\n");
+    set_optimisation_sim_params(x);
+    printf("in print final params, printing params\n");
+    print_params();
+}
+#endif /* NM_OPTIMISATION_PROGRAM */
+
+
 #ifdef PR_OPTIMISATION_PROGRAM
 //TODO: These are the Polak-Ribiere functions
 void print_state(size_t iter, gsl_multimin_fdfminimizer * s);
