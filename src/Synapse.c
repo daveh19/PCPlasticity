@@ -52,12 +52,12 @@ void calculate_gradient(const gsl_vector * x_orig, void * data, gsl_vector * J){
         // calculate cost_function
         new_cost = cost_function(new_x, data);
         
-		diff = basic_cost - new_cost;
+		diff = new_cost - basic_cost;
         diff_norm = diff/dx[j];
         //printf("old %lf, new %lf, diff %lf, diff_norm %lf\n", old, new, diff, diff_norm);
             
         // calculate df/dx
-        df_dx = (basic_cost - new_cost) / dx[j];
+        df_dx = (new_cost - basic_cost) / dx[j];
             
 		// save in Jacobian matrix
         gsl_vector_set(J, j, df_dx);
@@ -243,12 +243,12 @@ int calculate_jacobian(const gsl_vector * x_orig, void * data, gsl_matrix * J){ 
         for (int i = 0; i < rows; i++) {
             double old = gsl_vector_get(f_base, i);
             double new = gsl_vector_get(f_delta, i);
-            double diff = old - new;
+            double diff = new - old;
             double diff_norm = diff/dx[i];
             //printf("old %lf, new %lf, diff %lf, diff_norm %lf\n", old, new, diff, diff_norm);
             
             // calculate df/dx
-            df_dx = (gsl_vector_get(f_base, i) - gsl_vector_get(f_delta, i)) / dx[i];
+            df_dx = (gsl_vector_get(f_delta, i) - gsl_vector_get(f_base, i)) / dx[i];
             
             // save in Jacobian matrix
             gsl_matrix_set(J, i, j, df_dx);
