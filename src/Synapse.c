@@ -912,6 +912,9 @@ void updateSynapticEfficacy(Synapse *syn){
 	// drho /= fTau; // moved into calculation of LTP/D above (otherwise those vars omitted tau dependence)
     if ( (rho + drho) > 0 ){
         (*syn).rho[siT + 1] = rho + drho; // Euler forward method // dt included in calculation of ltp and ltd
+		if((*syn).rho[siT+1] > 1){  // hard upper bound, not strictly necessary but may help optimisation
+			(*syn).rho[siT+1] = 1;
+		}
     }
     else{
 		// hard lower bound for numerical reasons
@@ -939,7 +942,7 @@ BOOL h(float c, double theta){
 
 // Calculate synaptic calcium concentration for next time step
 void updateCalciumConcentration(Synapse *syn){
-    double c, dc;
+    double c, dc, lower_bound;
     c = (*syn).c[siT];
 	
 	//TODO: change whether we fix Ca after a post spike or allow it to evolve dynamically here
@@ -958,12 +961,18 @@ void updateCalciumConcentration(Synapse *syn){
 		dc = (-c / fTauC) + calciumFromPreSynapticSpikes(syn) + calciumFromPostSynapticSpikes(syn);
 		(*syn).c[siT + 1] = c + dc; // Euler forward method
 	}*/
+	if((*syn).uses_depol){
+		lower_bound = dCdepol;
+	}
+	else{
+		lower_bound = dCpost;
+	}
 	
 	// PC depolarisation enforces lower bound on Ca, but PF can still modify Ca above this level
 	if ((*syn).postT[siT - 1] == 1){
 		// We've already applied the depolarisation dependent calcium influx on a previous timestep, now use normal
 		// dynamics for PF dependent calcium and try to correct for leakage of depolarisation dependent calcium.
-		dc = (-(c-dCpost) / fTauC);
+		dc = (-(c-lower_bound) / fTauC);
 		//dc = (-c / fTauC) + calciumFromPreSynapticSpikes(syn) + (dCpost / fTauC);
 		(*syn).c[siT + 1] = c + (dc * dt) + calciumFromPreSynapticSpikes(syn); // Euler forward method
 	}

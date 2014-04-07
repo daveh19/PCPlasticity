@@ -41,8 +41,8 @@ int main( int argc, char *argv[] ){
 	gsl_vector *x; // initial guess
 	gsl_multimin_function_fdf f; // function to fit
 	//gsl_vector * step_size; // step size
-	double step_size = 0.01;
-	double tolerance = 1e-6;
+	double step_size = 0.001;
+	double tolerance = 1e-4;
 	
 	int status;
 	unsigned int iter = 0;
@@ -126,7 +126,7 @@ int main( int argc, char *argv[] ){
 		}
 		
         printf("Calculating gradient test\n");
-		status = gsl_multimin_test_gradient(s->gradient, 1e-10);
+		status = gsl_multimin_test_gradient(s->gradient, 1e-6);
 		printf("Gradient test completed\n");
 	} 
 	while ( (status == GSL_CONTINUE) && (iter < 10));
