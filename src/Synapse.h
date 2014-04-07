@@ -3,7 +3,12 @@
 
 #include "GeneralIncludes.h"
 
-#include <gsl/gsl_multifit_nlin.h>
+#include <gsl/gsl_vector.h>
+//#include <gsl/gsl_blas.h>
+#include <gsl/gsl_multimin.h>
+//#include <gsl/gsl_multifit_nlin.h>
+//#include <gsl/gsl_rng.h>
+//#include <gsl/gsl_randist.h>
 
 //#define LM_OPTIMISATION_PROGRAM
 //#define SIM_LOOP_PROGRAM
@@ -158,7 +163,7 @@ int perform_parameter_optimisation_sim(Synapse *syn);
 #endif /* LM_OPTIMISATION_PROGRAM */
 #ifdef PR_OPTIMISATION_PROGRAM
 	void pr_fdf(const gsl_vector *x, void * params, double * f, gsl_vector *df);
-	void calculate_jacobian(const gsl_vector * x, void * data, gsl_vector * J);
+	void calculate_gradient(const gsl_vector * x, void * data, gsl_vector * J);
 	double cost_function(const gsl_vector * x, void * data);
 #endif /* PR_OPTIMISATION_PROGRAM */
 //float* cost_function(float *cost, Synapse *syn);

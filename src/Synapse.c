@@ -6,24 +6,18 @@
 #include "NumericalTools.h"
 #include "SpikeTrains.h"
 
-#include <gsl/gsl_multifit_nlin.h>
-#include <gsl/gsl_vector.h>
-#include <gsl/gsl_blas.h>
-
-#include <gsl/gsl_rng.h>
-#include <gsl/gsl_randist.h>
 
 #ifdef PR_OPTIMISATION_PROGRAM
+//TODO: These are the Polak-Ribiere functions
 void pr_fdf(const gsl_vector *x, void * params, double * f, gsl_vector *df){
 	*f = cost_function(x, params);
-	calculate_jacobian(x, params, df);
+	calculate_gradient(x, params, df);
 }
 
-void calculate_jacobian(const gsl_vector * x_orig, void * data, gsl_vector * J){ /* PR_OPTIMISATION_PROGRAM */
-    // TODO: completely rewrite gradient for vector method
+void calculate_gradient(const gsl_vector * x_orig, void * data, gsl_vector * J){ /* PR_OPTIMISATION_PROGRAM */
 	printf("Numerically calculating gradient vector\n");
     //int rows = (int)(J->size);
-    int cols = (int)(J->size);
+    int cols = (int)(J->size); // number of parameters
     printf("DEBUG: size %d\n", cols);
     
     double x_local;
@@ -89,7 +83,6 @@ void calculate_jacobian(const gsl_vector * x_orig, void * data, gsl_vector * J){
     //return GSL_SUCCESS;
 } /* PR_OPTIMISATION_PROGRAM */
 
-//float* cost_function(float *cost, Synapse *syn){
 double cost_function(const gsl_vector * x, void * data){ /* PR_OPTIMISATION_PROGRAM */
 	int i;
 	Synapse * syn;
@@ -162,7 +155,7 @@ double cost_function(const gsl_vector * x, void * data){ /* PR_OPTIMISATION_PROG
 	double simulated_dw[17]; // these will be the values we acutally obtain
 	double cost[17];
 	
-    printf("Times through cost function %d, from jacobian %d\n", times_through_cost_function, times_through_cost_function_jacobian);
+    printf("Times through cost function %d, from gradient function %d\n", times_through_cost_function, times_through_cost_function_jacobian);
     times_through_cost_function++;
     
 	// set new params based on what gsl sends
@@ -213,6 +206,7 @@ double cost_function(const gsl_vector * x, void * data){ /* PR_OPTIMISATION_PROG
 
 
 #ifdef LM_OPTIMISATION_PROGRAM
+//TODO: These are the Levenberg-Marquardt functions
 int calculate_jacobian(const gsl_vector * x_orig, void * data, gsl_matrix * J){ /* LM_OPTIMISATION_PROGRAM */
     printf("Numerically calculating Jacobian\n");
     int rows = (int)(J->size1);
@@ -402,6 +396,7 @@ int cost_function(const gsl_vector * x, void * data, gsl_vector * f){ /* LM_OPTI
 #endif /* LM_OPTIMISATION_PROGRAM */
 
 
+//TODO: end of optimisation method specific functions
 int perform_parameter_optimisation_sim(Synapse *syn){
 	int t, i;
 	
@@ -412,7 +407,6 @@ int perform_parameter_optimisation_sim(Synapse *syn){
 	print_params();
     printf("DEBUG: simulation_duration %ld\n", simulation_duration);
     
-	//TODO: consider changing order of looping, may give speed gain
 	// Loop over discrete time steps up to simulation_duration
 	//for (t = siT; t < (simulation_duration-1); t++){
     for (i = 0; i < no_synapses; i++){
@@ -686,6 +680,7 @@ Synapse* initialise_parameter_optimisation_sweep(int argc, char *argv[]){
 
 
 #ifdef SIM_LOOP_PROGRAM
+//TODO: main program loop
 int main( int argc, char *argv[] ){
 	int index_loop_counter;
 	float loop_increment = 0.1; // ms
@@ -740,7 +735,7 @@ int main( int argc, char *argv[] ){
 		// Load pre- and post- synaptic spike times into arrays for each synapse
 		loadInitialSpikeTimes(syn);
 
-		//TODO: decide whether epsillon bound around thetaP=0 is necessary or not
+		//CONSIDER: whether epsillon bound around thetaP=0 is necessary or not
 		// Add Epsillon to thetaP (0) to ensure Ca switches off
 		// if epsillon is 0.000001 then expect Ca to reach 0 from 1 in less than 14*tau
 		/*if (dThetaP == 0){
@@ -862,6 +857,7 @@ int main( int argc, char *argv[] ){
 }
 #endif /* SIM_LOOP_PROGRAM */
 
+//TODO: underlying synaptic efficacy evolution code
 // Calculate synaptic efficacy for next time step
 void updateSynapticEfficacy(Synapse *syn){
     double rho, drho;//, minTheta, rand_no, noise;
@@ -870,7 +866,7 @@ void updateSynapticEfficacy(Synapse *syn){
 	drho = 0;
 	
 	(*syn).no_threshold[siT] = fmax(( fThetaNO * ( 1 - ((*syn).c[siT] / fThetaNO2) ) ), 0);
-	//TODO: do I need an epsillon bound above NO_theshold when threshold=0?
+	//CONSIDER: do I need an epsillon bound above NO_theshold when threshold=0?
 	/*if((*syn).no_threshold[siT] == 0){
 		(*syn).no_threshold[siT] += 0.000001;
 	}*/
@@ -878,7 +874,7 @@ void updateSynapticEfficacy(Synapse *syn){
 	//TODO: which version of the LTP rule do we wish to implement?
 	//if ( h((*syn).c[siT], dThetaP) && h((*syn).NO_pre[siT], (*syn).no_threshold[siT] ) ){
 	if ( !(h((*syn).c[siT], dThetaD)) && h((*syn).NO_pre[siT], (*syn).no_threshold[siT] ) ){
-		//TODO: remove bistability from rho update?
+		// rho update is weight dependent here
 		(*syn).ltp[siT] = ((dGammaP * (1 - rho)) / fTau) * dt; // had previously omitted divide by tau here
 	}
 	else{
@@ -886,7 +882,7 @@ void updateSynapticEfficacy(Synapse *syn){
 	}
 	
 	if ( h((*syn).c[siT], dThetaD) && h((*syn).NO_pre[siT], (*syn).no_threshold[siT] ) ){
-		//TODO: remove bistability from rho update?
+		// rho update is weight dependent here
 		(*syn).ltd[siT] = ((dGammaD * rho) / fTau) * dt; // had previously omitted divide by tau here
 	}
 	else{
@@ -1162,7 +1158,6 @@ void synapse_memory_init(Synapse *syn){
         }
         else{//removed (*syn) to allow for array based syn[0]
             (syn[i]).c = local_c;
-			// TODO: check if this hardcoded 0 is ok
             syn[i].c[0] = initial_c; // I shorten c[] to newly remaining length of sim if loading from a checkpoint!
             fprintf(logfile, "syn(%d).c successfully assigned\n", i);
             //fprintf(logfile, "DEBUG:: syn(%d).c(0): %lf\n", i, syn[i].c[0]);

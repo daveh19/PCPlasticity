@@ -7,15 +7,7 @@
  *
  */
 
-//#include "OptimisationSweep.h"
 #include "Synapse.h"
-
-#include <gsl/gsl_vector.h>
-#include <gsl/gsl_blas.h>
-#include <gsl/gsl_multifit_nlin.h>
-#include <gsl/gsl_multimin.h>
-
-
 
 /*int main( int argc, char *argv[] ){
 	Synapse *syn;
@@ -30,8 +22,8 @@
 }*/
 
 
-
 #ifdef PR_OPTIMISATION_PROGRAM
+//TODO: These are the Polak-Ribiere functions
 void print_state(size_t iter, gsl_multimin_fdfminimizer * s);
 void print_gradient(gsl_multimin_fdfminimizer * s);
 void print_final_fit(gsl_multimin_fdfminimizer * s);
@@ -83,7 +75,7 @@ int main( int argc, char *argv[] ){
 			gsl_multimin_fdfminimizer_name (s));
 	
 	f.f = &cost_function;
-	f.df = &calculate_jacobian; //NULL;
+	f.df = &calculate_gradient; //NULL;
 	f.fdf = &pr_fdf;
 	f.n = p; //n;
 	//f.p = p;
@@ -222,6 +214,7 @@ void print_final_fit(gsl_multimin_fdfminimizer * s){
 
 
 #ifdef LM_OPTIMISATION_PROGRAM
+//TODO: These are the Levenberg-Marquardt functions
 void print_state(size_t iter, gsl_multifit_fdfsolver * s);
 int print_jacobian(gsl_multifit_fdfsolver * s);
 void print_final_fit(gsl_multifit_fdfsolver * s);
