@@ -961,17 +961,18 @@ void updateCalciumConcentration(Synapse *syn){
 		dc = (-c / fTauC) + calciumFromPreSynapticSpikes(syn) + calciumFromPostSynapticSpikes(syn);
 		(*syn).c[siT + 1] = c + dc; // Euler forward method
 	}*/
-	if((*syn).uses_depol){
-		lower_bound = dCdepol;
-	}
-	else{
-		lower_bound = dCpost;
-	}
 	
 	// PC depolarisation enforces lower bound on Ca, but PF can still modify Ca above this level
 	if ((*syn).postT[siT - 1] == 1){
 		// We've already applied the depolarisation dependent calcium influx on a previous timestep, now use normal
 		// dynamics for PF dependent calcium and try to correct for leakage of depolarisation dependent calcium.
+		if((*syn).uses_depol){
+			lower_bound = dCdepol;
+		}
+		else{
+			lower_bound = dCpost;
+		}
+		
 		dc = (-(c-lower_bound) / fTauC);
 		//dc = (-c / fTauC) + calciumFromPreSynapticSpikes(syn) + (dCpost / fTauC);
 		(*syn).c[siT + 1] = c + (dc * dt) + calciumFromPreSynapticSpikes(syn); // Euler forward method
