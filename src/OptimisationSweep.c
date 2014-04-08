@@ -22,11 +22,9 @@
 }*/
 
 
-#ifdef NM_OPTIMISATION_PROGRAM
+#ifdef NM_MINIMISATION_PROGRAM
 //TODO: These are the Nelder-Mead functions
 void print_state(size_t iter, gsl_multimin_fminimizer * s);
-//void print_gradient(gsl_multimin_fdfminimizer * s);
-//void print_final_fit(gsl_multimin_fdfminimizer * s);
 void print_final_params(gsl_multimin_fminimizer *s);
 
 int main( int argc, char *argv[] ){
@@ -144,8 +142,8 @@ int main( int argc, char *argv[] ){
     print_params();
     print_state(iter, s);
     
-    //gsl_vector * temp = gsl_vector_alloc(n);
-    //cost_function(s->x, &data_struct, temp);
+	// do a final run so that I can re-see the fit matrix
+    cost_function(s->x, &data_struct);
     
     print_final_params(s);
     
@@ -172,10 +170,10 @@ void print_final_params(gsl_multimin_fminimizer *s){
     printf("in print final params, printing params\n");
     print_params();
 }
-#endif /* NM_OPTIMISATION_PROGRAM */
+#endif /* NM_MINIMISATION_PROGRAM */
 
 
-#ifdef PR_OPTIMISATION_PROGRAM
+#ifdef PR_MINIMISATION_PROGRAM
 //TODO: These are the Polak-Ribiere functions
 void print_state(size_t iter, gsl_multimin_fdfminimizer * s);
 void print_gradient(gsl_multimin_fdfminimizer * s);
@@ -374,7 +372,7 @@ void print_final_fit(gsl_multimin_fdfminimizer * s){
     printf("END\n");
 }
 #endif
-#endif /* PR_OPTIMISATION_PROGRAM */
+#endif /* PR_MINIMISATION_PROGRAM */
 
 
 #ifdef LM_OPTIMISATION_PROGRAM

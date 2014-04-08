@@ -7,93 +7,16 @@
 #include "SpikeTrains.h"
 
 
-#ifdef NM_OPTIMISATION_PROGRAM
-//TODO: These are the Polak-Ribiere functions
-void pr_fdf(const gsl_vector *x, void * params, double * f, gsl_vector *df){
-	printf("Entering fdf function\n");
-	*f = cost_function(x, params);
-	calculate_gradient(x, params, df);
-	printf("Leaving fdf function\n");
-}
-
-void calculate_gradient(const gsl_vector * x_orig, void * data, gsl_vector * J){ /* PR_OPTIMISATION_PROGRAM */
-	printf("Numerically calculating gradient vector\n");
-    //int rows = (int)(J->size);
-    int cols = (int)(J->size); // number of parameters
-    printf("DEBUG: size %d\n", cols);
-    
-    double x_local;
-    double df_dx;
-	double basic_cost;
-	double new_cost;
-	double diff;
-	double diff_norm;
-	
-    gsl_vector * new_x = gsl_vector_alloc(cols);
-    //gsl_vector * f_base = gsl_vector_alloc(rows);
-    //gsl_vector * f_delta = gsl_vector_alloc(rows);
-    
-    const double dx[8] = {1, 1, 0.001, 0.001, 0.001, 0.001, 1e-6, 1e-6};
-    //const double dx[9] = {1, 1, 0.001, 0.001, 0.001, 0.001, 1e-6, 1e-6, 0.5};
-    //const double dx[10] = {1, 1, 0.001, 0.001, 0.001, 0.001, 1e-6, 1e-6, 0.5, 1};
-    
-    // make copy of original x_values to which we will add dx
-    gsl_vector_memcpy(new_x, x_orig);
-    
-    // setup baseline f, for calculation of df/dx
-    basic_cost = cost_function(new_x, data);
-	times_through_cost_function_jacobian++;
-    
-    for (int j = 0; j < cols; j++) { // loop over parameters (cols)
-        // save original value of x, was previously doing this inline but this looks faster
-        x_local = gsl_vector_get(x_orig, j);
-        
-        // increment element j of x by dx
-        gsl_vector_set(new_x, j, ( x_local + dx[j] ) );
-        
-        // calculate cost_function
-        new_cost = cost_function(new_x, data);
-        
-		diff = new_cost - basic_cost;
-        diff_norm = diff/dx[j];
-        //printf("old %lf, new %lf, diff %lf, diff_norm %lf\n", old, new, diff, diff_norm);
-            
-        // calculate df/dx
-        df_dx = (new_cost - basic_cost) / dx[j];
-            
-		// save in Jacobian matrix
-        gsl_vector_set(J, j, df_dx);
-            
-		printf("j %d, old %lf, new %lf, diff %lf, diff_norm %lf, df_dx %lf, matrix el %lf\n", j, basic_cost, new_cost, diff, diff_norm, df_dx, gsl_vector_get(J, j));
-        
-        // reset new_x to original guess values
-        //gsl_vector_memcpy(&new_x, x);
-        gsl_vector_set(new_x, j, x_local);
-        
-        times_through_cost_function_jacobian++;
-    }
-    
-    // Zero out the effects of Safo7, just to see if it helps numerical solution
-    /*for (int j = 0; j < cols; j++){
-	 gsl_matrix_set(J, 6, j, 0);
-	 }*/
-    
-    // Are these calls to free necessary? Surely the function stack will be completely destroyed. (But perhaps the vectors reside in the GSL library space)
-    gsl_vector_free(new_x);
-    //gsl_vector_free(f_base);
-    //gsl_vector_free(f_delta);
-    printf("Finished numerically calculating gradient\n");
-    //return GSL_SUCCESS;
-} /* PR_OPTIMISATION_PROGRAM */
-
-double cost_function(const gsl_vector * x, void * data){ /* PR_OPTIMISATION_PROGRAM */
+#ifdef MINIMISATION_PROGRAM
+//TODO: these are the functions specific to Minimisation procedures
+double cost_function(const gsl_vector * x, void * data){ /* MINIMISATION_PROGRAM */
 	int i;
 	Synapse * syn;
 	syn = ((struct fitting_data *) data)->syn;
 	int signal_change = 0;
     double final_cost = 0;
 	
-    const double cost_coeffs[17] = {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
+    //const double cost_coeffs[17] = {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
     //const double cost_coeffs[17] = {3,1,1,3,1,1,3,1,1,1,1,3,3,1,1,1,1}; // version used for first set of figs: priority max dw on Safo and Bidoret
 	//const double cost_coeffs[17] = {1,1,1,1,1,1,1,1,3,3,1,3,3,1,1,1,1}; // prioritise PF and Bidoret max dw
 	//const double cost_coeffs[17] = {3,1,1,3,1,1,3,1,3,3,1,1,1,1,1,1,1}; // prioritise PF and Safo max dw
@@ -171,17 +94,18 @@ double cost_function(const gsl_vector * x, void * data){ /* PR_OPTIMISATION_PROG
 	printf("done\n");
 	
 	// calculate cost based on (sim weight change - experimental weight change)^2 / sigma^2
-	printf("Cost calculation: \n\t cost \t objective \t simulation \t rho final \t weighted cost \n");
+	//printf("Cost calculation: \n\t cost \t objective \t simulation \t rho final \t weighted cost \n");
+	printf("Cost calculation: \n\t cost \t objective \t simulation \t rho final \n");
 	double norm = 0;
 	for(i = 0; i < no_synapses; i++){
 		simulated_dw[i] = syn[i].rho[simulation_duration-1] / 0.5; // divide by 0.5 to normalise
 		//cost[i] = ( ( (objective_dw[i] - simulated_dw[i]) * (objective_dw[i] - simulated_dw[i]) ) / objective_error_bars[i] );
 		cost[i] = ( ( (objective_dw[i] - simulated_dw[i]) ) / objective_error_bars[i] );
-        printf("\t %f\t %f\t %f\t %f\t ", cost[i], objective_dw[i], simulated_dw[i], syn[i].rho[simulation_duration-1]);
+        printf("\t %f\t %f\t %f\t %f \n", cost[i], objective_dw[i], simulated_dw[i], syn[i].rho[simulation_duration-1]);
 		//norm += cost[i]; // * cost[i];
         norm += cost[i] * cost[i];
-        cost[i] *= cost_coeffs[i];
-        printf("%f \n", cost[i]);
+        //cost[i] *= cost_coeffs[i];
+        //printf("%f \n", cost[i]);
         //gsl_vector_set(f, i, cost[i]);
         if (times_through_cost_function > 1){
             if(fabs(old_simulated_dw[i] - simulated_dw[i]) > 0.0000001)
@@ -205,7 +129,88 @@ double cost_function(const gsl_vector * x, void * data){ /* PR_OPTIMISATION_PROG
 	
 	return final_cost;
 }
-#endif /* PR_OPTIMISATION_PROGRAM */
+#endif /* MINIMISATION_PROGRAM */
+
+
+#ifdef PR_MINIMISATION_PROGRAM
+//TODO: These are the Polak-Ribiere functions
+void pr_fdf(const gsl_vector *x, void * params, double * f, gsl_vector *df){
+	printf("Entering fdf function\n");
+	*f = cost_function(x, params);
+	calculate_gradient(x, params, df);
+	printf("Leaving fdf function\n");
+}
+
+void calculate_gradient(const gsl_vector * x_orig, void * data, gsl_vector * J){ /* PR_OPTIMISATION_PROGRAM */
+	printf("Numerically calculating gradient vector\n");
+    //int rows = (int)(J->size);
+    int cols = (int)(J->size); // number of parameters
+    printf("DEBUG: size %d\n", cols);
+    
+    double x_local;
+    double df_dx;
+	double basic_cost;
+	double new_cost;
+	double diff;
+	double diff_norm;
+	
+    gsl_vector * new_x = gsl_vector_alloc(cols);
+    //gsl_vector * f_base = gsl_vector_alloc(rows);
+    //gsl_vector * f_delta = gsl_vector_alloc(rows);
+    
+    const double dx[8] = {1, 1, 0.001, 0.001, 0.001, 0.001, 1e-6, 1e-6};
+    //const double dx[9] = {1, 1, 0.001, 0.001, 0.001, 0.001, 1e-6, 1e-6, 0.5};
+    //const double dx[10] = {1, 1, 0.001, 0.001, 0.001, 0.001, 1e-6, 1e-6, 0.5, 1};
+    
+    // make copy of original x_values to which we will add dx
+    gsl_vector_memcpy(new_x, x_orig);
+    
+    // setup baseline f, for calculation of df/dx
+    basic_cost = cost_function(new_x, data);
+	times_through_cost_function_jacobian++;
+    
+    for (int j = 0; j < cols; j++) { // loop over parameters (cols)
+        // save original value of x, was previously doing this inline but this looks faster
+        x_local = gsl_vector_get(x_orig, j);
+        
+        // increment element j of x by dx
+        gsl_vector_set(new_x, j, ( x_local + dx[j] ) );
+        
+        // calculate cost_function
+        new_cost = cost_function(new_x, data);
+        
+		diff = new_cost - basic_cost;
+        diff_norm = diff/dx[j];
+        //printf("old %lf, new %lf, diff %lf, diff_norm %lf\n", old, new, diff, diff_norm);
+            
+        // calculate df/dx
+        df_dx = (new_cost - basic_cost) / dx[j];
+            
+		// save in Jacobian matrix
+        gsl_vector_set(J, j, df_dx);
+            
+		printf("j %d, old %lf, new %lf, diff %lf, diff_norm %lf, df_dx %lf, matrix el %lf\n", j, basic_cost, new_cost, diff, diff_norm, df_dx, gsl_vector_get(J, j));
+        
+        // reset new_x to original guess values
+        //gsl_vector_memcpy(&new_x, x);
+        gsl_vector_set(new_x, j, x_local);
+        
+        times_through_cost_function_jacobian++;
+    }
+    
+    // Zero out the effects of Safo7, just to see if it helps numerical solution
+    /*for (int j = 0; j < cols; j++){
+	 gsl_matrix_set(J, 6, j, 0);
+	 }*/
+    
+    // Are these calls to free necessary? Surely the function stack will be completely destroyed. (But perhaps the vectors reside in the GSL library space)
+    gsl_vector_free(new_x);
+    //gsl_vector_free(f_base);
+    //gsl_vector_free(f_delta);
+    printf("Finished numerically calculating gradient\n");
+    //return GSL_SUCCESS;
+} 
+#endif /* PR_MINIMISATION_PROGRAM */
 
 
 #ifdef LM_OPTIMISATION_PROGRAM

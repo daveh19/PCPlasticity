@@ -11,10 +11,16 @@
 //#include <gsl/gsl_randist.h>
 
 //#define SIM_LOOP_PROGRAM
-#define LM_OPTIMISATION_PROGRAM
-//#define PR_OPTIMISATION_PROGRAM
-//#define NM_OPTIMISATION_PROGRAM
+//#define LM_OPTIMISATION_PROGRAM
+//#define PR_MINIMISATION_PROGRAM
+#define NM_MINIMISATION_PROGRAM
 
+#ifdef PR_MINIMISATION_PROGRAM
+	#define MINIMISATION_PROGRAM
+#endif
+#ifdef NM_MINIMISATION_PROGRAM
+	#define MINIMISATION_PROGRAM
+#endif
 
 #define SAFO_STEPS (8001) /*(8001)*/
 #define BIDORET_STEPS (800)
@@ -162,11 +168,13 @@ int perform_parameter_optimisation_sim(Synapse *syn);
 	int calculate_jacobian(const gsl_vector * x, void * data, gsl_matrix * J);
 	int cost_function(const gsl_vector * x, void * data, gsl_vector * f);
 #endif /* LM_OPTIMISATION_PROGRAM */
-#ifdef NM_OPTIMISATION_PROGRAM
+#ifdef PR_MINIMISATION_PROGRAM
 	void pr_fdf(const gsl_vector *x, void * params, double * f, gsl_vector *df);
 	void calculate_gradient(const gsl_vector * x, void * data, gsl_vector * J);
+#endif /* PR_MINIMISATION_PROGRAM */
+#ifdef MINIMISATION_PROGRAM
 	double cost_function(const gsl_vector * x, void * data);
-#endif /* PR_OPTIMISATION_PROGRAM */
+#endif /* MINIMISATION_PROGRAM */
 //float* cost_function(float *cost, Synapse *syn);
 
 #endif /*SYNAPSE_H_*/
