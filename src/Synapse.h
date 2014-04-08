@@ -4,16 +4,16 @@
 #include "GeneralIncludes.h"
 
 #include <gsl/gsl_vector.h>
-//#include <gsl/gsl_blas.h>
+#include <gsl/gsl_blas.h>
 #include <gsl/gsl_multimin.h>
-//#include <gsl/gsl_multifit_nlin.h>
+#include <gsl/gsl_multifit_nlin.h>
 //#include <gsl/gsl_rng.h>
 //#include <gsl/gsl_randist.h>
 
 //#define SIM_LOOP_PROGRAM
-//#define LM_OPTIMISATION_PROGRAM
+#define LM_OPTIMISATION_PROGRAM
 //#define PR_OPTIMISATION_PROGRAM
-#define NM_OPTIMISATION_PROGRAM
+//#define NM_OPTIMISATION_PROGRAM
 
 
 #define SAFO_STEPS (8001) /*(8001)*/
