@@ -15,7 +15,17 @@ int main( int argc, char *argv[] ){
 	syn = initialise_parameter_optimisation_sweep(argc, argv);
 	printf("Initialistation complete\n");
 	
-	perform_parameter_optimisation_sim(syn);
+	const size_t p = 8; //10;//8;//9;
+	
+	//perform_parameter_optimisation_sim(syn);
+	gsl_vector *x; // initial guess
+	x = gsl_vector_alloc(p);
+	gsl_vector_set_all(x, 0);
+	
+	struct fitting_data data_struct;
+	data_struct.syn = syn;
+	
+	cost_function(x, &data_struct);
 	
     //printf("help\n");
 	printf("Freeing memory and exiting...\n");
