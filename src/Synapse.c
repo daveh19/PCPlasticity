@@ -462,8 +462,8 @@ int perform_parameter_optimisation_sim(Synapse *syn){
 
 void set_optimisation_sim_params(const gsl_vector * x){
     //double param_multiplier[8] = {1e-8, 1e-8, 1e-5, 1e-4, 1e-5, 1e-4, 1e2, 1e3}; //{1,1e-6,1,1,1,1,1000,1000};
-	//double param_multiplier[8] = {1,1,1,1,1,1,1,1};// {1e-8, 1e-10, 1e-6, 1e-6, 1e-6, 1e-7, 1e0, 1e1}; //{1,1e-6,1,1,1,1,1000,1000};
-    double param_multiplier[9] = {1,1,1,1,1,1,1,1,1};
+	double param_multiplier[8] = {1,1,1,1,1,1,1,1};// {1e-8, 1e-10, 1e-6, 1e-6, 1e-6, 1e-7, 1e0, 1e1}; //{1,1e-6,1,1,1,1,1000,1000};
+    //double param_multiplier[9] = {1,1,1,1,1,1,1,1,1};
 	//double param_multiplier[9] = {1e-8, 1e-10, 1e-6, 1e-6, 1e-6, 1e-7, 1e0, 1e1, 1e-8}; //{1,1e-6,1,1,1,1,1000,1000};
 	//double param_multiplier[10] = {1e-10, 1e-10, 1e-6, 1e-6, 1e-6, 1e-7, 1e0, 1e1, 1e-8, 1e-10}; //{1,1e-6,1,1,1,1,1000,1000};
 	double temp_reader;
@@ -490,8 +490,8 @@ void set_optimisation_sim_params(const gsl_vector * x){
 	dGammaD = (param_multiplier[6] * dGammaDfixed + gsl_vector_get(x,6)) / param_multiplier[6]; //gsl_vector_get(x, 6);
 	dGammaP = (param_multiplier[7] * dGammaPfixed + gsl_vector_get(x,7)) / param_multiplier[7]; //gsl_vector_get(x, 7);
 	
-	//lfTauV = lfTauVfixed;
-	lfTauV = (param_multiplier[8] * lfTauVfixed + gsl_vector_get(x,8)) / param_multiplier[8]; //gsl_vector_get(x, 7);
+	lfTauV = lfTauVfixed;
+	//lfTauV = (param_multiplier[8] * lfTauVfixed + gsl_vector_get(x,8)) / param_multiplier[8]; //gsl_vector_get(x, 7);
 	lfTauNMDAR = fTauC;
     //lfTauNMDAR = (param_multiplier[9] * lfTauNMDARfixed + gsl_vector_get(x,9)) / param_multiplier[9]; //fTauC; //gsl_vector_get(x, 0);
     dCdepol = dCpost;
