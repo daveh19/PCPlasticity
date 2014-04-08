@@ -9,7 +9,8 @@
 
 #include "Synapse.h"
 
-/*int main( int argc, char *argv[] ){
+#ifdef BASIC_ALL_EXPERIMENTS_SWEEP
+int main( int argc, char *argv[] ){
 	Synapse *syn;
 	syn = initialise_parameter_optimisation_sweep(argc, argv);
 	printf("Initialistation complete\n");
@@ -19,7 +20,8 @@
     //printf("help\n");
 	printf("Freeing memory and exiting...\n");
 	return finalise(0, syn);
-}*/
+}
+#endif /* BASIC_ALL_EXPERIMENTS_SWEEP */
 
 
 #ifdef NM_MINIMISATION_PROGRAM
