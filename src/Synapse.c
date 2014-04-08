@@ -426,7 +426,7 @@ int perform_parameter_optimisation_sim(Synapse *syn){
 		{
 			//i = 12;
 			//printf("syn(%d) t %d\n", i, t);
-			//updatePreSynapticVoltageTrace(&syn[i]);
+			updatePreSynapticVoltageTrace(&syn[i]);
 			updatePreSynapticNOConcentration(&syn[i]);
 			updateCalciumConcentration(&syn[i]);
 			updateSynapticEfficacy(&syn[i]);
@@ -490,12 +490,12 @@ void set_optimisation_sim_params(const gsl_vector * x){
 	dGammaD = (param_multiplier[6] * dGammaDfixed + gsl_vector_get(x,6)) / param_multiplier[6]; //gsl_vector_get(x, 6);
 	dGammaP = (param_multiplier[7] * dGammaPfixed + gsl_vector_get(x,7)) / param_multiplier[7]; //gsl_vector_get(x, 7);
 	
-	lfTauV = lfTauVfixed;
-	//lfTauV = (param_multiplier[8] * lfTauVfixed + gsl_vector_get(x,8)) / param_multiplier[8]; //gsl_vector_get(x, 7);
+	//lfTauV = lfTauVfixed;
+	lfTauV = (param_multiplier[8] * lfTauVfixed + gsl_vector_get(x,8)) / param_multiplier[8]; //gsl_vector_get(x, 7);
 	lfTauNMDAR = fTauC;
     //lfTauNMDAR = (param_multiplier[9] * lfTauNMDARfixed + gsl_vector_get(x,9)) / param_multiplier[9]; //fTauC; //gsl_vector_get(x, 0);
-    //dCdepol = dCpost;
-	dCdepol = (param_multiplier[8] * dCdepolFixed + gsl_vector_get(x,8)) / param_multiplier[8];
+    dCdepol = dCpost;
+	//dCdepol = (param_multiplier[8] * dCdepolFixed + gsl_vector_get(x,8)) / param_multiplier[8];
 	
 	printf("DEBUG gammaD difference %g\n", (temp_reader - dGammaD));
 	
@@ -1098,11 +1098,11 @@ double nmdarFromPreSynapticSpikes(Synapse *syn){
     }
     else if( (siT >= iNOSpikeDelay) && ( siT < (simulation_duration - 1) ) ){
         // Simple model, no dependence on presynaptic potential unblocking of NMDAR
-		d = ((double) (*syn).preT[siT - iNOSpikeDelay]) * lfNMDARjump;
+		//d = ((double) (*syn).preT[siT - iNOSpikeDelay]) * lfNMDARjump;
 		
 		// Dependence on activation of presynaptic NMDAR
 		// we need the equal delay on the spike and on the V state in order to have consistency
-		//d = ((double) (*syn).preT[siT - iNOSpikeDelay]) * lfNMDARjump * (*syn).V_pre[siT - iNOSpikeDelay];
+		d = ((double) (*syn).preT[siT - iNOSpikeDelay]) * lfNMDARjump * (*syn).V_pre[siT - iNOSpikeDelay];
     }
     else{ // This shouldn't happen!
         fprintf(logfile, "ERROR: unexpected situation in nmdarFromPreSynapticSpikes()");

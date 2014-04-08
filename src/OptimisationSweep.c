@@ -73,7 +73,7 @@ int main( int argc, char *argv[] ){
 	 gsl_vector_set(step_size, 5, 1e-2);
 	 gsl_vector_set(step_size, 6, 1e-6);
 	 gsl_vector_set(step_size, 7, 1e-6);
-	 gsl_vector_set(step_size, 8, 1e-2); // c_depol
+	 gsl_vector_set(step_size, 8, 1); // c_depol
 	// tau, D, C_pf, C_cs, N_pf, theta_d, gamma_d, gamma_p
 	//double x_init[8] = {185,(80./dt),0.07,0.6,0.2,0.522,2.3809e-4,7.9365e-5};
     //double x_init[8] = {1,1,1e-2,1e-2,1e-2,1e-3,1e-5,1e-5};
