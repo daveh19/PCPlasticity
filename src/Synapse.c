@@ -484,11 +484,12 @@ void set_optimisation_sim_params(const gsl_vector * x){
 	dGammaD = (param_multiplier[6] * dGammaDfixed + gsl_vector_get(x,6)) / param_multiplier[6]; //gsl_vector_get(x, 6);
 	dGammaP = (param_multiplier[7] * dGammaPfixed + gsl_vector_get(x,7)) / param_multiplier[7]; //gsl_vector_get(x, 7);
 	
-	//lfTauV = (param_multiplier[8] * lfTauVfixed + gsl_vector_get(x,8)) / param_multiplier[8]; //gsl_vector_get(x, 7);
 	lfTauV = lfTauVfixed;
-    lfTauNMDAR = fTauC;
+	//lfTauV = (param_multiplier[8] * lfTauVfixed + gsl_vector_get(x,8)) / param_multiplier[8]; //gsl_vector_get(x, 7);
+	lfTauNMDAR = fTauC;
     //lfTauNMDAR = (param_multiplier[9] * lfTauNMDARfixed + gsl_vector_get(x,9)) / param_multiplier[9]; //fTauC; //gsl_vector_get(x, 0);
-    //dCdepol = (param_multiplier[8] * dCdepolFixed + gsl_vector_get(x,8)) / param_multiplier[8];
+    dCdepol = dCpost;
+	//dCdepol = (param_multiplier[8] * dCdepolFixed + gsl_vector_get(x,8)) / param_multiplier[8];
 	
 	printf("DEBUG gammaD difference %g\n", (temp_reader - dGammaD));
 	
