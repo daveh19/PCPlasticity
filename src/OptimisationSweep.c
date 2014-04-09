@@ -45,11 +45,13 @@ int main( int argc, char *argv[] ){
     
     // Choose type of nonlinear solver here
 	//const gsl_multimin_fminimizer_type * T = gsl_multimin_fminimizer_nmsimplex;
-    const gsl_multimin_fminimizer_type * T = gsl_multimin_fminimizer_nmsimplex2;
+    //const gsl_multimin_fminimizer_type * T = gsl_multimin_fminimizer_nmsimplex2;
+	const gsl_multimin_fminimizer_type * T = gsl_multimin_fminimizer_nmsimplex2rand;
 	
 	gsl_multimin_fminimizer * s; // solver
 	
 	gsl_vector *x; // initial guess
+	gsl_vector *x2; // initial guess
 	gsl_multimin_function f; // function to fit
 	gsl_vector * step_size; // step size
 	//double step_size = 0.001;
@@ -67,6 +69,7 @@ int main( int argc, char *argv[] ){
 	
 	// initial guess
 	x = gsl_vector_alloc(p);
+	x2 = gsl_vector_alloc(p);
 	gsl_vector_set(x, 0, 0);
 	gsl_vector_set(x, 1, 0);
 	gsl_vector_set(x, 2, 0);
@@ -115,6 +118,8 @@ int main( int argc, char *argv[] ){
 	//gsl_multimin_fdfminimizer_set (s, &f, x, stepsize, tolerance);
 	status = gsl_multimin_fminimizer_set (s, &f, x, step_size); // setup solver
 	printf("Minimiser setup complete, status = %s\n", gsl_strerror(status));
+	status = gsl_multimin_fminimizer_set (s, &f, x, step_size); // setup solver
+	printf("Changing random basis function, Minimiser setup complete, status = %s\n", gsl_strerror(status));
 	
 	//print_gradient(s);
 	
@@ -143,6 +148,14 @@ int main( int argc, char *argv[] ){
 		status = gsl_multimin_test_size(size, simplex_limit_size);
 		
 		printf(" size = %g\n", size);
+		
+		/*if(iter == 50){
+			printf("\n\n\n\n\n-----------------Changing basis function-----------------\n");
+			gsl_vector_memcpy(x2, x);
+			status = gsl_multimin_fminimizer_set (s, &f, x2, step_size); // setup solver
+			printf("Changing random basis function, Minimiser setup complete, status = %s\n", gsl_strerror(status));
+			printf("-----------------Done changing basis function-----------------\n\n\n\n\n");
+		}*/
 	} 
 	while ( (status == GSL_CONTINUE) && (iter < 100));
 	
