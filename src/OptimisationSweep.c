@@ -44,8 +44,9 @@ int main( int argc, char *argv[] ){
 	struct fitting_data data_struct;
     
     // Choose type of nonlinear solver here
-	const gsl_multimin_fminimizer_type * T = gsl_multimin_fminimizer_nmsimplex;
-    
+	//const gsl_multimin_fminimizer_type * T = gsl_multimin_fminimizer_nmsimplex;
+    const gsl_multimin_fminimizer_type * T = gsl_multimin_fminimizer_nmsimplex2;
+	
 	gsl_multimin_fminimizer * s; // solver
 	
 	gsl_vector *x; // initial guess
