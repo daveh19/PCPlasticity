@@ -480,10 +480,10 @@ void loadSimulationParameters(int argc, char *argv[]){
                     dSigma = paramValue;
                 }
                 else if (!strcmp(paramName, "PRE_SPIKE_CA_DELAY")){
-                    iCaSpikeDelay = (int) paramValue;
+					iCaSpikeDelay = (int) ( ( paramValue / dt ) + EPSILLON );
                 }
 				else if (!strcmp(paramName, "PRE_SPIKE_NO_DELAY")){
-                    iNOSpikeDelay = (int) paramValue;
+					iNOSpikeDelay = (int) ( ( paramValue / dt ) + EPSILLON );
                 }
                 else if (!strcmp(paramName, "TRAIN_FUNCTION")){
                     if ((int) paramValue == 1){
@@ -648,10 +648,10 @@ void loadSimulationParameters(int argc, char *argv[]){
 	
 	//printf("DEBUG: iCaSpikeDelay was %d\n", iCaSpikeDelay);
 	//printf("DEBUG: iCaSpikeDelay calculation %f\n", ( (iCaSpikeDelay / dt ) + EPSILLON ) );
-	iCaSpikeDelay = (int) ( ( iCaSpikeDelay / dt ) + EPSILLON );
+	//iCaSpikeDelay = (int) ( ( iCaSpikeDelay / dt ) + EPSILLON );
 	//printf("DEBUG: iCaSpikeDelay set to %d\n", iCaSpikeDelay);
 	
-	iNOSpikeDelay = (int) ( ( iNOSpikeDelay / dt ) + EPSILLON );
+	//iNOSpikeDelay = (int) ( ( iNOSpikeDelay / dt ) + EPSILLON );
 	
 	iVOpeningDelay = 0.999 / dt; // single millisecond delay
 	

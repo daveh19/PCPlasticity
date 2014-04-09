@@ -59,9 +59,10 @@ int main( int argc, char *argv[] ){
 	
 	double size;
 	int status;
+	int setup_status;
 	unsigned int iter = 0;
 	//const size_t n = 17;
-	const size_t p = 8; //10;//8;//9;
+	const size_t p = 9; //10;//8;//9;
 	
 	syn = initialise_parameter_optimisation_sweep(argc, argv);
 	print_params();
@@ -78,7 +79,7 @@ int main( int argc, char *argv[] ){
 	gsl_vector_set(x, 5, 0);
 	gsl_vector_set(x, 6, 0);
 	gsl_vector_set(x, 7, 0);
-	//gsl_vector_set(x, 8, 0);
+	gsl_vector_set(x, 8, 0);
 	// step sizes (different per parameter)
 	step_size = gsl_vector_alloc(p);
 	 gsl_vector_set(step_size, 0, 1);
@@ -89,7 +90,7 @@ int main( int argc, char *argv[] ){
 	 gsl_vector_set(step_size, 5, 1e-2);
 	 gsl_vector_set(step_size, 6, 1e-6);
 	 gsl_vector_set(step_size, 7, 1e-6);
-	// gsl_vector_set(step_size, 8, 1); // c_depol, tau_v
+	 gsl_vector_set(step_size, 8, 1); // c_depol, tau_v
 	// tau, D, C_pf, C_cs, N_pf, theta_d, gamma_d, gamma_p
 	//double x_init[8] = {185,(80./dt),0.07,0.6,0.2,0.522,2.3809e-4,7.9365e-5};
     //double x_init[8] = {1,1,1e-2,1e-2,1e-2,1e-3,1e-5,1e-5};
@@ -116,10 +117,10 @@ int main( int argc, char *argv[] ){
     times_through_cost_function = 0;
     printf("Setting up minimiser \n");
 	//gsl_multimin_fdfminimizer_set (s, &f, x, stepsize, tolerance);
-	status = gsl_multimin_fminimizer_set (s, &f, x, step_size); // setup solver
-	printf("Minimiser setup complete, status = %s\n", gsl_strerror(status));
-	status = gsl_multimin_fminimizer_set (s, &f, x, step_size); // setup solver
-	printf("Changing random basis function, Minimiser setup complete, status = %s\n", gsl_strerror(status));
+	setup_status = gsl_multimin_fminimizer_set (s, &f, x, step_size); // setup solver
+	printf("Minimiser setup complete, status = %s\n", gsl_strerror(setup_status));
+	//setup_status = gsl_multimin_fminimizer_set (s, &f, x, step_size); // setup solver
+	//printf("Changing random basis function, Minimiser setup complete, status = %s\n", gsl_strerror(setup_status));
 	
 	//print_gradient(s);
 	
@@ -149,22 +150,22 @@ int main( int argc, char *argv[] ){
 		
 		printf(" size = %g\n", size);
 		
-		/*if(iter == 50){
+		if(iter == 50){
 			printf("\n\n\n\n\n-----------------Changing basis function-----------------\n");
-			gsl_vector_memcpy(x2, x);
-			status = gsl_multimin_fminimizer_set (s, &f, x2, step_size); // setup solver
-			printf("Changing random basis function, Minimiser setup complete, status = %s\n", gsl_strerror(status));
+			gsl_vector_memcpy(x2, s->x);
+			setup_status = gsl_multimin_fminimizer_set (s, &f, x2, step_size); // setup solver
+			printf("Changing random basis function, Minimiser setup complete, status = %s\n", gsl_strerror(setup_status));
 			printf("-----------------Done changing basis function-----------------\n\n\n\n\n");
-		}*/
+		}
 	} 
 	while ( (status == GSL_CONTINUE) && (iter < 100));
 	
 	printf("------------------------\n");
 	if (status == GSL_SUCCESS){
-		printf("Final Success\n");
+		printf("Final Success (exited returning GSL_SUCCESS)\n");
 	}
 	else{
-		printf("Final Error\n");
+		printf("Final Error (exited without returning GSL_SUCCESS)\n");
 		printf("status = %s\n", gsl_strerror(status));
 	}
 	
@@ -407,8 +408,8 @@ int main( int argc, char *argv[] ){
 	struct fitting_data data_struct;
     
     // Choose type of nonlinear solver here
-	const gsl_multifit_fdfsolver_type * T = gsl_multifit_fdfsolver_lmder;
-	//const gsl_multifit_fdfsolver_type * T = gsl_multifit_fdfsolver_lmsder;
+	//const gsl_multifit_fdfsolver_type * T = gsl_multifit_fdfsolver_lmder;
+	const gsl_multifit_fdfsolver_type * T = gsl_multifit_fdfsolver_lmsder;
     
 	gsl_multifit_function_fdf f; // function to fit
 	gsl_multifit_fdfsolver * s; // solver
@@ -417,7 +418,7 @@ int main( int argc, char *argv[] ){
 	int status;
 	unsigned int iter = 0;
 	const size_t n = 17;
-	const size_t p = 8; //10;//8;//9;
+	const size_t p = 9; //10;//8;//9;
 	
 	syn = initialise_parameter_optimisation_sweep(argc, argv);
 	print_params();
@@ -430,8 +431,8 @@ int main( int argc, char *argv[] ){
 	// tau, D, C_pf, C_cs, N_pf, theta_d, gamma_d, gamma_p
 	//double x_init[8] = {185,(80./dt),0.07,0.6,0.2,0.522,2.3809e-4,7.9365e-5};
     //double x_init[8] = {1,1,1e-2,1e-2,1e-2,1e-3,1e-5,1e-5};
-	double x_init[8] = {0,0,0,0,0,0,0,0};
-	//double x_init[9] = {0,0,0,0,0,0,0,0,0};
+	//double x_init[8] = {0,0,0,0,0,0,0,0};
+	double x_init[9] = {0,0,0,0,0,0,0,0,0};
 	//double x_init[10] = {0,0,0,0,0,0,0,0,0,0};
 	//double x_init[1] = {1.0};//{185.};//,(int)(80./dt),0.07,0.6,0.2,0.522,2.3809e-4,7.9365e-5};
 	
