@@ -697,14 +697,24 @@ int main( int argc, char *argv[] ){
 	int index_loop_counter;
 	float loop_increment = 0.1; // ms
 	
+	// Make sure that directory 'output' exists
+    if(mkdir("output",(S_IRUSR | S_IWUSR | S_IXUSR)) == -1){
+        if (errno == EEXIST){
+            printf("Directory 'output' already exists.\n");
+        }
+        else{
+            perror("Error creating directory 'output'");
+        }
+    }
+	
 	summary_outname = "output/summary_safo.dat";
 	summary_outfile = fopen(summary_outname, "a");
 	fprintf(summary_outfile, "\n\n\n\n\n%% LoopOffset, SynID, alpha_d, alpha_p, GammaD, GammaP, LTP zone, LTD zone, AmountLTP, AmountLTD\n");
 	
 	// Don't forget, index_loop_counter is in units of DT
-	//for(index_loop_counter = 0; index_loop_counter< SAFO_STEPS; index_loop_counter+=1000){
-	for(index_loop_counter = 40; index_loop_counter< BIDORET_STEPS; index_loop_counter+=10000){
-	//for(index_loop_counter = 0; index_loop_counter< PF_LOOP_STEPS; index_loop_counter+=100){
+	//for(index_loop_counter = 0; index_loop_counter< SAFO_STEPS; index_loop_counter+=1){
+	//for(index_loop_counter = 0; index_loop_counter< BIDORET_STEPS; index_loop_counter+=1){
+	for(index_loop_counter = 0; index_loop_counter< PF_LOOP_STEPS; index_loop_counter+=1){
 		printf("beginning loop %d\n", index_loop_counter);
 		
 		int i;
@@ -767,7 +777,7 @@ int main( int argc, char *argv[] ){
 			// Update each synapse
 			for (i = 0; i < no_synapses; i++){
 				//printf("syn(%d) ", i);
-				//updatePreSynapticVoltageTrace(&syn[i]);
+				updatePreSynapticVoltageTrace(&syn[i]);
 				updatePreSynapticNOConcentration(&syn[i]);
 				updateCalciumConcentration(&syn[i]);
 				updateSynapticEfficacy(&syn[i]);
@@ -1098,11 +1108,11 @@ double nmdarFromPreSynapticSpikes(Synapse *syn){
     }
     else if( (siT >= iNOSpikeDelay) && ( siT < (simulation_duration - 1) ) ){
         // Simple model, no dependence on presynaptic potential unblocking of NMDAR
-		d = ((double) (*syn).preT[siT - iNOSpikeDelay]) * lfNMDARjump;
+		//d = ((double) (*syn).preT[siT - iNOSpikeDelay]) * lfNMDARjump;
 		
 		// Dependence on activation of presynaptic NMDAR
 		// we need the equal delay on the spike and on the V state in order to have consistency
-		//d = ((double) (*syn).preT[siT - iNOSpikeDelay]) * lfNMDARjump * (*syn).V_pre[siT - iNOSpikeDelay];
+		d = ((double) (*syn).preT[siT - iNOSpikeDelay]) * lfNMDARjump * (*syn).V_pre[siT - iNOSpikeDelay];
     }
     else{ // This shouldn't happen!
         fprintf(logfile, "ERROR: unexpected situation in nmdarFromPreSynapticSpikes()");
