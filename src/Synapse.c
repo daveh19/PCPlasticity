@@ -463,7 +463,7 @@ int perform_parameter_optimisation_sim(Synapse *syn){
 void set_optimisation_sim_params(const gsl_vector * x){
     //double param_multiplier[8] = {1e-8, 1e-8, 1e-5, 1e-4, 1e-5, 1e-4, 1e2, 1e3}; //{1,1e-6,1,1,1,1,1000,1000};
 	//double param_multiplier[8] = {1,1,1,1,1,1,1,1};// {1e-8, 1e-10, 1e-6, 1e-6, 1e-6, 1e-7, 1e0, 1e1}; //{1,1e-6,1,1,1,1,1000,1000};
-    double param_multiplier[9] = {1,1,1,1,1,1,1,1,1};
+    double param_multiplier[10] = {1,1,1,1,1,1,1,1,1,1};
 	//double param_multiplier[9] = {1e-8, 1e-10, 1e-6, 1e-6, 1e-6, 1e-7, 1e0, 1e1, 1e-8}; //{1,1e-6,1,1,1,1,1000,1000};
 	//double param_multiplier[10] = {1e-10, 1e-10, 1e-6, 1e-6, 1e-6, 1e-7, 1e0, 1e1, 1e-8, 1e-10}; //{1,1e-6,1,1,1,1,1000,1000};
 	double temp_reader;
@@ -504,6 +504,9 @@ void set_optimisation_sim_params(const gsl_vector * x){
     // or PCdepolarisation can be fitted independently in the optimisation
 	//dCdepol = (param_multiplier[8] * dCdepolFixed + gsl_vector_get(x,8)) / param_multiplier[8];
 	
+    // What about the jump in NMDAR activation level:
+    lfVjump = (param_multiplier[9] * lfVjumpFixed + gsl_vector_get(x,9)) / param_multiplier[9];
+    
 	printf("DEBUG gammaD difference %g\n", (temp_reader - dGammaD));
 	
     printf("DEBUG, end of setting new params. ");
@@ -515,7 +518,7 @@ void set_optimisation_sim_params(const gsl_vector * x){
 
 
 void print_params(){
-	printf("Parameters: tauC %0.30f, DC %d, DN, %d, Cpre %0.30f, Cpost %0.30f, Npre %0.30f, thetaD %0.30f, gammaD %0.30f, gammaP %0.30f, tau_v %0.30f, tauNO %0.30f Cdepol %0.30f\n", fTauC, iCaSpikeDelay, iNOSpikeDelay, dCpre, dCpost, lfNMDARjump, dThetaD, dGammaD, dGammaP, lfTauV, lfTauNMDAR, dCdepol);
+	printf("Parameters: tauC %0.30f, DC %d, DN, %d, Cpre %0.30f, Cpost %0.30f, Npre %0.30f, thetaD %0.30f, gammaD %0.30f, gammaP %0.30f, tau_v %0.30f, tauNO %0.30f Cdepol %0.30f, Vjump %0.30f\n", fTauC, iCaSpikeDelay, iNOSpikeDelay, dCpre, dCpost, lfNMDARjump, dThetaD, dGammaD, dGammaP, lfTauV, lfTauNMDAR, dCdepol, lfVjump);
 }
 
 
@@ -606,6 +609,8 @@ Synapse* initialise_parameter_optimisation_sweep(int argc, char *argv[]){
 	
 	lfTauVfixed = lfTauV;
     dCdepolFixed = dCdepol;
+    
+    lfVjumpFixed = lfVjump;
 	
 	for(i = 0; i < 17; i++){
 		old_simulated_dw[i] = 0.0;
