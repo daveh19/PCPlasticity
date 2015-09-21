@@ -490,11 +490,18 @@ void set_optimisation_sim_params(const gsl_vector * x){
 	dGammaD = (param_multiplier[6] * dGammaDfixed + gsl_vector_get(x,6)) / param_multiplier[6]; //gsl_vector_get(x, 6);
 	dGammaP = (param_multiplier[7] * dGammaPfixed + gsl_vector_get(x,7)) / param_multiplier[7]; //gsl_vector_get(x, 7);
 	
-	lfTauV = lfTauVfixed;
-	//lfTauV = (param_multiplier[8] * lfTauVfixed + gsl_vector_get(x,8)) / param_multiplier[8]; //gsl_vector_get(x, 7);
-	lfTauNMDAR = fTauC;
+    // NMDAR-model has modifiable tauV
+	//lfTauV = lfTauVfixed;
+	lfTauV = (param_multiplier[8] * lfTauVfixed + gsl_vector_get(x,8)) / param_multiplier[8]; //gsl_vector_get(x, 7);
+	// We typically fix tauNMDAR = tauC, in order to simplify model
+    //lfTauNMDAR = fTauC;
+    // We can fix tauNMDAR to see if it can equal a biologically plausible value
+    lfTauNMDAR = lfTauNMDARfixed;
+    // We can allow tauNMDAR to be fitted independently of tauC in the optimisation procedure
     //lfTauNMDAR = (param_multiplier[9] * lfTauNMDARfixed + gsl_vector_get(x,9)) / param_multiplier[9]; //fTauC; //gsl_vector_get(x, 0);
+    // For PCdepolarisation, we can allow this value to equal the PC complex spike value for simplicity
     dCdepol = dCpost;
+    // or PCdepolarisation can be fitted independently in the optimisation
 	//dCdepol = (param_multiplier[8] * dCdepolFixed + gsl_vector_get(x,8)) / param_multiplier[8];
 	
 	printf("DEBUG gammaD difference %g\n", (temp_reader - dGammaD));
