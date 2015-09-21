@@ -426,7 +426,7 @@ int perform_parameter_optimisation_sim(Synapse *syn){
 		{
 			//i = 12;
 			//printf("syn(%d) t %d\n", i, t);
-			//updatePreSynapticVoltageTrace(&syn[i]);
+			updatePreSynapticVoltageTrace(&syn[i]);
 			updatePreSynapticNOConcentration(&syn[i]);
 			updateCalciumConcentration(&syn[i]);
 			updateSynapticEfficacy(&syn[i]);
@@ -714,7 +714,8 @@ int main( int argc, char *argv[] ){
 	// Don't forget, index_loop_counter is in units of DT
 	//for(index_loop_counter = 0; index_loop_counter< SAFO_STEPS; index_loop_counter+=1){
 	//for(index_loop_counter = 0; index_loop_counter< BIDORET_STEPS; index_loop_counter+=1){
-	for(index_loop_counter = 0; index_loop_counter< PF_LOOP_STEPS; index_loop_counter+=1){
+	//for(index_loop_counter = 0; index_loop_counter< PF_LOOP_STEPS; index_loop_counter+=1){
+	for(index_loop_counter = 0; index_loop_counter< PF_LOOP_STEPS; index_loop_counter+=1000000){
 		printf("beginning loop %d\n", index_loop_counter);
 		
 		int i;
@@ -741,6 +742,8 @@ int main( int argc, char *argv[] ){
 			loop_index = 0;
 			//bidoret_index = 0;
 		}
+		//loop_index = 4. / dt;
+		trains_no_pf_stims = 15;
 		//printf("safo index %d\n", safo_index);
 		//printf("bidoret index %d\n", bidoret_index);
 		printf("loop index %d\n", loop_index);
@@ -809,7 +812,7 @@ int main( int argc, char *argv[] ){
 				sprintf(outfile, outfilepattern, syn[i].ID);
 				printf("writing...%s\n", outfile);
 				// not saving output file here
-				//saveSynapseOutputFile(outfile, &syn[i], siT, dCpre, dCpost, dThetaD, dThetaP, dGammaD, dGammaP, dSigma, iCaSpikeDelay, iNOSpikeDelay, fTau, fTauC, dRhoFixed, poisson_param, initial_random_seed);
+				saveSynapseOutputFile(outfile, &syn[i], siT, dCpre, dCpost, dThetaD, dThetaP, dGammaD, dGammaP, dSigma, iCaSpikeDelay, iNOSpikeDelay, fTau, fTauC, dRhoFixed, poisson_param, initial_random_seed);
 			}
 		}
 
@@ -1107,12 +1110,14 @@ double nmdarFromPreSynapticSpikes(Synapse *syn){
         d = 0.0;
     }
     else if( (siT >= iNOSpikeDelay) && ( siT < (simulation_duration - 1) ) ){
+        //TODO: choose which NMDAR model here
+        
         // Simple model, no dependence on presynaptic potential unblocking of NMDAR
-		//d = ((double) (*syn).preT[siT - iNOSpikeDelay]) * lfNMDARjump;
+		d = ((double) (*syn).preT[siT - iNOSpikeDelay]) * lfNMDARjump;
 		
 		// Dependence on activation of presynaptic NMDAR
 		// we need the equal delay on the spike and on the V state in order to have consistency
-		d = ((double) (*syn).preT[siT - iNOSpikeDelay]) * lfNMDARjump * (*syn).V_pre[siT - iNOSpikeDelay];
+		//d = ((double) (*syn).preT[siT - iNOSpikeDelay]) * lfNMDARjump * (*syn).V_pre[siT - iNOSpikeDelay];
     }
     else{ // This shouldn't happen!
         fprintf(logfile, "ERROR: unexpected situation in nmdarFromPreSynapticSpikes()");

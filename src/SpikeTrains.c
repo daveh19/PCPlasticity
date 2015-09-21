@@ -1051,7 +1051,7 @@ int train32(unsigned int * preT, unsigned int * postT, unsigned long simulation_
 	recurrent_no_stims = 300; //120; // repeat protocol x times
 	
 	//inter_pf_gap = 5 / dt; // ms
-	inter_pf_gap = (1 / dt) + loop_index; //42;//5; // ms
+	inter_pf_gap = (10. / dt) + loop_index; //42;//5; // ms
 	if (trains_no_pf_stims > -1){
 		no_pf_stims = trains_no_pf_stims;
 	}
@@ -1059,6 +1059,7 @@ int train32(unsigned int * preT, unsigned int * postT, unsigned long simulation_
 		no_pf_stims = 5;
 	}
 	//cf_offset = 62;
+	printf("inter_pf_gap %d, trains_no_pf_stims %d, no_pf_stims %d\n", inter_pf_gap, trains_no_pf_stims, no_pf_stims);
 	
 	// Attempt at LTP->LTD protocol
 	/*inter_pf_gap = 5;
