@@ -10,8 +10,8 @@
 //#include <gsl/gsl_rng.h>
 //#include <gsl/gsl_randist.h>
 
-#define SIM_LOOP_PROGRAM
-//#define BASIC_ALL_EXPERIMENTS_SWEEP
+//#define SIM_LOOP_PROGRAM
+#define BASIC_ALL_EXPERIMENTS_SWEEP
 //#define LM_OPTIMISATION_PROGRAM
 //#define PR_MINIMISATION_PROGRAM
 //#define NM_MINIMISATION_PROGRAM

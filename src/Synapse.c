@@ -1113,11 +1113,11 @@ double nmdarFromPreSynapticSpikes(Synapse *syn){
         //TODO: choose which NMDAR model here
         
         // Simple model, no dependence on presynaptic potential unblocking of NMDAR
-		d = ((double) (*syn).preT[siT - iNOSpikeDelay]) * lfNMDARjump;
+		//d = ((double) (*syn).preT[siT - iNOSpikeDelay]) * lfNMDARjump;
 		
 		// Dependence on activation of presynaptic NMDAR
 		// we need the equal delay on the spike and on the V state in order to have consistency
-		//d = ((double) (*syn).preT[siT - iNOSpikeDelay]) * lfNMDARjump * (*syn).V_pre[siT - iNOSpikeDelay];
+		d = ((double) (*syn).preT[siT - iNOSpikeDelay]) * lfNMDARjump * (*syn).V_pre[siT - iNOSpikeDelay];
     }
     else{ // This shouldn't happen!
         fprintf(logfile, "ERROR: unexpected situation in nmdarFromPreSynapticSpikes()");
