@@ -494,11 +494,11 @@ void set_optimisation_sim_params(const gsl_vector * x){
 	lfTauV = lfTauVfixed;
 	//lfTauV = (param_multiplier[8] * lfTauVfixed + gsl_vector_get(x,8)) / param_multiplier[8]; //gsl_vector_get(x, 7);
 	// We typically fix tauNMDAR = tauC, in order to simplify model
-    lfTauNMDAR = fTauC;
+    //lfTauNMDAR = fTauC;
     // We can fix tauNMDAR to see if it can equal a biologically plausible value
     //lfTauNMDAR = lfTauNMDARfixed;
     // We can allow tauNMDAR to be fitted independently of tauC in the optimisation procedure
-    //lfTauNMDAR = (param_multiplier[8] * lfTauNMDARfixed + gsl_vector_get(x,8)) / param_multiplier[8]; //fTauC; //gsl_vector_get(x, 0);
+    lfTauNMDAR = (param_multiplier[8] * lfTauNMDARfixed + gsl_vector_get(x,8)) / param_multiplier[8]; //fTauC; //gsl_vector_get(x, 0);
     // For PCdepolarisation, we can allow this value to equal the PC complex spike value for simplicity
     dCdepol = dCpost;
     // or PCdepolarisation can be fitted independently in the optimisation
