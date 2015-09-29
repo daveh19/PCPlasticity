@@ -463,7 +463,7 @@ int perform_parameter_optimisation_sim(Synapse *syn){
 void set_optimisation_sim_params(const gsl_vector * x){
     //double param_multiplier[8] = {1e-8, 1e-8, 1e-5, 1e-4, 1e-5, 1e-4, 1e2, 1e3}; //{1,1e-6,1,1,1,1,1000,1000};
 	//double param_multiplier[8] = {1,1,1,1,1,1,1,1};// {1e-8, 1e-10, 1e-6, 1e-6, 1e-6, 1e-7, 1e0, 1e1}; //{1,1e-6,1,1,1,1,1000,1000};
-    double param_multiplier[10] = {1,1,1,1,1,1,1,1,1,1};
+    double param_multiplier[12] = {1,1,1,1,1,1,1,1,1,1,1,1};
 	//double param_multiplier[9] = {1e-8, 1e-10, 1e-6, 1e-6, 1e-6, 1e-7, 1e0, 1e1, 1e-8}; //{1,1e-6,1,1,1,1,1000,1000};
 	//double param_multiplier[10] = {1e-10, 1e-10, 1e-6, 1e-6, 1e-6, 1e-7, 1e0, 1e1, 1e-8, 1e-10}; //{1,1e-6,1,1,1,1,1000,1000};
 	double temp_reader;
@@ -477,7 +477,7 @@ void set_optimisation_sim_params(const gsl_vector * x){
 	temp_reader = iCaSpikeDelay;
 	delay_as_double = (param_multiplier[1] * (double)(iCaSpikeDelayFixed) + gsl_vector_get(x,1)) / param_multiplier[1]; //gsl_vector_get(x,1);
 	iCaSpikeDelay = (int) delay_as_double; //gsl_vector_get(x, 1);
-	iNOSpikeDelay = iCaSpikeDelay; //gsl_vector_get(x, 1);
+	//iNOSpikeDelay = iCaSpikeDelay; //gsl_vector_get(x, 1);
 	printf("DEBUG C delay difference %g %g\n", (temp_reader - iCaSpikeDelay), delay_as_double);
 	
 	dCpre = (param_multiplier[2] * dCpreFixed + gsl_vector_get(x,2)) / param_multiplier[2]; //gsl_vector_get(x, 2);
@@ -495,7 +495,7 @@ void set_optimisation_sim_params(const gsl_vector * x){
 	//lfTauV = (param_multiplier[8] * lfTauVfixed + gsl_vector_get(x,8)) / param_multiplier[8]; //gsl_vector_get(x, 7);
 	// We typically fix tauNMDAR = tauC, in order to simplify model
     //lfTauNMDAR = fTauC;
-    // We can fix tauNMDAR to see if it can equal a biologically plausible value
+    // We can fix tauNMDAR to see if it fits data better
     //lfTauNMDAR = lfTauNMDARfixed;
     // We can allow tauNMDAR to be fitted independently of tauC in the optimisation procedure
     lfTauNMDAR = (param_multiplier[8] * lfTauNMDARfixed + gsl_vector_get(x,8)) / param_multiplier[8]; //fTauC; //gsl_vector_get(x, 0);
@@ -506,6 +506,12 @@ void set_optimisation_sim_params(const gsl_vector * x){
 	
     // What about the jump in NMDAR activation level:
     lfVjump = (param_multiplier[9] * lfVjumpFixed + gsl_vector_get(x,9)) / param_multiplier[9];
+    
+    // Separating Dn from Dc,
+    temp_reader = iNOSpikeDelay;
+    delay_as_double = (param_multiplier[10] * (double)(iNOSpikeDelayFixed) + gsl_vector_get(x,10)) / param_multiplier[10]; //gsl_vector_get(x,1);
+    iNOSpikeDelay = (int) delay_as_double; //gsl_vector_get(x, 1);
+    printf("DEBUG NO delay difference %g %g\n", (temp_reader - iNOSpikeDelay), delay_as_double);
     
 	printf("DEBUG gammaD difference %g\n", (temp_reader - dGammaD));
 	
