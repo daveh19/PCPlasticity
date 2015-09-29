@@ -62,7 +62,7 @@ int main( int argc, char *argv[] ){
 	int setup_status;
 	unsigned int iter = 0;
 	//const size_t n = 17;
-	const size_t p = 11; //10;//8;//9;
+	const size_t p = 12; //10;//8;//9;
 	
 	syn = initialise_parameter_optimisation_sweep(argc, argv);
 	print_params();

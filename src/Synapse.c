@@ -527,7 +527,7 @@ void set_optimisation_sim_params(const gsl_vector * x){
 
 
 void print_params(){
-	printf("Parameters: tauC %0.30f, DC %d, DN, %d, Cpre %0.30f, Cpost %0.30f, Npre %0.30f, thetaD %0.30f, gammaD %0.30f, gammaP %0.30f, tau_v %0.30f, tauNO %0.30f Cdepol %0.30f, Vjump %0.30f\n", fTauC, iCaSpikeDelay, iNOSpikeDelay, dCpre, dCpost, lfNMDARjump, dThetaD, dGammaD, dGammaP, lfTauV, lfTauNMDAR, dCdepol, lfVjump);
+	printf("Parameters: tauC %0.30f, DC %d, DN, %d, Cpre %0.30f, Cpost %0.30f, Npre %0.30f, thetaD %0.30f, gammaD %0.30f, gammaP %0.30f, tau_v %0.30f, tauNO %0.30f Cdepol %0.30f, Vjump %0.30f Vmax %0.30f\n", fTauC, iCaSpikeDelay, iNOSpikeDelay, dCpre, dCpost, lfNMDARjump, dThetaD, dGammaD, dGammaP, lfTauV, lfTauNMDAR, dCdepol, lfVjump, fVmax);
 }
 
 
