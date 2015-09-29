@@ -150,6 +150,8 @@ int iNOSpikeDelayFixed;
 double lfTauVfixed;
 double lfVjumpFixed;
 
+double fVmaxFixed;
+
 void synapse_memory_init(Synapse *);
 int finalise(int, Synapse *);
 void loadInitialSpikeTimes(Synapse *);

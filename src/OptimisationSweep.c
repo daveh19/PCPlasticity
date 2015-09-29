@@ -82,6 +82,7 @@ int main( int argc, char *argv[] ){
 	gsl_vector_set(x, 8, 0);
     gsl_vector_set(x, 9, 0); // Vjump
     gsl_vector_set(x, 10, 0); // Dc != Dn
+    gsl_vector_set(x, 11, 0); // Vmax
 	// step sizes (different per parameter)
 	step_size = gsl_vector_alloc(p);
 	 gsl_vector_set(step_size, 0, 1); // tau_c
@@ -95,6 +96,7 @@ int main( int argc, char *argv[] ){
 	 gsl_vector_set(step_size, 8, 1); // tau_no, c_depol, tau_v
     gsl_vector_set(step_size, 9, 1e-2); // Vjump
     gsl_vector_set(step_size, 10, 1); // Delay NO
+    gsl_vector_set(step_size, 11, 1e-2); // Vmax
 	// tau, D, C_pf, C_cs, N_pf, theta_d, gamma_d, gamma_p
 	//double x_init[8] = {185,(80./dt),0.07,0.6,0.2,0.522,2.3809e-4,7.9365e-5};
     //double x_init[8] = {1,1,1e-2,1e-2,1e-2,1e-3,1e-5,1e-5};

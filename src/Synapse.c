@@ -513,6 +513,9 @@ void set_optimisation_sim_params(const gsl_vector * x){
     iNOSpikeDelay = (int) delay_as_double; //gsl_vector_get(x, 1);
     printf("DEBUG NO delay difference %g %g\n", (temp_reader - iNOSpikeDelay), delay_as_double);
     
+    // Finally, what about modifiable change in upper NMDAR activation value?
+    fVmax = (param_multiplier[11] * fVmaxFixed + gsl_vector_get(x,11)) / param_multiplier[11];
+    
 	printf("DEBUG gammaD difference %g\n", (temp_reader - dGammaD));
 	
     printf("DEBUG, end of setting new params. ");
@@ -615,6 +618,8 @@ Synapse* initialise_parameter_optimisation_sweep(int argc, char *argv[]){
 	
 	lfTauVfixed = lfTauV;
     dCdepolFixed = dCdepol;
+    
+    fVmaxFixed = fVmax;
     
     lfVjumpFixed = lfVjump;
 	
